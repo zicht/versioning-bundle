@@ -1,14 +1,21 @@
 <?php
 
+use Behat\Behat\Hook\Scope\AfterScenarioScope;
+use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Behat\Tester\Exception\PendingException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Behat\Context\SnippetAcceptingContext;
+use Behat\Behat\Context\Context;
+use Behat\Testwork\Hook\Scope\AfterSuiteScope;
+use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 
 /**
  * Features context.
  */
 class FeatureContext extends MinkContext implements SnippetAcceptingContext
 {
+    private $retrievedData;
+
     public static function console($cmd)
     {
         $dir = __DIR__ . '/../../../../../';
@@ -19,29 +26,72 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         return $result;
     }
 
-    /**
-     * @Given /^a new page with title "([^"]*)"$/
-     */
-    public function aNewPageWithTitle($title)
+    /** @AfterSuite */
+    public static function afterSuite($scope)
     {
-        self::console(sprintf('zicht:versioning:client create-new %s', $title));
+        //not sure if we need this still
+
+        // clean database after everything is done
+//        self::console('zicht:versioning:client clear-test-records');
+
+        //TODO should we also remove the table here? And add it at @beforeSuite?
     }
 
     /**
-     * @When i save it
+     * @Given /^I have a clean database$/
      */
-    public function iSaveIt()
+    public function iHaveACleanDatabase()
     {
-        throw new PendingException();
+        // clean database after everything is done
+        self::console('zicht:versioning:client clear-test-records');
     }
 
     /**
-     * @When i retrieve it
+     * @Given /^a new page is created with title "([^"]*)"$/
      */
-    public function iRetrieveIt()
+    public function aNewPageIsCreatedWithTitle($title)
     {
-        throw new PendingException();
+        self::console(sprintf('zicht:versioning:client create --title=%s', $title));
     }
+
+    /**
+     * @Given /^when i retrieve a page with title "([^"]*)"$/
+     */
+    public function whenIRetrieveAPageWithTitle($title)
+    {
+        $result = self::console(sprintf('zicht:versioning:client retrieve --title=%s', $title));
+        $this->retrievedData = json_decode($result);
+    }
+
+/**
+     * @Then /^the retrieved page has title "([^"]*)"$/
+     */
+    public function theRetrievedPageHasTitle($title)
+    {
+        if ($this->retrievedData == null) {
+            throw new Exception('There is no retrieved page');
+        }
+
+        if (!key_exists('title', $this->retrievedData)) {
+            throw new Exception('The retrieved page doesn\'t have a title property');
+        }
+
+        if ($this->retrievedData->title != $title) {
+            throw new Exception(
+                sprintf(
+                    'Title %s of the retrieved page doesn\'t match the given the title %s',
+                    $this->retrievedData->title,
+                    $title
+                )
+            );
+        }
+    }
+
+
+
+
+
+
 
     /**
      * @Then I get the page back

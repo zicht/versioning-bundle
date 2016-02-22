@@ -1,23 +1,31 @@
 Feature: Serialization
 
+Background:
+  Given I have a clean database
+
 Scenario: Creating a new page
-  Given a new page with title "A"
-  When i save it
-  And i retrieve it
-  Then I get the page back with title "A"
+  Given a new page is created with title "A"
+  And when i retrieve a page with title "A"
+  Then the retrieved page has title "A"
+
+Scenario: Creating two new pages and retrieving the first one
+  Given a new page is created with title "A"
+  And   a new page is created with title "B"
+  And when i retrieve a page with title "A"
+  Then the retrieved page has title "A"
 
 Scenario: Creating a new version
   Given an existing page with title "A"
   When i change the title to "B"
   And i save it as a new version
-  When i retrieve it
-  Then the title should be be "A"
+  And when i retrieve a page with title "A"
+  Then the retrieved page has title "A"
 
 Scenario: Activating the new version
   Given an existing page with title "A" with a new version with title "B"
   When I set the active version to title "B"
-  When i retrieve it
-  Then the title should be be "B"
+  And when i retrieve a page with title "B"
+  Then the retrieved page has title "B"
 
 Scenario: Creating a new version with a content item
   Given an existing page with title "A"

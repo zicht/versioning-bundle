@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @package Zicht\Bundle\VersioningBundle\Entity
  *
  * @ORM\Table(name="versioning_test_page")
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="PageRepository", )
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
 class Page
