@@ -4,9 +4,10 @@
  * @copyright Zicht Online <http://zicht.nl>
  */
 
-namespace Zicht\Bundle\VersioningBundle\Entity;
+namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\ORM\Mapping as ORM;
+use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 
 /**
  * Class Page
@@ -14,10 +15,10 @@ use Doctrine\ORM\Mapping as ORM;
  * @package Zicht\Bundle\VersioningBundle\Entity
  *
  * @ORM\Table(name="versioning_test_page")
- * @ORM\Entity(repositoryClass="PageRepository", )
+ * @ORM\Entity(repositoryClass="Zicht\Bundle\VersioningBundle\Entity\Test\PageRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class Page
+class Page implements IVersionable
 {
     /**
      * @var int

@@ -5,21 +5,25 @@ Background:
 
 Scenario: Creating a new page
   Given a new page is created with title "A"
-  And when i retrieve a page with title "A"
+  And when i retrieve the last created page
   Then the retrieved page has title "A"
 
 Scenario: Creating two new pages and retrieving the first one
   Given a new page is created with title "A"
   And   a new page is created with title "B"
-  And when i retrieve a page with title "A"
+  And when i retrieve the first created page
   Then the retrieved page has title "A"
 
-Scenario: Creating a new version
-  Given an existing page with title "A"
-  When i change the title to "B"
-  And i save it as a new version
-  And when i retrieve a page with title "A"
-  Then the retrieved page has title "A"
+Scenario: Creating two new pages and retrieving the last one
+  Given a new page is created with title "A"
+  And   a new page is created with title "B"
+  And when i retrieve the last created page
+  Then the retrieved page has title "B"
+
+Scenario: Activating a new version
+  Given a new page is created with title "A"
+  And when i check the number of versions for last created page
+  Then the number of versions is 2
 
 Scenario: Activating the new version
   Given an existing page with title "A" with a new version with title "B"

@@ -1,40 +1,49 @@
 <?php
 
-use Behat\Behat\Hook\Scope\AfterScenarioScope;
-use Behat\Behat\Hook\Scope\BeforeScenarioScope;
 use Behat\Behat\Tester\Exception\PendingException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Behat\Context\SnippetAcceptingContext;
-use Behat\Behat\Context\Context;
-use Behat\Testwork\Hook\Scope\AfterSuiteScope;
-use Behat\Testwork\Hook\Scope\BeforeSuiteScope;
 
 /**
  * Features context.
  */
 class FeatureContext extends MinkContext implements SnippetAcceptingContext
 {
+    private $createdPageIds;
     private $retrievedData;
+    private $numberOfVersions;
+
+    /**
+     * FeatureContext constructor.
+     */
+    public function __construct()
+    {
+        $this->createdPageIds = [];
+    }
+
 
     public static function console($cmd)
     {
+        $arg_list = func_get_args();
+        $arg_list = array_splice($arg_list, 1);
+
+        if (count($arg_list)) {
+            $cmd = vsprintf($cmd, $arg_list);
+        }
+
         $dir = __DIR__ . '/../../../../../';
-        $cmd = "(cd $dir; php app/console -v $cmd)";
-//        echo $cmd;
+        $cmd = "(cd $dir; php app/console -v zicht:versioning:client $cmd)";
         $result = shell_exec($cmd);
-//        echo $result;
         return $result;
     }
 
-    /** @AfterSuite */
-    public static function afterSuite($scope)
+    /** @BeforeSuite */
+    public static function beforeSuite($scope)
     {
-        //not sure if we need this still
-
         // clean database after everything is done
-//        self::console('zicht:versioning:client clear-test-records');
+//        self::console('clear-test-records');
 
-        //TODO should we also remove the table here? And add it at @beforeSuite?
+        //TODO should we also remove the table at the @AfterSuite? And add it at @BeforeSuite?
     }
 
     /**
@@ -42,8 +51,8 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function iHaveACleanDatabase()
     {
-        // clean database after everything is done
-        self::console('zicht:versioning:client clear-test-records');
+        // clean database before we run a new scenario
+        self::console('clear-test-records');
     }
 
     /**
@@ -51,19 +60,29 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function aNewPageIsCreatedWithTitle($title)
     {
-        self::console(sprintf('zicht:versioning:client create --title=%s', $title));
+        $this->createdPageIds[] = json_decode(self::console('create --title=%s', $title))->id;
     }
 
     /**
-     * @Given /^when i retrieve a page with title "([^"]*)"$/
+     * @Given /^when i retrieve the first created page$/
      */
-    public function whenIRetrieveAPageWithTitle($title)
+    public function whenIRetrieveTheFirstCreatedPage()
     {
-        $result = self::console(sprintf('zicht:versioning:client retrieve --title=%s', $title));
+        $result = self::console('retrieve --id=%s', reset($this->createdPageIds));
         $this->retrievedData = json_decode($result);
     }
 
-/**
+    /**
+     * @Given /^when i retrieve the last created page$/
+     */
+    public function whenIRetrieveTheLastCreatedPage()
+    {
+        $result = self::console('retrieve --id=%s', end($this->createdPageIds));
+        $this->retrievedData = json_decode($result);
+    }
+
+
+    /**
      * @Then /^the retrieved page has title "([^"]*)"$/
      */
     public function theRetrievedPageHasTitle($title)
@@ -87,66 +106,30 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         }
     }
 
-
-
-
-
-
-
     /**
-     * @Then I get the page back
+     * @Given /^when i check the number of versions for last created page$/
      */
-    public function iGetThePageBack()
+    public function whenICheckTheNumberOfVersionsForLastCreatedPage()
     {
-        throw new PendingException();
+        $this->numberOfVersions = json_decode(self::console('get-version-count --id=%s', end($this->createdPageIds)))->count;
     }
 
     /**
-     * @Given an existing page with title :arg1
+     * @Then /^the number of versions is (\d+)$/
      */
-    public function anExistingPageWithTitle($arg1)
+    public function theNumberOfVersionsIs($expectedNumberOfVersions)
     {
-        throw new PendingException();
+        if ($this->numberOfVersions != $expectedNumberOfVersions) {
+            throw new RuntimeException(sprintf('The retrieved number of versions (%s) doesn\'t match the expected value of %s', $this->numberOfVersions,  $expectedNumberOfVersions));
+        }
     }
 
     /**
      * @When i change the title to :arg1
      */
-    public function iChangeTheTitleTo($arg1)
+    public function iChangeTheTitleTo($newTitle)
     {
-        throw new PendingException();
-    }
-
-    /**
-     * @When i save it as a new version
-     */
-    public function iSaveItAsANewVersion()
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Then the title should be be :arg1
-     */
-    public function theTitleShouldBeBe($arg1)
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Given an existing page with title :arg1 with a new version with title :arg2
-     */
-    public function anExistingPageWithTitleWithANewVersionWithTitle($arg1, $arg2)
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @When I set the active version to title :arg1
-     */
-    public function iSetTheActiveVersionToTitle($arg1)
-    {
-        throw new PendingException();
+        self::console('change-property --title=%s --property=%s  --value=%s', $this->retrievedData->title, 'title', $newTitle);
     }
 
     /**

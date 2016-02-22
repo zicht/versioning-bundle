@@ -1,6 +1,6 @@
 <?php
 
-namespace Zicht\Bundle\VersioningBundle\Entity;
+namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\ORM\EntityRepository;
 
@@ -12,12 +12,12 @@ use Doctrine\ORM\EntityRepository;
  */
 class PageRepository extends EntityRepository
 {
-    public function findByTitle($title)
+    public function findById($id)
     {
         return $this->createQueryBuilder('p')
             ->select('p')
-            ->where('p.title = :title')
-            ->setParameter('title', $title)
+            ->where('p.id = :id')
+            ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();
     }
