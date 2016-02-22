@@ -11,12 +11,12 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
 {
     public static function console($cmd)
     {
-        $dir = __DIR__ . '/../../../../../../../';
+        $dir = __DIR__ . '/../../../../../';
         $cmd = "(cd $dir; php app/console -v $cmd)";
-        echo $cmd;
-//        $result = shell_exec($cmd);
+//        echo $cmd;
+        $result = shell_exec($cmd);
 //        echo $result;
-//        return $result;
+        return $result;
     }
 
     /**
