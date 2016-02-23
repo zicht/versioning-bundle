@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
 class ClientCommand extends ContainerAwareCommand
@@ -35,7 +36,7 @@ class ClientCommand extends ContainerAwareCommand
 
         $data = [];
         foreach ($input->getOption('data') as $optionData) {
-            $explodedData = explode(':', $optionData);
+            $explodedData = explode(':', $optionData, 2);
             $data[$explodedData[0]] = $explodedData[1];
         }
 
@@ -93,6 +94,17 @@ class ClientCommand extends ContainerAwareCommand
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
                 $output->writeln(json_encode(['count' => $versioning->getVersionCount($page)]));
+                break;
+
+            case 'inject-data':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+                $version = $data['version'];
+
+                /** @var EntityVersion $entityVersion */
+                $entityVersion = $em->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($page, $version);
+                $entityVersion->setData($data['data']);
+                $em->persist($entityVersion);
+                $em->flush();
                 break;
 
             case 'retrieve':

@@ -125,20 +125,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
-     * @When /^i check the number of versions for the page with id (\d+)$/
+     * @Then /^the number of versions for page with id (\d+) should be (\d+)$/
      */
-    public function iCheckTheNumberOfVersionsForThePageWithId($id)
+    public function theNumberOfVersionsForPageWithIdShouldBe($id, $expectedNumberOfVersions)
     {
-        $this->numberOfVersions = json_decode(self::console('get-version-count', $id))->count;
-    }
+        $retrievedNumberOfVersions = json_decode(self::console('get-version-count', $id))->count;
 
-    /**
-     * @Then /^the number of versions is (\d+)$/
-     */
-    public function theNumberOfVersionsIs($expectedNumberOfVersions)
-    {
-        if ($this->numberOfVersions != $expectedNumberOfVersions) {
-            throw new RuntimeException(sprintf('The retrieved number of versions (%s) doesn\'t match the expected value of %s', $this->numberOfVersions,  $expectedNumberOfVersions));
+        if ($retrievedNumberOfVersions != $expectedNumberOfVersions) {
+            throw new RuntimeException(sprintf('The retrieved number of versions (%s) doesn\'t match the expected value of %s', $retrievedNumberOfVersions,  $expectedNumberOfVersions));
         }
     }
 
@@ -165,5 +159,15 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function iChangeTheActiveVersionForThePageWithIdToVersion($id, $versionNumber)
     {
         self::console('set-active --id=%d', $id, ['version' => $versionNumber]);
+    }
+
+    /**
+     * @Given /^a new page is created with id (\d+) and title "([^"]*)" with an old schema$/
+     */
+    public function aNewPageIsCreatedWithIdAndTitleWithAnOldSchema($id, $title)
+    {
+        $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
+
+        self::console('inject-data', $id, ['version' => 1, 'data' => '{\"id\":\"1\",\"title\":\"A\",\"introduction\":null}']);
     }
 }

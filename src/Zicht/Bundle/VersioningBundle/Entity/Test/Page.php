@@ -43,6 +43,12 @@ class Page implements IVersionable
     private $introduction;
 
     /**
+     * @var string $foo
+     *
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $foo;
+    /**
      * @param int $id
      * @return void
      */
@@ -91,5 +97,22 @@ class Page implements IVersionable
     public function setIntroduction($introduction)
     {
         $this->introduction = $introduction;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFoo()
+    {
+        return $this->foo;
+    }
+
+    /**
+     * @param string $foo
+     * @return void
+     */
+    public function setFoo($foo)
+    {
+        $this->foo = $foo;
     }
 }
