@@ -24,7 +24,6 @@ class Page implements IVersionable
      * @var int
      *
      * @ORM\Id()
-     * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -35,6 +34,15 @@ class Page implements IVersionable
      * @ORM\Column(type="string", nullable=true)
      */
     private $title;
+
+    /**
+     * @param int $id
+     * @return void
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
 
     /**
      * @return int

@@ -56,31 +56,21 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
-     * @Given /^a new page is created with title "([^"]*)"$/
+     * @Given /^a new page is created with id (\d+) and title "([^"]*)"$/
      */
-    public function aNewPageIsCreatedWithTitle($title)
+    public function aNewPageIsCreatedWithIdAndTitle($id, $title)
     {
-        $this->createdPageIds[] = json_decode(self::console('create --title=%s', $title))->id;
+        self::console('create --id=%d --title=%s', $id, $title);
     }
 
     /**
-     * @Given /^when i retrieve the first created page$/
+     * @When /^i retrieve the page with id (\d+)$/
      */
-    public function whenIRetrieveTheFirstCreatedPage()
+    public function iRetrieveThePageWithId($id)
     {
-        $result = self::console('retrieve --id=%s', reset($this->createdPageIds));
+        $result = self::console('retrieve --id=%s', $id);
         $this->retrievedData = json_decode($result);
     }
-
-    /**
-     * @Given /^when i retrieve the last created page$/
-     */
-    public function whenIRetrieveTheLastCreatedPage()
-    {
-        $result = self::console('retrieve --id=%s', end($this->createdPageIds));
-        $this->retrievedData = json_decode($result);
-    }
-
 
     /**
      * @Then /^the retrieved page has title "([^"]*)"$/
@@ -107,11 +97,11 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
-     * @Given /^when i check the number of versions for last created page$/
+     * @When /^i check the number of versions for the page with id (\d+)$/
      */
-    public function whenICheckTheNumberOfVersionsForLastCreatedPage()
+    public function iCheckTheNumberOfVersionsForThePageWithId($id)
     {
-        $this->numberOfVersions = json_decode(self::console('get-version-count --id=%s', end($this->createdPageIds)))->count;
+        $this->numberOfVersions = json_decode(self::console('get-version-count --id=%s', $id))->count;
     }
 
     /**
@@ -125,11 +115,11 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
-     * @When i change the title to :arg1
+     * @Given /^I change the title to "([^"]*)" on the page with id (\d+)$/
      */
-    public function iChangeTheTitleTo($newTitle)
+    public function iChangeTheTitleToOnThePageWithId($title, $id)
     {
-        self::console('change-property --title=%s --property=%s  --value=%s', $this->retrievedData->title, 'title', $newTitle);
+        self::console('change-property --id=%d --property=%s  --value=%s', $id, 'title', $title);
     }
 
     /**

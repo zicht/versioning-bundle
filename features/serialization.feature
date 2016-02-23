@@ -4,25 +4,31 @@ Background:
   Given I have a clean database
 
 Scenario: Creating a new page
-  Given a new page is created with title "A"
-  And when i retrieve the last created page
+  Given a new page is created with id 1 and title "A"
+  When i retrieve the page with id 1
   Then the retrieved page has title "A"
 
 Scenario: Creating two new pages and retrieving the first one
-  Given a new page is created with title "A"
-  And   a new page is created with title "B"
-  And when i retrieve the first created page
+  Given a new page is created with id 1 and title "A"
+  Given a new page is created with id 2 and title "B"
+  When i retrieve the page with id 1
   Then the retrieved page has title "A"
 
-Scenario: Creating two new pages and retrieving the last one
-  Given a new page is created with title "A"
-  And   a new page is created with title "B"
-  And when i retrieve the last created page
+Scenario: Creating two new pages and retrieving the second one
+  Given a new page is created with id 1 and title "A"
+  Given a new page is created with id 2 and title "B"
+  When i retrieve the page with id 2
   Then the retrieved page has title "B"
 
-Scenario: Activating a new version
-  Given a new page is created with title "A"
-  And when i check the number of versions for last created page
+Scenario: Just a single version
+  Given a new page is created with id 1 and title "A"
+  When i check the number of versions for the page with id 1
+  Then the number of versions is 1
+
+Scenario: Just a single version
+  Given a new page is created with id 1 and title "A"
+  And I change the title to "B" on the page with id 1
+  When i check the number of versions for the page with id 1
   Then the number of versions is 2
 
 Scenario: Activating the new version

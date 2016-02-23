@@ -31,12 +31,15 @@ class ClientCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $em = $this->getContainer()->get('doctrine')->getManager();
+        $versioningService = $this->getContainer()->get('zicht_versioning.manager');
 
         switch ($input->getArgument('action')) {
 
             case 'create':
+                $id = $input->getOption('id');
                 $title = $input->getOption('title');
                 $page = new Page();
+                $page->setId($id);
                 $page->setTitle($title);
                 $em->persist($page);
                 $em->flush();
@@ -56,11 +59,11 @@ class ClientCommand extends ContainerAwareCommand
                 break;
 
             case 'change-property':
-                $title = $input->getOption('title');
+                $id = $input->getOption('id');
                 $property = $input->getOption('property');
                 $value = $input->getOption('value');
 
-                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findByTitle($title);
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($id);
                 $methodName = 'set' . ucfirst($property);
                 if (method_exists($page, $methodName)) {
                     call_user_func_array(array($page, $methodName), array($value));
@@ -74,21 +77,20 @@ class ClientCommand extends ContainerAwareCommand
             case 'get-version-count':
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
-                /*
-                 * $versioning-service->getVersionNumberForEntity($page);
-                 */
-                $output->writeln(json_encode(['count' => 1]));
+                $output->writeln(json_encode(['count' => $versioningService->getVersionCount($page)]));
                 break;
 
             case 'clear-test-records':
-                $cmd = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\Page');
+                $pageClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\Page');
+                $entityVersionClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\EntityVersion');
                 $connection = $em->getConnection();
 
                 $connection->beginTransaction();
 
                 try {
                     $connection->query('SET FOREIGN_KEY_CHECKS=0');
-                    $connection->query('DELETE FROM '.$cmd->getTableName());
+                    $connection->query('DELETE FROM '.$pageClassMetadata->getTableName());
+                    $connection->query('DELETE FROM '.$entityVersionClassMetadata->getTableName());
                     $connection->query('SET FOREIGN_KEY_CHECKS=1');
                     $connection->commit();
                 } catch (\Exception $e) {

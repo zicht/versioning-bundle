@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @package Zicht\Bundle\VersioningBundle\Entity
  *
  * @ORM\Table(name="_entity_version")
- * @ORM\Entity()
+ * @ORM\Entity(repositoryClass="EntityVersionRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
 class EntityVersion
