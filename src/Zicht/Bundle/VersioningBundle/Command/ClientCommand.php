@@ -31,6 +31,7 @@ class ClientCommand extends ContainerAwareCommand
     {
         $em = $this->getContainer()->get('doctrine')->getManager();
         $versioning = $this->getContainer()->get('zicht_versioning.manager');
+        $serializer = $this->getContainer()->get('zicht_versioning.serializer');
 
         $data = [];
         foreach ($input->getOption('data') as $optionData) {
@@ -98,11 +99,7 @@ class ClientCommand extends ContainerAwareCommand
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
                 if ($page) {
-                    $jsonData = [];
-                    $jsonData['id'] = $page->getId();
-                    $jsonData['title'] = $page->getTitle();
-
-                    $output->writeln(json_encode($jsonData));
+                    $output->writeln($serializer->serialize($page));
                 }
                 break;
 

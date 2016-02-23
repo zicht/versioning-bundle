@@ -6,19 +6,19 @@ Background:
 Scenario: Creating a new page
   Given a new page is created with id 1 and title "A"
   When i retrieve the page with id 1
-  Then the retrieved page has title "A"
+  Then the field "title" of the retrieved page has the value "A"
 
 Scenario: Creating two new pages and retrieving the first one
   Given a new page is created with id 1 and title "A"
   Given a new page is created with id 2 and title "B"
   When i retrieve the page with id 1
-  Then the retrieved page has title "A"
+  Then the field "title" of the retrieved page has the value "A"
 
 Scenario: Creating two new pages and retrieving the second one
   Given a new page is created with id 1 and title "A"
   Given a new page is created with id 2 and title "B"
   When i retrieve the page with id 2
-  Then the retrieved page has title "B"
+  Then the field "title" of the retrieved page has the value "B"
 
 Scenario: Just a single version
   Given a new page is created with id 1 and title "A"
@@ -27,9 +27,9 @@ Scenario: Just a single version
 
 Scenario: Change the title
   Given a new page is created with id 1 and title "A"
-  And I change the title to "B" on the page with id 1
+  And I change the field "title" to "B" on the page with id 1
   When i retrieve the page with id 1
-  Then the retrieved page has title "B"
+  Then the field "title" of the retrieved page has the value "B"
   And i check the number of versions for the page with id 1
   Then the number of versions is 2
 
@@ -39,7 +39,52 @@ Scenario: Activating a previous version
   Then the number of versions is 2
   When I change the active version for the page with id 1 to version 1
   And i retrieve the page with id 1
-  Then the retrieved page has title "A"
+  Then the field "title" of the retrieved page has the value "A"
+
+Scenario: Activating a previous version
+  Given an existing page with id 1 with title "A" with a new version with title "B"
+  Given I change the field "introduction" to "aaa" on the page with id 1
+  When i check the number of versions for the page with id 1
+  Then the number of versions is 3
+  When I change the active version for the page with id 1 to version 1
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "A"
+  And the field "introduction" of the retrieved page has the value "NULL"
+
+Scenario: Activating a previous version
+  Given an existing page with id 1 with title "A" with a new version with title "B"
+  Given I change the field "introduction" to "aaa" on the page with id 1
+  When I change the active version for the page with id 1 to version 2
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "B"
+  And the field "introduction" of the retrieved page has the value "NULL"
+
+Scenario: Activating a previous version
+  Given an existing page with id 1 with title "A" with a new version with title "B"
+  Given I change the field "introduction" to "aaa" on the page with id 1
+  When I change the active version for the page with id 1 to version 3
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "B"
+  And the field "introduction" of the retrieved page has the value "aaa"
+
+Scenario: Activating a previous version
+  Given an existing page with id 1 with title "A" with a new version with title "B"
+  Given I change the field "introduction" to "aaa" on the page with id 1
+  Given I change the field "introduction" to "bbb" on the page with id 1
+  When i check the number of versions for the page with id 1
+  Then the number of versions is 4
+  When I change the active version for the page with id 1 to version 1
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "A"
+  And the field "introduction" of the retrieved page has the value "NULL"
+  When I change the active version for the page with id 1 to version 4
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "B"
+  And the field "introduction" of the retrieved page has the value "bbb"
+  When I change the active version for the page with id 1 to version 3
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "B"
+  And the field "introduction" of the retrieved page has the value "aaa"
 
 #Scenario: Checking other fields are filled in
 #Scenario: Checking other fields are not filled in

@@ -72,28 +72,29 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function iRetrieveThePageWithId($id)
     {
         $result = self::console('retrieve', $id);
-        $this->retrievedData = json_decode($result);
+        $this->retrievedData = json_decode($result, true);
     }
 
     /**
-     * @Then /^the retrieved page has title "([^"]*)"$/
+     * @Then /^the field "([^"]*)" of the retrieved page has the value "([^"]*)"$/
      */
-    public function theRetrievedPageHasTitle($title)
+    public function theFieldOfTheRetrievedPageHasTheValue($fieldName, $expectedValue)
     {
         if ($this->retrievedData == null) {
             throw new Exception('There is no retrieved page');
         }
 
-        if (!key_exists('title', $this->retrievedData)) {
-            throw new Exception('The retrieved page doesn\'t have a title property');
+        if (!key_exists($fieldName, $this->retrievedData)) {
+            throw new Exception('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
         }
 
-        if ($this->retrievedData->title != $title) {
+        if ($this->retrievedData[$fieldName] != $expectedValue && !(is_null($this->retrievedData[$fieldName]) && $expectedValue === 'NULL')) {
             throw new Exception(
                 sprintf(
-                    'Title %s of the retrieved page doesn\'t match the given the title %s',
-                    $this->retrievedData->title,
-                    $title
+                    'The value of the field %s of the retrieved page is \'%s\' and that doesn\'t match the expected value \'%s\'',
+                    $fieldName,
+                    $this->retrievedData[$fieldName],
+                    $expectedValue
                 )
             );
         }
@@ -118,11 +119,11 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
-     * @Given /^I change the title to "([^"]*)" on the page with id (\d+)$/
+     * @Given /^I change the field "([^"]*)" to "([^"]*)" on the page with id (\d+)$/
      */
-    public function iChangeTheTitleToOnThePageWithId($title, $id)
+    public function iChangeTheFieldToOnThePageWithId($fieldName, $value, $id)
     {
-        self::console('change-property', $id, ['property' => 'title', 'value' => $title]);
+        self::console('change-property', $id, ['property' => $fieldName, 'value' => $value]);
     }
 
     /**
@@ -131,7 +132,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function anExistingPageWithIdWithTitleWithANewVersionWithTitle($id, $oldTitle, $newTitle)
     {
         $this->aNewPageIsCreatedWithIdAndTitle($id, $oldTitle);
-        $this->iChangeTheTitleToOnThePageWithId($newTitle, $id);
+        $this->iChangeTheFieldToOnThePageWithId('title', $newTitle, $id);
     }
 
     /**
