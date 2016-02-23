@@ -110,9 +110,15 @@ class ClientCommand extends ContainerAwareCommand
             case 'retrieve':
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
-                if ($page) {
-                    $output->writeln($serializer->serialize($page));
-                }
+                $output->writeln($serializer->serialize($page));
+                break;
+
+            case 'retrieve-version':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+                $version = $data['version'];
+
+                $entityVersion = $em->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($page, $version);
+                $output->writeln($serializer->serialize($serializer->deserialize($entityVersion)));
                 break;
 
             case 'set-active':

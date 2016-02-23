@@ -39,7 +39,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
 
         if ($data) {
             foreach ($data as $key => $value) {
-                $cmd .= sprintf(' --data="%s:%s"', $key, $value);
+                $cmd .= sprintf(' --data="%s:%s"', $key, addslashes($value));
             }
         }
 
@@ -89,7 +89,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         }
 
         if ($this->retrievedData[$fieldName] != $expectedValue) {
-            throw new Exception(
+            throw new RuntimeException(
                 sprintf(
                     'The value of the field %s of the retrieved page is \'%s\' and that doesn\'t match the expected value \'%s\'',
                     $fieldName,
@@ -106,15 +106,15 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function theFieldOfTheRetrievedPageHasNoValue($fieldName)
     {
         if ($this->retrievedData == null) {
-            throw new Exception('There is no retrieved page');
+            throw new RuntimeException('There is no retrieved page');
         }
 
         if (!key_exists($fieldName, $this->retrievedData)) {
-            throw new Exception('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
+            throw new RuntimeException('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
         }
 
         if (!is_null($this->retrievedData[$fieldName])) {
-            throw new Exception(
+            throw new RuntimeException(
                 sprintf(
                     'The value of the field %s of the retrieved page is \'%s\' and it should have been null',
                     $fieldName,
@@ -132,7 +132,13 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         $retrievedNumberOfVersions = json_decode(self::console('get-version-count', $id))->count;
 
         if ($retrievedNumberOfVersions != $expectedNumberOfVersions) {
-            throw new RuntimeException(sprintf('The retrieved number of versions (%s) doesn\'t match the expected value of %s', $retrievedNumberOfVersions,  $expectedNumberOfVersions));
+            throw new RuntimeException(
+                sprintf(
+                    'The retrieved number of versions (%s) doesn\'t match the expected value of %s',
+                    $retrievedNumberOfVersions,
+                    $expectedNumberOfVersions
+                )
+            );
         }
     }
 
@@ -168,6 +174,30 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     {
         $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
 
-        self::console('inject-data', $id, ['version' => 1, 'data' => '{\"id\":\"1\",\"title\":\"A\",\"introduction\":null}']);
+        $jsonData = json_encode(['id' => $id, 'title' => 'A', 'introduction' => null], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+
+        self::console('inject-data', $id, ['version' => 1, 'data' => $jsonData]);
+    }
+
+    /**
+     * @When /^the data of version (\d+) of page with id (\d+) has data for the unexisting field "([^"]*)" in it$/
+     */
+    public function theDataOfVersionOfPageWithIdHasDataForTheUnexistingFieldInIt($version, $id, $unexistingFieldName)
+    {
+        $jsonData = json_decode(self::console('retrieve-version', $id, ['version' => $version]), true);
+        $jsonData[$unexistingFieldName] = 'non existing field value';
+        $jsonData = json_encode($jsonData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+
+        self::console('inject-data', $id, ['version' => $version, 'data' => $jsonData]);
+    }
+
+    /**
+     * @Then /^the field "([^"]*)" shouldn't exist in the retrieved page$/
+     */
+    public function theFieldShouldnTExistInTheRetrievedPage($fieldName)
+    {
+        if (key_exists($fieldName, $this->retrievedData)) {
+            throw new RuntimeException(sprintf('The field %s shouldn\'t be present', $fieldName));
+        }
     }
 }
