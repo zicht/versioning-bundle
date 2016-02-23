@@ -36,6 +36,13 @@ class Page implements IVersionable
     private $title;
 
     /**
+     * @var string $introduction
+     *
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $introduction;
+
+    /**
      * @param int $id
      * @return void
      */
@@ -67,5 +74,22 @@ class Page implements IVersionable
     public function setTitle($title)
     {
         $this->title = $title;
+    }
+
+    /**
+     * @return string
+     */
+    public function getIntroduction()
+    {
+        return $this->introduction;
+    }
+
+    /**
+     * @param string $introduction
+     * @return void
+     */
+    public function setIntroduction($introduction)
+    {
+        $this->introduction = $introduction;
     }
 }

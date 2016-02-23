@@ -22,6 +22,15 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
 
+    /**
+     * Helper method to communicate with the console command
+     *
+     * @see Zicht\Bundle\VersioningBundle\Command\ClientCommand
+     * @param string $cmd the actual command to do
+     * @param null|integer $id optional id
+     * @param null|mixed $data the data, wrapped in an array
+     * @return string
+     */
     public static function console($cmd, $id = null, $data = null)
     {
         if ($id) {
@@ -38,15 +47,6 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         $cmd = "(cd $dir; php app/console -v zicht:versioning:client $cmd)";
         $result = shell_exec($cmd);
         return $result;
-    }
-
-    /** @BeforeSuite */
-    public static function beforeSuite($scope)
-    {
-        // clean database after everything is done
-//        self::console('clear-test-records');
-
-        //TODO should we also remove the table at the @AfterSuite? And add it at @BeforeSuite?
     }
 
     /**
@@ -88,13 +88,37 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
             throw new Exception('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
         }
 
-        if ($this->retrievedData[$fieldName] != $expectedValue && !(is_null($this->retrievedData[$fieldName]) && $expectedValue === 'NULL')) {
+        if ($this->retrievedData[$fieldName] != $expectedValue) {
             throw new Exception(
                 sprintf(
                     'The value of the field %s of the retrieved page is \'%s\' and that doesn\'t match the expected value \'%s\'',
                     $fieldName,
                     $this->retrievedData[$fieldName],
                     $expectedValue
+                )
+            );
+        }
+    }
+
+    /**
+     * @Given /^the field "([^"]*)" of the retrieved page has no value$/
+     */
+    public function theFieldOfTheRetrievedPageHasNoValue($fieldName)
+    {
+        if ($this->retrievedData == null) {
+            throw new Exception('There is no retrieved page');
+        }
+
+        if (!key_exists($fieldName, $this->retrievedData)) {
+            throw new Exception('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
+        }
+
+        if (!is_null($this->retrievedData[$fieldName])) {
+            throw new Exception(
+                sprintf(
+                    'The value of the field %s of the retrieved page is \'%s\' and it should have been null',
+                    $fieldName,
+                    $this->retrievedData[$fieldName]
                 )
             );
         }
@@ -141,41 +165,5 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function iChangeTheActiveVersionForThePageWithIdToVersion($id, $versionNumber)
     {
         self::console('set-active --id=%d', $id, ['version' => $versionNumber]);
-    }
-
-
-
-
-
-    /**
-     * @When i add a content item with title :arg1
-     */
-    public function iAddAContentItemWithTitle($arg1)
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Then a content item with title :arg1 should be present
-     */
-    public function aContentItemWithTitleShouldBePresent($arg1)
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Given I add a content item with title :arg1
-     */
-    public function iAddAContentItemWithTitle2($arg1)
-    {
-        throw new PendingException();
-    }
-
-    /**
-     * @Then a content item with title :arg1 should not be present
-     */
-    public function aContentItemWithTitleShouldNotBePresent($arg1)
-    {
-        throw new PendingException();
     }
 }

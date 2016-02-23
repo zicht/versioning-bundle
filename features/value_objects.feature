@@ -40,8 +40,10 @@ Scenario: Activating a previous version
   When I change the active version for the page with id 1 to version 1
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "A"
+  When i check the number of versions for the page with id 1
+  Then the number of versions is 3
 
-Scenario: Activating a previous version
+Scenario: Activating a previous version should empty newer fields
   Given an existing page with id 1 with title "A" with a new version with title "B"
   Given I change the field "introduction" to "aaa" on the page with id 1
   When i check the number of versions for the page with id 1
@@ -49,34 +51,27 @@ Scenario: Activating a previous version
   When I change the active version for the page with id 1 to version 1
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "A"
-  And the field "introduction" of the retrieved page has the value "NULL"
+  And the field "introduction" of the retrieved page has no value
 
-Scenario: Activating a previous version
+Scenario: Activating a previous version with other fields
   Given an existing page with id 1 with title "A" with a new version with title "B"
-  Given I change the field "introduction" to "aaa" on the page with id 1
-  When I change the active version for the page with id 1 to version 2
-  And i retrieve the page with id 1
-  Then the field "title" of the retrieved page has the value "B"
-  And the field "introduction" of the retrieved page has the value "NULL"
-
-Scenario: Activating a previous version
-  Given an existing page with id 1 with title "A" with a new version with title "B"
-  Given I change the field "introduction" to "aaa" on the page with id 1
+  And I change the field "introduction" to "aaa" on the page with id 1
+  And I change the field "introduction" to "bbb" on the page with id 1
   When I change the active version for the page with id 1 to version 3
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "B"
   And the field "introduction" of the retrieved page has the value "aaa"
 
-Scenario: Activating a previous version
+Scenario: Version swapping
   Given an existing page with id 1 with title "A" with a new version with title "B"
-  Given I change the field "introduction" to "aaa" on the page with id 1
-  Given I change the field "introduction" to "bbb" on the page with id 1
+  And I change the field "introduction" to "aaa" on the page with id 1
+  And I change the field "introduction" to "bbb" on the page with id 1
   When i check the number of versions for the page with id 1
   Then the number of versions is 4
   When I change the active version for the page with id 1 to version 1
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "A"
-  And the field "introduction" of the retrieved page has the value "NULL"
+  And the field "introduction" of the retrieved page has no value
   When I change the active version for the page with id 1 to version 4
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "B"
@@ -85,6 +80,3 @@ Scenario: Activating a previous version
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "B"
   And the field "introduction" of the retrieved page has the value "aaa"
-
-#Scenario: Checking other fields are filled in
-#Scenario: Checking other fields are not filled in
