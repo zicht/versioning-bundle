@@ -33,10 +33,13 @@ Scenario: Change the title
   And i check the number of versions for the page with id 1
   Then the number of versions is 2
 
-Scenario: Activating the new version
+Scenario: Activating a previous version
   Given an existing page with id 1 with title "A" with a new version with title "B"
   When i check the number of versions for the page with id 1
   Then the number of versions is 2
   When I change the active version for the page with id 1 to version 1
   And i retrieve the page with id 1
   Then the retrieved page has title "A"
+
+#Scenario: Checking other fields are filled in
+#Scenario: Checking other fields are not filled in

@@ -30,4 +30,24 @@ class EntityVersionRepository extends EntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find a specific version of the given entity
+     *
+     * @param IVersionable $entity
+     * @param integer $version
+     * @return mixed
+     */
+    public function findVersion(IVersionable $entity, $version)
+    {
+        return $this->createQueryBuilder('ev')
+            ->select('ev')
+            ->where('ev.sourceClass = :sourceClass')
+            ->andWhere('ev.originalId = :originalId')
+            ->setParameters(['sourceClass' => get_class($entity), 'originalId' => $entity->getId()])
+            ->andWhere('ev.versionNumber = :version')
+            ->setParameter('version', $version)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }

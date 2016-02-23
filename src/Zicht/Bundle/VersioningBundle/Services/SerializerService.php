@@ -9,6 +9,7 @@ namespace Zicht\Bundle\VersioningBundle\Services;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 
 /**
@@ -41,5 +42,16 @@ class SerializerService
     public function serialize(IVersionable $entity)
     {
         return $this->serializer->serialize($entity, 'json');
+    }
+
+    /**
+     * Deserializes the given entity
+     *
+     * @param EntityVersion $entityVersion
+     * @return IVersionable $entity
+     */
+    public function deserialize(EntityVersion $entityVersion)
+    {
+        return $this->serializer->deserialize($entityVersion->getData(), $entityVersion->getSourceClass(), 'json');
     }
 }

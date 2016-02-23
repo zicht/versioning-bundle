@@ -111,7 +111,7 @@ class ClientCommand extends ContainerAwareCommand
                 $version = $data['version'];
 
                 if ($page) {
-//                    $versioning->setActive($page, $version);
+                    $versioning->setActive($page, $version);
                 }
                 break;
 

@@ -8,6 +8,7 @@ namespace Zicht\Bundle\VersioningBundle\Services;
 
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 
 /**
@@ -21,15 +22,21 @@ class VersioningService
      * @var Registry
      */
     private $doctrine;
+    /**
+     * @var SerializerService
+     */
+    private $serializer;
 
     /**
      * VersioningService constructor.
      *
      * @param Registry $doctrine
+     * @param SerializerService $serializer
      */
-    public function __construct(Registry $doctrine)
+    public function __construct(Registry $doctrine, SerializerService $serializer)
     {
         $this->doctrine = $doctrine;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -40,8 +47,26 @@ class VersioningService
      */
     public function getVersionCount(IVersionable $entity)
     {
-        $em = $this->doctrine->getManager();
-        $result = $em->getRepository('ZichtVersioningBundle:EntityVersion')->findVersions($entity);
+        $result = $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersions($entity);
         return count($result);
+    }
+
+    /**
+     * Sets the given page to the version information of the given version
+     *
+     * @param IVersionable $entity
+     * @param integer $version
+     * @return void
+     */
+    public function setActive(IVersionable $entity, $version)
+    {
+        /** @var EntityVersion $entityVersion */
+        $entityVersion = $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $version);
+
+        $storedEntity = $this->serializer->deserialize($entityVersion);
+        $storedEntity = $this->doctrine->getManager()->merge($storedEntity);
+
+        $this->doctrine->getManager()->persist($storedEntity);
+        $this->doctrine->getManager()->flush();
     }
 }
