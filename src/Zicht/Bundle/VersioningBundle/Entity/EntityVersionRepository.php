@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * @author Oskar van Velden <oskar@zicht.nl>
+ * @copyright Zicht Online <http://zicht.nl>
+ */
 namespace Zicht\Bundle\VersioningBundle\Entity;
 
 use Doctrine\ORM\EntityRepository;
@@ -13,10 +16,8 @@ class EntityVersionRepository extends EntityRepository
     /**
      * Find the entityversions for the given entity
      *
-     * @param $sourceClass
-     * @param $id
+     * @param IVersionable $entity
      * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function findVersions(IVersionable $entity)
     {

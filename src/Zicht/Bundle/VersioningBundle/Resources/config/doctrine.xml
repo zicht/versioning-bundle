@@ -5,8 +5,9 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <services>
-        <service id="zicht_versioning.doctrine.persist_listener" public="false" class="Zicht\Bundle\VersioningBundle\Doctrine\PersistListener">
+        <service id="zicht_versioning.doctrine.persist_listener" public="false" class="Zicht\Bundle\VersioningBundle\Doctrine\EventListener">
             <tag name="doctrine.event_listener" event="postPersist" />
+            <tag name="doctrine.event_listener" event="postUpdate" />
             <argument type="service" id="doctrine"/>
             <argument type="service" id="zicht_versioning.serializer"/>
         </service>

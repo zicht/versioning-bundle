@@ -13,11 +13,11 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 use Zicht\Bundle\VersioningBundle\Services\SerializerService;
 
 /**
- * Class PersistListener
+ * Class EventListener
  *
  * @package Zicht\Bundle\VersioningBundle\Doctrine
  */
-class PersistListener
+class EventListener
 {
     /** @var Registry */
     private $doctrine;
@@ -26,7 +26,7 @@ class PersistListener
     private $serializer;
 
     /**
-     * PersistListener constructor.
+     * EventListener constructor.
      *
      * @param Registry $doctrine
      * @param SerializerService $serializer
@@ -51,6 +51,34 @@ class PersistListener
             return;
         }
 
+        $this->createVersion($entity);
+    }
+
+    /**
+     * prePersist doctrine listener
+     *
+     * @param LifecycleEventArgs $args
+     * @return void
+     */
+    public function postUpdate(LifecycleEventArgs $args)
+    {
+        $entity = $args->getEntity();
+
+        if (!$entity instanceof IVersionable) {
+            return;
+        }
+
+        $this->createVersion($entity);
+    }
+
+    /**
+     * Create a new version (and store it in the database)
+     *
+     * @param IVersionable $entity
+     * @return void
+     */
+    private function createVersion(IVersionable $entity)
+    {
         $entityVersion = new EntityVersion();
         //TODO: how to get the author name? :|
         $entityVersion->setSourceClass(get_class($entity));
@@ -62,6 +90,6 @@ class PersistListener
 
         $this->doctrine->getManager()->persist($entityVersion);
         $this->doctrine->getManager()->flush();
-//        echo 'VERSION WRITTEN' . PHP_EOL;
+        echo 'VERSION WRITTEN' . PHP_EOL;
     }
 }

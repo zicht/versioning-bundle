@@ -123,6 +123,27 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
+     * @Given /^an existing page with id (\d+) with title "([^"]*)" with a new version with title "([^"]*)"$/
+     */
+    public function anExistingPageWithIdWithTitleWithANewVersionWithTitle($id, $oldTitle, $newTitle)
+    {
+        $this->aNewPageIsCreatedWithIdAndTitle($id, $oldTitle);
+        $this->iChangeTheTitleToOnThePageWithId($newTitle, $id);
+    }
+
+    /**
+     * @When /^I change the active version for the page with id (\d+) to version (\d+)$/
+     */
+    public function iChangeTheActiveVersionForThePageWithIdToVersion($id, $versionNumber)
+    {
+        throw new PendingException();
+    }
+
+
+
+
+
+    /**
      * @When i add a content item with title :arg1
      */
     public function iAddAContentItemWithTitle($arg1)
