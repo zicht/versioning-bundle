@@ -10,6 +10,7 @@
             <tag name="doctrine.event_listener" event="postUpdate" />
             <argument type="service" id="doctrine"/>
             <argument type="service" id="zicht_versioning.serializer"/>
+            <argument type="service" id="zicht_versioning.manager"/>
         </service>
     </services>
 </container>

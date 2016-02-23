@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
@@ -20,48 +21,29 @@ class ClientCommand extends ContainerAwareCommand
             ->setName('zicht:versioning:client')
             ->addArgument('action', InputArgument::REQUIRED, 'The action the client should do')
 
-            ->addOption('id', null, InputArgument::OPTIONAL, 'The page id, for identifing purposes')
+            ->addOption('id', null, InputOption::VALUE_OPTIONAL, 'The page id, for identifing purposes')
 
-            ->addOption('title', null, InputArgument::OPTIONAL, 'The title to set')
-            ->addOption('property', null, InputArgument::OPTIONAL, 'The property to change')
-            ->addOption('value', null, InputArgument::OPTIONAL, 'The value what the new property should have')
+            ->addOption('data', null, InputOption::VALUE_OPTIONAL|InputOption::VALUE_IS_ARRAY, 'The optional data, seperated by spaces')
         ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $em = $this->getContainer()->get('doctrine')->getManager();
-        $versioningService = $this->getContainer()->get('zicht_versioning.manager');
+        $versioning = $this->getContainer()->get('zicht_versioning.manager');
+
+        $data = [];
+        foreach ($input->getOption('data') as $optionData) {
+            $explodedData = explode(':', $optionData);
+            $data[$explodedData[0]] = $explodedData[1];
+        }
 
         switch ($input->getArgument('action')) {
 
-            case 'create':
-                $id = $input->getOption('id');
-                $title = $input->getOption('title');
-                $page = new Page();
-                $page->setId($id);
-                $page->setTitle($title);
-                $em->persist($page);
-                $em->flush();
-                $output->writeln(json_encode(['id' => $page->getId()]));
-                break;
-
-            case 'retrieve':
-                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
-
-                if ($page) {
-                    $data = [];
-                    $data['id'] = $page->getId();
-                    $data['title'] = $page->getTitle();
-
-                    $output->writeln(json_encode($data));
-                }
-                break;
-
             case 'change-property':
                 $id = $input->getOption('id');
-                $property = $input->getOption('property');
-                $value = $input->getOption('value');
+                $property = $data['property'];
+                $value = $data['value'];
 
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($id);
                 $methodName = 'set' . ucfirst($property);
@@ -72,12 +54,6 @@ class ClientCommand extends ContainerAwareCommand
                 } else {
                     throw new \Exception(sprintf('Method %s does not exist on the page', $methodName));
                 }
-                break;
-
-            case 'get-version-count':
-                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
-
-                $output->writeln(json_encode(['count' => $versioningService->getVersionCount($page)]));
                 break;
 
             case 'clear-test-records':
@@ -95,6 +71,47 @@ class ClientCommand extends ContainerAwareCommand
                     $connection->commit();
                 } catch (\Exception $e) {
                     $connection->rollback();
+                }
+                break;
+
+            case 'create':
+                $id = $input->getOption('id');
+                $title = $data['title'];
+
+                $page = new Page();
+                $page->setId($id);
+                $page->setTitle($title);
+
+                $em->persist($page);
+                $em->flush();
+
+                $output->writeln(json_encode(['id' => $page->getId()]));
+                break;
+
+            case 'get-version-count':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+
+                $output->writeln(json_encode(['count' => $versioning->getVersionCount($page)]));
+                break;
+
+            case 'retrieve':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+
+                if ($page) {
+                    $jsonData = [];
+                    $jsonData['id'] = $page->getId();
+                    $jsonData['title'] = $page->getTitle();
+
+                    $output->writeln(json_encode($jsonData));
+                }
+                break;
+
+            case 'set-active':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+                $version = $data['version'];
+
+                if ($page) {
+//                    $versioning->setActive($page, $version);
                 }
                 break;
 

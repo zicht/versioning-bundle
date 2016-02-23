@@ -8,9 +8,11 @@ namespace Zicht\Bundle\VersioningBundle\Doctrine;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\Event\LifecycleEventArgs;
+use Symfony\Component\Intl\Util\Version;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 use Zicht\Bundle\VersioningBundle\Services\SerializerService;
+use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 
 /**
  * Class EventListener
@@ -24,17 +26,23 @@ class EventListener
 
     /** @var SerializerService */
     private $serializer;
+    /**
+     * @var VersioningService
+     */
+    private $versioning;
 
     /**
      * EventListener constructor.
      *
      * @param Registry $doctrine
      * @param SerializerService $serializer
+     * @param VersioningService $versioning
      */
-    public function __construct(Registry $doctrine, SerializerService $serializer)
+    public function __construct(Registry $doctrine, SerializerService $serializer, VersioningService $versioning)
     {
         $this->doctrine = $doctrine;
         $this->serializer = $serializer;
+        $this->versioning = $versioning;
     }
 
     /**
@@ -75,6 +83,7 @@ class EventListener
      * Create a new version (and store it in the database)
      *
      * @param IVersionable $entity
+     * @param $versionNumber
      * @return void
      */
     private function createVersion(IVersionable $entity)
@@ -84,12 +93,10 @@ class EventListener
         $entityVersion->setSourceClass(get_class($entity));
         $entityVersion->setOriginalId($entity->getId());
         $entityVersion->setData($this->serializer->serialize($entity));
-
-        //TODO: get the previous saved version and update the number
-        //$entityVersion->setVersionNumber
+        $entityVersion->setVersionNumber($this->versioning->getVersionCount($entity) + 1);
 
         $this->doctrine->getManager()->persist($entityVersion);
         $this->doctrine->getManager()->flush();
-        echo 'VERSION WRITTEN' . PHP_EOL;
+//        echo 'VERSION WRITTEN' . PHP_EOL;
     }
 }

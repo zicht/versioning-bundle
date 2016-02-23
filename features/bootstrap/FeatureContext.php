@@ -22,13 +22,16 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
 
-    public static function console($cmd)
+    public static function console($cmd, $id = null, $data = null)
     {
-        $arg_list = func_get_args();
-        $arg_list = array_splice($arg_list, 1);
+        if ($id) {
+            $cmd = $cmd . ' --id=' . $id;
+        }
 
-        if (count($arg_list)) {
-            $cmd = vsprintf($cmd, $arg_list);
+        if ($data) {
+            foreach ($data as $key => $value) {
+                $cmd .= sprintf(' --data="%s:%s"', $key, $value);
+            }
         }
 
         $dir = __DIR__ . '/../../../../../';
@@ -60,7 +63,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function aNewPageIsCreatedWithIdAndTitle($id, $title)
     {
-        self::console('create --id=%d --title=%s', $id, $title);
+        self::console('create', $id, ['title' => $title]);
     }
 
     /**
@@ -68,7 +71,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function iRetrieveThePageWithId($id)
     {
-        $result = self::console('retrieve --id=%s', $id);
+        $result = self::console('retrieve', $id);
         $this->retrievedData = json_decode($result);
     }
 
@@ -101,7 +104,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function iCheckTheNumberOfVersionsForThePageWithId($id)
     {
-        $this->numberOfVersions = json_decode(self::console('get-version-count --id=%s', $id))->count;
+        $this->numberOfVersions = json_decode(self::console('get-version-count', $id))->count;
     }
 
     /**
@@ -119,7 +122,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function iChangeTheTitleToOnThePageWithId($title, $id)
     {
-        self::console('change-property --id=%d --property=%s  --value=%s', $id, 'title', $title);
+        self::console('change-property', $id, ['property' => 'title', 'value' => $title]);
     }
 
     /**
@@ -136,7 +139,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function iChangeTheActiveVersionForThePageWithIdToVersion($id, $versionNumber)
     {
-        throw new PendingException();
+        self::console('set-active --id=%d', $id, ['version' => $versionNumber]);
     }
 
 
