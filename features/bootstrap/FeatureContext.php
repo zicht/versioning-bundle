@@ -41,7 +41,13 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
             }
         }
 
-        $dir = __DIR__ . '/../../../../../';
+        $dir = __DIR__ . '/../../';
+
+        //this is added when the bundle is placed inside the /vendor/ folder
+        if (strpos(__DIR__, 'vendor') > -1) {
+            $dir .= '../../../';
+        }
+
         $cmd = "(cd $dir; php app/console -v zicht:versioning:client $cmd)";
         $result = shell_exec($cmd);
         return $result;
