@@ -107,3 +107,28 @@ Scenario: Unknown fields shouldn't be a problem
   And the field "title" of the retrieved page has the value "B"
   And the field "introduction" of the retrieved page has the value "bbb"
   And the field "foo" of the retrieved page has no value
+
+Scenario: Boolean field is stored correctly
+  Given a new page is created with id 1 and title "A"
+  And I change the field "booleanField" with type "boolean" to "true" on the page with id 1
+  When i retrieve the page with id 1
+  Then the field "booleanField" of the retrieved page has the value "true" and type "boolean"
+
+Scenario: Integer field is stored correctly
+  Given a new page is created with id 1 and title "A"
+  And I change the field "integerField" with type "integer" to "123" on the page with id 1
+  When i retrieve the page with id 1
+  Then the field "integerField" of the retrieved page has the value "123" and type "integer"
+
+Scenario: Boolean and integer fields are restored correctly
+  Given a new page is created with id 1 and title "A"
+  And I change the field "booleanField" with type "boolean" to "true" on the page with id 1
+  And I change the field "integerField" with type "integer" to "123" on the page with id 1
+  Then the number of versions for page with id 1 should be 3
+  When I change the field "integerField" with type "integer" to "666" on the page with id 1
+  And I change the field "booleanField" with type "boolean" to "false" on the page with id 1
+  Then the number of versions for page with id 1 should be 5
+  When I change the active version for the page with id 1 to version 3
+  When i retrieve the page with id 1
+  Then the field "integerField" of the retrieved page has the value "123" and type "integer"
+  Then the field "booleanField" of the retrieved page has the value "true" and type "boolean"

@@ -48,6 +48,21 @@ class Page implements IVersionable
      * @ORM\Column(type="string", nullable=true)
      */
     private $foo;
+
+    /**
+     * @var boolean $booleanField
+     *
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $booleanField;
+
+    /**
+     * @var integer $integerField
+     *
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $integerField;
+
     /**
      * @param int $id
      * @return void
@@ -114,5 +129,39 @@ class Page implements IVersionable
     public function setFoo($foo)
     {
         $this->foo = $foo;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isBooleanField()
+    {
+        return $this->booleanField;
+    }
+
+    /**
+     * @param boolean $booleanField
+     * @return void
+     */
+    public function setBooleanField($booleanField)
+    {
+        $this->booleanField = $booleanField;
+    }
+
+    /**
+     * @return int
+     */
+    public function getIntegerField()
+    {
+        return $this->integerField;
+    }
+
+    /**
+     * @param int $integerField
+     * @return void
+     */
+    public function setIntegerField($integerField)
+    {
+        $this->integerField = $integerField;
     }
 }

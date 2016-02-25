@@ -1,6 +1,5 @@
 <?php
 
-use Behat\Behat\Tester\Exception\PendingException;
 use Behat\MinkExtension\Context\MinkContext;
 use Behat\Behat\Context\SnippetAcceptingContext;
 
@@ -11,7 +10,6 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
 {
     private $createdPageIds;
     private $retrievedData;
-    private $numberOfVersions;
 
     /**
      * FeatureContext constructor.
@@ -81,20 +79,48 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function theFieldOfTheRetrievedPageHasTheValue($fieldName, $expectedValue)
     {
         if ($this->retrievedData == null) {
-            throw new Exception('There is no retrieved page');
+            throw new RuntimeException('There is no retrieved page');
         }
 
         if (!key_exists($fieldName, $this->retrievedData)) {
-            throw new Exception('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
+            throw new RuntimeException('The retrieved page doesn\'t have a property named \'' . $fieldName . '\'');
         }
 
-        if ($this->retrievedData[$fieldName] != $expectedValue) {
+        if ($this->retrievedData[$fieldName] !== $expectedValue) {
             throw new RuntimeException(
                 sprintf(
                     'The value of the field %s of the retrieved page is \'%s\' and that doesn\'t match the expected value \'%s\'',
                     $fieldName,
                     $this->retrievedData[$fieldName],
                     $expectedValue
+                )
+            );
+        }
+    }
+
+    /**
+     * @Then /^the field "([^"]*)" of the retrieved page has the value "([^"]*)" and type "([^"]*)"$/
+     */
+    public function theFieldOfTheRetrievedPageHasTheValueAndType($fieldName, $expectedValue, $expectedType)
+    {
+        switch($expectedType) {
+            case 'boolean':
+                $expectedValue = boolval($expectedValue);
+                break;
+
+            case 'integer':
+                $expectedValue = intval($expectedValue);
+                break;
+        }
+
+        $this->theFieldOfTheRetrievedPageHasTheValue($fieldName, $expectedValue);
+
+        if (gettype($this->retrievedData[$fieldName]) !== $expectedType) {
+            throw new RuntimeException(
+                sprintf(
+                    'The type of the field %s of the retrieved page doesn\'t match the expected type %s',
+                    $fieldName,
+                    $expectedType
                 )
             );
         }
@@ -131,7 +157,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     {
         $retrievedNumberOfVersions = json_decode(self::console('get-version-count', $id))->count;
 
-        if ($retrievedNumberOfVersions != $expectedNumberOfVersions) {
+        if ($retrievedNumberOfVersions !== intval($expectedNumberOfVersions)) {
             throw new RuntimeException(
                 sprintf(
                     'The retrieved number of versions (%s) doesn\'t match the expected value of %s',
@@ -148,6 +174,24 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function iChangeTheFieldToOnThePageWithId($fieldName, $value, $id)
     {
         self::console('change-property', $id, ['property' => $fieldName, 'value' => $value]);
+    }
+
+    /**
+     * @Given /^I change the field "([^"]*)" with type "([^"]*)" to "([^"]*)" on the page with id (\d+)$/
+     */
+    public function iChangeTheFieldWithTypeToOnThePageWithId($fieldName, $fieldType, $value, $id)
+    {
+        switch($fieldType) {
+            case 'boolean':
+                $value = boolval($value);
+                break;
+
+            case 'integer':
+                $value = intval($value);
+                break;
+        }
+
+        $this->iChangeTheFieldToOnThePageWithId($fieldName, $value, $id);
     }
 
     /**
