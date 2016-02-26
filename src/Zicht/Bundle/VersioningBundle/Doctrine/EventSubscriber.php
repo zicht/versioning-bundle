@@ -67,7 +67,7 @@ class EventSubscriber implements DoctrineEventSubscriber
 
 
     /**
-     * prePersist doctrine listener
+     * postPersist doctrine listener
      *
      * @param LifecycleEventArgs $args
      * @return void
@@ -81,12 +81,6 @@ class EventSubscriber implements DoctrineEventSubscriber
         }
 
         $this->createVersion($entity);
-
-        //we persist the queue immediately, so we can set it's version to active
-        $this->persistQueue($args->getEntityManager());
-
-        //by default we set the first version to active
-        $this->versioning->setActive($entity, 1);
     }
 
     /**
@@ -173,6 +167,9 @@ class EventSubscriber implements DoctrineEventSubscriber
         if ($entityVersionInformation) {
             $newEntityVersion->setIsActive($entityVersionInformation->isActive());
             $newEntityVersion->setBasedOnVersion($entityVersionInformation->getVersionNumber());
+        } else {
+            //if there is no version information, the entity is new and should be set to active
+            $newEntityVersion->setIsActive(true);
         }
 
         $this->queue[] = $newEntityVersion;

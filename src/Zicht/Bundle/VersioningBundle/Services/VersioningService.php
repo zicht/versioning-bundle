@@ -33,6 +33,8 @@ class VersioningService
     /** @var array */
     private $activatedEntityVersions = [];
 
+    private $makeEntityActiveMap = [];
+
     /**
      * VersioningService constructor.
      *
@@ -84,7 +86,6 @@ class VersioningService
         $entityVersion = $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $version);
 
         $this->storeActivatedEntityVersion($entity, $entityVersion);
-
         $this->writeEntityToEntityTable($entityVersion);
     }
 
@@ -105,7 +106,7 @@ class VersioningService
      * @param IVersionable $entity
      * @return string
      */
-    private function generateIdentifier(IVersionable $entity)
+    private function makeHash(IVersionable $entity)
     {
 //        return get_class($entity) . '-' . $entity->getId();
         return spl_object_hash($entity);
@@ -119,7 +120,8 @@ class VersioningService
      */
     private function storeActivatedEntityVersion(IVersionable $entity, EntityVersion $entityVersion)
     {
-        $this->activatedEntityVersions[$this->generateIdentifier($entity)] = $entityVersion;
+        $entityVersion->setIsActive(true);
+        $this->activatedEntityVersions[$this->makeHash($entity)] = $entityVersion;
     }
 
     /**
@@ -140,7 +142,7 @@ class VersioningService
          *           ja: teruggeven (UPDATE)
          *          nee: nieuwe (PERSIST)
          */
-        $entityKey = $this->generateIdentifier($entity);
+        $entityKey = $this->makeHash($entity);
 
         //TODO: checken of we met een versie aan het werk zijn
         //TODO:    !!! nog even nagaan of we eerst moeten checken of we met een versie werken OF eerst de activatedEntityVersions moeten checken !!!
@@ -153,8 +155,17 @@ class VersioningService
         //we just retrieve the current active version
         $activeEntityVersion = $this->getActiveVersion($entity);
         if ($activeEntityVersion) {
-            //we don't want an updated version to be set to active
-            $activeEntityVersion->setIsActive(false);
+
+            //set the entity to active if it was set specific by the startActiveTransaction()
+            if (in_array($this->makeHash($entity), $this->makeEntityActiveMap)) {
+                $this->deactivateAll($entity);
+
+                $activeEntityVersion->setIsActive(true);
+            } else {
+                //we don't want an updated version to be set to active by default
+                //we need to set it explicitly to false, since we use the active EntityVersion here ^^
+                $activeEntityVersion->setIsActive(false);
+            }
             return $activeEntityVersion;
         }
 
@@ -168,7 +179,7 @@ class VersioningService
      * @param IVersionable $entity
      * @return EntityVersion | null
      */
-    private function getActiveVersion(IVersionable $entity)
+    public function getActiveVersion(IVersionable $entity)
     {
         return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findActiveEntityVersion($entity);
     }
@@ -195,17 +206,28 @@ class VersioningService
      */
     public function setCurrentWorkingVersionNumber(IVersionable $entity, $versionNumber)
     {
-        $this->currentWorkingVersionNumberMap[$this->generateIdentifier($entity)] = $versionNumber;
+        $this->currentWorkingVersionNumberMap[$this->makeHash($entity)] = $versionNumber;
     }
 
     public function getCurrentWorkingVersionNumber(IVersionable $entity)
     {
-        $key = $this->generateIdentifier($entity);
+        $key = $this->makeHash($entity);
 
         if (key_exists($key, $this->currentWorkingVersionNumberMap)) {
             return $this->currentWorkingVersionNumberMap[$key];
         }
 
         return null;
+    }
+
+    /**
+     * Inform the versioning service we will go and make the next persist for this entity active
+     *
+     * @param IVersionable $entity
+     * @return void
+     */
+    public function startActiveTransaction(IVersionable $entity)
+    {
+        $this->makeEntityActiveMap[] = $this->makeHash($entity);
     }
 }

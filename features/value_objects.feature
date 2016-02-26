@@ -44,9 +44,9 @@ Scenario: Change the title multiple times, but not make the new version active
   When i retrieve the page with id 1
   And the field "title" of the retrieved page has the value "A"
   When I change the active version for the page with id 1 to version 3
-#  And i retrieve the page with id 1
-#  Then the field "title" of the retrieved page has the value "C"
-  And throw error
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "C"
+#  And throw error
 
 Scenario: Activating a previous version
   Given a new page is created with id 1 and title "A"
@@ -57,25 +57,22 @@ Scenario: Activating a previous version
   And the active version for page with id 1 should be 1
   When I change the active version for the page with id 1 to version 2
   And i retrieve the page with id 1
-  Then the active version for page with id 1 should be 2
+  Then the active version for page with id 1 should not be 2
+  And the active version for page with id 1 should be based on 2
   And the field "title" of the retrieved page has the value "B"
   And the number of versions for page with id 1 should be 3
 
 Scenario: Activating a previous version should empty newer fields
   Given a new page is created with id 1 and title "A"
-  And I change the field "title" to "B" on the page with id 1
+  And I change the field "title" to "B" on the page with id 1 and save it as the active page
   Then the number of versions for page with id 1 should be 2
-  Given I change the field "introduction" to "aaa" on the page with id 1
-  Then the number of versions for page with id 1 should be 3
   And the active version for page with id 1 should be 2
+  Given I change the field "introduction" to "aaa" on the page with id 1 and save it as the active page
+  Then the number of versions for page with id 1 should be 3
+  And the active version for page with id 1 should be 3
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "B"
-  And the field "introduction" of the retrieved page has no value
-  #When I change the active version for the page with id 1 to version 3
-  #And i retrieve the page with id 1
-  #Then the field "title" of the retrieved page has the value "B"
-  #And the field "introduction" of the retrieved page has the value "aaa"
-  And the field "foo" of the retrieved page has the value "throw error"
+  And the field "introduction" of the retrieved page has the value "aaa"
 
 Scenario: Activating a previous version with other fields
   Given a new page is created with id 1 and title "A"

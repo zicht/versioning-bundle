@@ -46,13 +46,21 @@ class ClientCommand extends ContainerAwareCommand
                 $id = $input->getOption('id');
                 $property = $data['property'];
                 $value = $data['value'];
-
+                
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($id);
+                
+                if ($data['save-as-active']) {
+                    $versioning->startActiveTransaction($page);
+                }
+                
                 $methodName = 'set' . ucfirst($property);
                 if (method_exists($page, $methodName)) {
                     call_user_func_array(array($page, $methodName), array($value));
                     $em->persist($page);
                     $em->flush();
+
+                    //TODO: needed?
+                    //$versioning->stopActiveTransaction($page);
                 } else {
                     throw new \Exception(sprintf('Method %s does not exist on the page', $methodName));
                 }
@@ -92,8 +100,9 @@ class ClientCommand extends ContainerAwareCommand
 
             case 'get-active-version':
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+                $entityVersion = $versioning->getActiveVersion($page);
 
-                $output->writeln(json_encode(['active_version' => intval($versioning->getActiveVersionNumber($page))]));
+                $output->writeln(json_encode(['versionNumber' => $entityVersion->getVersionNumber(), 'basedOnVersion' => $entityVersion->getBasedOnVersion()]));
                 break;
 
             case 'get-version-count':

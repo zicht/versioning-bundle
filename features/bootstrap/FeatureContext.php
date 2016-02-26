@@ -193,6 +193,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
+     * @Given /^I change the field "([^"]*)" to "([^"]*)" on the page with id (\d+) and save it as the active page$/
+     */
+    public function iChangeTheFieldToOnThePageWithIdAndSaveIsAsTheActivePage($fieldName, $value, $id)
+    {
+        self::console('change-property', $id, ['property' => $fieldName, 'value' => $value, 'save-as-active' => true]);
+    }
+
+    /**
      * @Given /^I change the field "([^"]*)" with type "([^"]*)" to "([^"]*)" on the page with id (\d+)$/
      */
     public function iChangeTheFieldWithTypeToOnThePageWithId($fieldName, $fieldType, $value, $id)
@@ -266,7 +274,8 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function theActiveVersionForPageWithIdShouldBe($id, $expectedVersionNumber)
     {
-        $retrievedActiveVersionNumber = json_decode(self::console('get-active-version', $id))->active_version;
+        $activeVersion = $this->getActiveVersion($id);
+        $retrievedActiveVersionNumber = $activeVersion->versionNumber;
 
         if ($retrievedActiveVersionNumber !== intval($expectedVersionNumber)) {
             throw new RuntimeException(
@@ -280,10 +289,57 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
+     * @param $id
+     * @return \stdClass | null
+     */
+    private function getActiveVersion($id)
+    {
+        return json_decode(self::console('get-active-version', $id));
+    }
+
+    /**
      * @Given /^throw error$/
      */
     public function throwError()
     {
         throw new RuntimeException('Thrown error to kill Behat');
+    }
+
+    /**
+     * @Then /^the active version for page with id (\d+) should not be (\d+)$/
+     */
+    public function theActiveVersionForPageWithIdShouldNotBe($id, $notExpectedVersionNumber)
+    {
+        $activeVersion = $this->getActiveVersion($id);
+        $retrievedActiveVersionNumber = $activeVersion->versionNumber;
+
+        if ($retrievedActiveVersionNumber === intval($notExpectedVersionNumber)) {
+            throw new RuntimeException(
+                sprintf(
+                    'The retrieved active version number (%s) is the unexpected version number %s',
+                    $retrievedActiveVersionNumber,
+                    $notExpectedVersionNumber
+                )
+            );
+        }
+    }
+
+    /**
+     * @Given /^the active version for page with id (\d+) should be based on (\d+)$/
+     */
+    public function theActiveVersionForPageWithIdShouldBeBasedOn($id, $expectedBasedOnId)
+    {
+        $activeVersion = $this->getActiveVersion($id);
+        $retrievedBasedOnId = $activeVersion->basedOnVersion;
+
+        if ($retrievedBasedOnId !== intval($expectedBasedOnId)) {
+            throw new RuntimeException(
+                sprintf(
+                    'The retrieved based on version number (%s) is NOT the expected version number %s',
+                    $retrievedBasedOnId,
+                    $expectedBasedOnId
+                )
+            );
+        }
     }
 }
