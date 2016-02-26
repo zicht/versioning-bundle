@@ -97,13 +97,15 @@ class EventSubscriber implements DoctrineEventSubscriber
             return;
         }
 
+        //TODO: this needs to be tested!
         if ($this->versioning->getCurrentWorkingVersionNumber($entity)) {
             //we have requested a different one than the active one, so we need to replace it
 
             $result = $args->getEntityManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $this->versioning->getCurrentWorkingVersionNumber($entity));
 
-            var_dump($result);
-            exit;
+            if ($result) {
+                $entity = $result;
+            }
         }
     }
 

@@ -32,7 +32,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public static function console($cmd, $id = null, $data = null)
     {
         $debug = false;
-        if ($cmd == 'create') {
+        if ($cmd == 'change-property' && array_key_exists('version', $data)) {
 //            $debug = true;
         }
 
@@ -351,5 +351,43 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         $this->aNewPageIsCreatedWithIdAndTitle(1, $title1);
         $this->aNewPageIsCreatedWithIdAndTitle(2, $title2);
         $this->aNewPageIsCreatedWithIdAndTitle(3, $title3);
+    }
+
+    /**
+     * @Given /^I have a page with (\d+) versions where version (\d+) is active$/
+     */
+    public function iHaveAPageWithVersionsWhereVersionIsActive($numberOfVersions, $activeVersion)
+    {
+        $id = 1;
+
+        for($i = 0; $i < $numberOfVersions; $i++) {
+            $title = chr(65 + $i);
+
+            if ($i == 0) {
+                $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
+            } else {
+                if ($activeVersion === $i) {
+                    $this->iChangeTheFieldToOnThePageWithIdAndSaveIsAsTheActivePage("title", $title, $id);
+                } else {
+                    $this->iChangeTheFieldToOnThePageWithId("title", $title, $id);
+                }
+            }
+        }
+    }
+
+    /**
+     * @When /^I change the field "([^"]*)" to "([^"]*)" on version (\d+) of page with id (\d+)$/
+     */
+    public function iChangeTheFieldToOnVersionOfPageWithId($fieldName, $value, $version, $id)
+    {
+        self::console('change-property', $id, ['property' => $fieldName, 'value' => $value, 'version' => $version]);
+    }
+
+/**
+     * @Given /^i retrieve the version based on version (\d+) of the page with id (\d+)$/
+     */
+    public function iRetrieveTheVersionBasedOnVersionOfThePageWithId($basedOnVersion, $id)
+    {
+        $this->retrievedData = json_decode(self::console('retrieve-based-on-version', $id, ['based-on-version' => $basedOnVersion]), true);
     }
 }

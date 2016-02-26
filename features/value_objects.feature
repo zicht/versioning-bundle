@@ -183,3 +183,22 @@ Scenario: 3 seperate pages, saving one change as active
   And the number of versions for page with id 1 should be 2
   And the number of versions for page with id 2 should be 1
   And the number of versions for page with id 3 should be 1
+
+Scenario: Editing a not-active version
+  Given I have a page with 5 versions where version 3 is active
+  When I change the field "title" to "AA" on version 4 of page with id 1
+  And i retrieve the version based on version 4 of the page with id 1
+  Then the field "title" of the retrieved page has the value "AA"
+  And i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "A"
+
+Scenario: Editing a not-active version and also the active version
+  Given I have a page with 5 versions where version 3 is active
+  When I change the field "title" to "AA" on version 4 of page with id 1
+  And i retrieve the version based on version 4 of the page with id 1
+  Then the field "title" of the retrieved page has the value "AA"
+  When I change the active version for the page with id 1 to version 5
+  And I change the field "introduction" to "abc abc abc" on the page with id 1 and save it as the active page
+  When i retrieve the page with id 1
+  Then the field "title" of the retrieved page has the value "E"
+  And the field "introduction" of the retrieved page has the value "abc abc abc"

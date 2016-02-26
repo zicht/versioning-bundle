@@ -52,6 +52,26 @@ class EntityVersionRepository extends EntityRepository
     }
 
     /**
+     * Find a specific version of the given entity - using the basedOnVersion
+     *
+     * @param IVersionable $entity
+     * @param integer $version
+     * @return mixed
+     */
+    public function findByBasedOnVersion(IVersionable $entity, $basedOnVersion)
+    {
+        return $this->createQueryBuilder('ev')
+            ->select('ev')
+            ->where('ev.sourceClass = :sourceClass')
+            ->andWhere('ev.originalId = :originalId')
+            ->setParameters(['sourceClass' => get_class($entity), 'originalId' => $entity->getId()])
+            ->andWhere('ev.basedOnVersion = :basedOnVersion')
+            ->setParameter('basedOnVersion', $basedOnVersion)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * Set all the versions for the given entity to is_active = false
      *
      * @param IVersionable $entity

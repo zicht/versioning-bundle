@@ -82,8 +82,7 @@ class VersioningService
     {
         $this->deactivateAll($entity);
 
-        /** @var EntityVersion $entityVersion */
-        $entityVersion = $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $version);
+        $entityVersion = $this->getSpecificEntityVersion($entity, $version);
 
         $this->storeActivatedEntityVersion($entity, $entityVersion);
         $this->writeEntityToEntityTable($entityVersion);
@@ -144,7 +143,10 @@ class VersioningService
          */
         $entityKey = $this->makeHash($entity);
 
-        //TODO: checken of we met een versie aan het werk zijn
+        if (array_key_exists($entityKey, $this->currentWorkingVersionNumberMap)) {
+            return $this->getSpecificEntityVersion($entity, $this->currentWorkingVersionNumberMap[$entityKey]);
+        }
+
         //TODO:    !!! nog even nagaan of we eerst moeten checken of we met een versie werken OF eerst de activatedEntityVersions moeten checken !!!
 
         //we have set a version active
@@ -229,5 +231,15 @@ class VersioningService
     public function startActiveTransaction(IVersionable $entity)
     {
         $this->makeEntityActiveMap[] = $this->makeHash($entity);
+    }
+
+    /**
+     * @param IVersionable $entity
+     * @param integer $version
+     * @return EntityVersion | null
+     */
+    private function getSpecificEntityVersion(IVersionable $entity, $version)
+    {
+        return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity,$version);
     }
 }

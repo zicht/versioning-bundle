@@ -52,6 +52,10 @@ class ClientCommand extends ContainerAwareCommand
                 if ($data['save-as-active']) {
                     $versioning->startActiveTransaction($page);
                 }
+
+                if ($data['version']) {
+                    $versioning->setCurrentWorkingVersionNumber($page, $data['version']);
+                }
                 
                 $methodName = 'set' . ucfirst($property);
                 if (method_exists($page, $methodName)) {
@@ -133,6 +137,14 @@ class ClientCommand extends ContainerAwareCommand
                 $version = $data['version'];
 
                 $entityVersion = $em->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($page, $version);
+                $output->writeln($serializer->serialize($serializer->deserialize($entityVersion)));
+                break;
+
+            case 'retrieve-based-on-version':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+                $basedOnVersion = $data['based-on-version'];
+
+                $entityVersion = $em->getRepository('ZichtVersioningBundle:EntityVersion')->findByBasedOnVersion($page, $basedOnVersion);
                 $output->writeln($serializer->serialize($serializer->deserialize($entityVersion)));
                 break;
 
