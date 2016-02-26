@@ -215,7 +215,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
                 break;
         }
 
-        $this->iChangeTheFieldToOnThePageWithId($fieldName, $value, $id);
+        $this->iChangeTheFieldToOnThePageWithIdAndSaveIsAsTheActivePage($fieldName, $value, $id);
     }
 
     /**
