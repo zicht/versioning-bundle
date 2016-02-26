@@ -46,7 +46,6 @@ Scenario: Change the title multiple times, but not make the new version active
   When I change the active version for the page with id 1 to version 3
   And i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "C"
-#  And throw error
 
 Scenario: Activating a previous version
   Given a new page is created with id 1 and title "A"
@@ -158,3 +157,29 @@ Scenario: Boolean and integer fields are restored correctly
   When i retrieve the page with id 1
   Then the field "integerField" of the retrieved page has the value "123" and type "integer"
   Then the field "booleanField" of the retrieved page has the value "true" and type "boolean"
+
+Scenario: 3 seperate pages and their versions
+  Given I have 3 pages with titles "A", "B", "C"
+  Then the active version for page with id 1 should be 1
+  And the active version for page with id 2 should be 1
+  And the active version for page with id 3 should be 1
+  And the number of versions for page with id 1 should be 1
+  And the number of versions for page with id 2 should be 1
+  And the number of versions for page with id 3 should be 1
+
+Scenario: 3 seperate pages, a change shouldn't be shown in other pages
+  Given I have 3 pages with titles "A", "B", "C"
+  When I change the field "title" to "AA" on the page with id 1
+  And the number of versions for page with id 1 should be 2
+  And the number of versions for page with id 2 should be 1
+  And the number of versions for page with id 3 should be 1
+
+Scenario: 3 seperate pages, saving one change as active
+  Given I have 3 pages with titles "A", "B", "C"
+  When I change the field "title" to "AA" on the page with id 1 and save it as the active page
+  Then the active version for page with id 1 should be 2
+  And the active version for page with id 2 should be 1
+  And the active version for page with id 3 should be 1
+  And the number of versions for page with id 1 should be 2
+  And the number of versions for page with id 2 should be 1
+  And the number of versions for page with id 3 should be 1

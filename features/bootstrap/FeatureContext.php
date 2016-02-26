@@ -342,4 +342,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
             );
         }
     }
+
+    /**
+     * @Given /^I have 3 pages with titles "([^"]*)", "([^"]*)", "([^"]*)"$/
+     */
+    public function iHavePagesWithTitles($title1, $title2, $title3)
+    {
+        $this->aNewPageIsCreatedWithIdAndTitle(1, $title1);
+        $this->aNewPageIsCreatedWithIdAndTitle(2, $title2);
+        $this->aNewPageIsCreatedWithIdAndTitle(3, $title3);
+    }
 }
