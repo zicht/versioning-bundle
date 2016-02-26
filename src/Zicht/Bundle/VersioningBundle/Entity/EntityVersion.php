@@ -51,11 +51,18 @@ class EntityVersion
     private $versionNumber;
 
     /**
+     * @var integer $basedOnVersion
+     *
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $basedOnVersion;
+
+    /**
      * @var boolean $isActive
      *
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $isActive;
+    private $isActive = false;
 
     /**
      * @var integer $originalId
@@ -70,13 +77,6 @@ class EntityVersion
      * @ORM\Column(type="string", nullable=true)
      */
     private $sourceClass;
-
-    /**
-     * @var string $authorName
-     *
-     * @ORM\Column(type="string", nullable=true)
-     */
-    private $authorName;
 
     /**
      * EntityVersion constructor.
@@ -120,23 +120,6 @@ class EntityVersion
     }
 
     /**
-     * @return string
-     */
-    public function getAuthorName()
-    {
-        return $this->authorName;
-    }
-
-    /**
-     * @param string $authorName
-     * @return void
-     */
-    public function setAuthorName($authorName)
-    {
-        $this->authorName = $authorName;
-    }
-
-    /**
      * @return int
      */
     public function getVersionNumber()
@@ -154,20 +137,37 @@ class EntityVersion
     }
 
     /**
+     * @return int
+     */
+    public function getBasedOnVersion()
+    {
+        return $this->basedOnVersion;
+    }
+
+    /**
+     * @param int $basedOnVersion
+     * @return void
+     */
+    public function setBasedOnVersion($basedOnVersion)
+    {
+        $this->basedOnVersion = $basedOnVersion;
+    }
+
+    /**
      * @return boolean
      */
-    public function isIsActive()
+    public function isActive()
     {
         return $this->isActive;
     }
 
     /**
-     * @param boolean $isActive
+     * @param boolean $active
      * @return void
      */
-    public function setIsActive($isActive)
+    public function setIsActive($active)
     {
-        $this->isActive = $isActive;
+        $this->isActive = $active;
     }
 
     /**

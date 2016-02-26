@@ -90,6 +90,12 @@ class ClientCommand extends ContainerAwareCommand
                 $output->writeln(json_encode(['id' => $page->getId()]));
                 break;
 
+            case 'get-active-version':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+
+                $output->writeln(json_encode(['active_version' => intval($versioning->getActiveVersionNumber($page))]));
+                break;
+
             case 'get-version-count':
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 

@@ -31,6 +31,11 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public static function console($cmd, $id = null, $data = null)
     {
+        $debug = false;
+        if ($cmd == 'create') {
+//            $debug = true;
+        }
+
         if ($id) {
             $cmd = $cmd . ' --id=' . $id;
         }
@@ -46,6 +51,11 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         //this is added when the bundle is placed inside the /vendor/ folder
         if (strpos(__DIR__, 'vendor') > -1) {
             $dir .= '../../../';
+        }
+
+        if ($debug) {
+            var_dump($cmd);
+            exit;
         }
 
         $cmd = "(cd $dir; php app/console -v zicht:versioning:client $cmd)";
@@ -249,5 +259,31 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         if (key_exists($fieldName, $this->retrievedData)) {
             throw new RuntimeException(sprintf('The field %s shouldn\'t be present', $fieldName));
         }
+    }
+
+/**
+     * @Then /^the active version for page with id (\d+) should be (\d+)$/
+     */
+    public function theActiveVersionForPageWithIdShouldBe($id, $expectedVersionNumber)
+    {
+        $retrievedActiveVersionNumber = json_decode(self::console('get-active-version', $id))->active_version;
+
+        if ($retrievedActiveVersionNumber !== intval($expectedVersionNumber)) {
+            throw new RuntimeException(
+                sprintf(
+                    'The retrieved active version number (%s) doesn\'t match the expected version number %s',
+                    $retrievedActiveVersionNumber,
+                    $expectedVersionNumber
+                )
+            );
+        }
+    }
+
+    /**
+     * @Given /^throw error$/
+     */
+    public function throwError()
+    {
+        throw new RuntimeException('Thrown error to kill Behat');
     }
 }

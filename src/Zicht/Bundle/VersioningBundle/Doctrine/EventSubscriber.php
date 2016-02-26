@@ -8,9 +8,11 @@ namespace Zicht\Bundle\VersioningBundle\Doctrine;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
+use Doctrine\ORM\Events;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 use Zicht\Bundle\VersioningBundle\Services\SerializerService;
@@ -55,7 +57,12 @@ class EventSubscriber implements DoctrineEventSubscriber
      */
     public function getSubscribedEvents()
     {
-        return ['postPersist', 'preUpdate', 'postFlush'];
+        return [
+                Events::postPersist,
+                Events::postLoad,
+                Events::preUpdate,
+                Events::postFlush,
+        ];
     }
 
 
@@ -67,63 +74,127 @@ class EventSubscriber implements DoctrineEventSubscriber
      */
     public function postPersist(LifecycleEventArgs $args)
     {
-        $entity = $args->getEntity();
+        $entity = $args->getObject();
 
         if (!$entity instanceof IVersionable) {
             return;
         }
 
         $this->createVersion($entity);
+
+        //we persist the queue immediately, so we can set it's version to active
+        $this->persistQueue($args->getEntityManager());
+
+        //by default we set the first version to active
+        $this->versioning->setActive($entity, 1);
     }
 
     /**
-     * prePersist doctrine listener
+     * postLoad listener
      *
      * @param LifecycleEventArgs $args
      * @return void
      */
-    public function preUpdate(PreUpdateEventArgs $args)
+    public function postLoad(LifecycleEventArgs $args)
     {
-        $entity = $args->getEntity();
+        $entity = $args->getObject();
 
         if (!$entity instanceof IVersionable) {
             return;
         }
 
-        $this->createVersion($entity);
-    }
+        if ($this->versioning->getCurrentWorkingVersionNumber($entity)) {
+            //we have requested a different one than the active one, so we need to replace it
 
-    public function postFlush(PostFlushEventArgs $args)
-    {
-        if (!empty($this->queue)) {
+            $result = $args->getEntityManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $this->versioning->getCurrentWorkingVersionNumber($entity));
 
-            $em = $args->getEntityManager();
-
-            foreach ($this->queue as $thing) {
-
-                $em->persist($thing);
-            }
-
-            $this->queue = [];
-            $em->flush();
+            var_dump($result);
+            exit;
         }
     }
 
     /**
-     * Create a new version (and store it in the database)
+     * preUpdate doctrine listener
+     *
+     * @param PreUpdateEventArgs $args
+     * @return void
+     */
+    public function preUpdate(PreUpdateEventArgs $args)
+    {
+        $entity = $args->getObject();
+
+        if (!$entity instanceof IVersionable) {
+            return;
+        }
+
+        $entityVersion = $this->createVersion($entity);
+
+        /*
+         * whipe the changes if we are not working in the active version
+         *
+         * don't worry, the changes already are written to the versioning table (@see createVersion)
+         */
+        if (!$entityVersion->isActive()) {
+            $args->getEntityManager()->refresh($entity);
+            $args->getEntityManager()->getUnitOfWork()->clearEntityChangeSet(spl_object_hash($entity));
+        }
+    }
+
+    /**
+     * postFlush listener
+     * To persist all items in the queue
+     * This is needed, since we want to persist things from the preUpdate, but we can't persist in that handler
+     *
+     * @param PostFlushEventArgs $args
+     * @return void
+     */
+    public function postFlush(PostFlushEventArgs $args)
+    {
+        $this->persistQueue($args->getEntityManager());
+    }
+
+    /**
+     * Create a new entityVersion
      *
      * @param IVersionable $entity
-     * @return void
+     * @return EntityVersion
      */
     private function createVersion(IVersionable $entity)
     {
-        $entityVersion = new EntityVersion();
-        //TODO: how to get the author name? :|
-        $entityVersion->setSourceClass(get_class($entity));
-        $entityVersion->setOriginalId($entity->getId());
-        $entityVersion->setData($this->serializer->serialize($entity));
-        $entityVersion->setVersionNumber($this->versioning->getVersionCount($entity) + 1);
-        
-        $this->queue[] = $entityVersion;
+        $newEntityVersion = new EntityVersion();
+
+        $newEntityVersion->setSourceClass(get_class($entity));
+        $newEntityVersion->setOriginalId($entity->getId());
+        $newEntityVersion->setData($this->serializer->serialize($entity));
+        $newEntityVersion->setVersionNumber($this->versioning->getVersionCount($entity) + 1);
+
+        $entityVersionInformation = $this->versioning->getEntityVersionInformation($entity);
+
+        if ($entityVersionInformation) {
+            $newEntityVersion->setIsActive($entityVersionInformation->isActive());
+            $newEntityVersion->setBasedOnVersion($entityVersionInformation->getVersionNumber());
+        }
+
+        $this->queue[] = $newEntityVersion;
+
+        return $newEntityVersion;
+    }
+
+    /**
+     * Helper method to persist the queue
+     *
+     * @param EntityManager $entityManager
+     * @return void
+     */
+    private function persistQueue(EntityManager $entityManager)
+    {
+        if (!empty($this->queue)) {
+            foreach ($this->queue as $thing) {
+                $entityManager->persist($thing);
+            }
+
+            $this->queue = [];
+            $entityManager->flush();
+        }
     }
 }
