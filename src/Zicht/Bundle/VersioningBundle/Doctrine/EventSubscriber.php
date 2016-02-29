@@ -15,6 +15,8 @@ use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
+use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
+use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 use Zicht\Bundle\VersioningBundle\Services\SerializerService;
 use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 
@@ -76,8 +78,12 @@ class EventSubscriber implements DoctrineEventSubscriber
     {
         $entity = $args->getObject();
 
-        if (!$entity instanceof IVersionable) {
+        if (!$entity instanceof IVersionable && !$entity instanceof IVersionableChild) {
             return;
+        }
+
+        if ($entity instanceof IVersionableChild) {
+            $entity = $entity->getParent();
         }
 
         $this->createVersion($entity);

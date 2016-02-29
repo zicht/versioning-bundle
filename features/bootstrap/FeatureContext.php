@@ -32,7 +32,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public static function console($cmd, $id = null, $data = null)
     {
         $debug = false;
-        if ($cmd == 'change-property' && array_key_exists('version', $data)) {
+        if ($cmd == 'create-content-item') {
 //            $debug = true;
         }
 
@@ -389,5 +389,56 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function iRetrieveTheVersionBasedOnVersionOfThePageWithId($basedOnVersion, $id)
     {
         $this->retrievedData = json_decode(self::console('retrieve-based-on-version', $id, ['based-on-version' => $basedOnVersion]), true);
+    }
+
+    /**
+     * @Given /^the page with id (\d+) has a contentitem with id (\d+) and title "([^"]*)"$/
+     */
+    public function thePageWithIdHasAContentitemWithIdAndTitle($id, $contentItemId, $contentItemTitle)
+    {
+        self::console('create-content-item', $id, ['id' => $contentItemId, 'title' => $contentItemTitle]);
+        
+        
+    }
+
+    /**
+     * @Then /^the field "([^"]*)" of the contentitem with id (\d+) should have the value "([^"]*)"$/
+     */
+    public function theFieldOfTheContentitemWithIdShouldHaveTheValue($fieldName, $contentItemId, $expectedValue)
+    {
+        $contentItems = $this->retrievedData['contentItems'];
+
+        if (empty($contentItems)) {
+            throw new RuntimeException('There are no contentitems');
+        }
+
+        $found = false;
+
+        foreach($contentItems as $ci) {
+            if ($ci['id'] === intval($contentItemId)) {
+                $found = true;
+
+                if (!key_exists($fieldName, $ci)) {
+                    throw new RuntimeException(
+                        'The retrieved contentitem doesn\'t have a property named \'' . $fieldName . '\''
+                    );
+                }
+
+                if ($ci[$fieldName] !== $expectedValue) {
+                    throw new RuntimeException(
+                        sprintf(
+                            'The value of the field %s of the contentitem is \'%s\' and that doesn\'t match the expected value \'%s\'',
+                            $fieldName,
+                            $ci[$fieldName],
+                            $expectedValue
+                        )
+                    );
+                }
+            }
+        }
+
+        if (!$found) {
+            throw new RuntimeException(sprintf('The contentitem with id %d could not be found', $contentItemId));
+        }
     }
 }

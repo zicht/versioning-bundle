@@ -6,13 +6,14 @@
 
 namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 
 /**
  * Class Page
  *
- * @package Zicht\Bundle\VersioningBundle\Entity
+ * @package Zicht\Bundle\VersioningBundle\Entity\Test
  *
  * @ORM\Table(name="versioning_test_page")
  * @ORM\Entity(repositoryClass="Zicht\Bundle\VersioningBundle\Entity\Test\PageRepository")
@@ -62,6 +63,19 @@ class Page implements IVersionable
      * @ORM\Column(type="integer", nullable=true)
      */
     private $integerField;
+
+    /**
+     * @ORM\OneToMany(targetEntity="Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem", mappedBy="page", cascade={"persist", "remove"}, orphanRemoval=true)
+     */
+    private $contentItems;
+
+    /**
+     * Page constructor.
+     */
+    public function __construct()
+    {
+        $this->contentItems = new ArrayCollection();
+    }
 
     /**
      * @param int $id
@@ -163,5 +177,39 @@ class Page implements IVersionable
     public function setIntegerField($integerField)
     {
         $this->integerField = $integerField;
+    }
+
+    /**
+     * Add ContentItem
+     *
+     * @param ContentItem $contentItem
+     * @return Page
+     */
+    public function addContentItem(ContentItem $contentItem)
+    {
+        $contentItem->setPage($this);
+        $this->contentItems[] = $contentItem;
+
+        return $this;
+    }
+
+    /**
+     * Remove ContentItem
+     *
+     * @param ContentItem $contentItem
+     */
+    public function removeContentItem(ContentItem $contentItem)
+    {
+        $this->contentItems->removeElement($contentItem);
+    }
+
+    /**
+     * Get ContentItem
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getContentItems()
+    {
+        return $this->contentItems;
     }
 }

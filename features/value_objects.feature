@@ -202,3 +202,8 @@ Scenario: Editing a not-active version and also the active version
   When i retrieve the page with id 1
   Then the field "title" of the retrieved page has the value "E"
   And the field "introduction" of the retrieved page has the value "abc abc abc"
+
+Scenario: Load another version than the active version
+  Given I have a page with 5 versions where version 3 is active
+  When I load the page with version 4
+  Then the field "title" of the retrieved page has the value "D"

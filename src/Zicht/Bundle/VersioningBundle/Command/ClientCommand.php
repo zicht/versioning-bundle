@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
 class ClientCommand extends ContainerAwareCommand
@@ -48,7 +49,7 @@ class ClientCommand extends ContainerAwareCommand
                 $value = $data['value'];
                 
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($id);
-                
+
                 if ($data['save-as-active']) {
                     $versioning->startActiveTransaction($page);
                 }
@@ -72,6 +73,7 @@ class ClientCommand extends ContainerAwareCommand
 
             case 'clear-test-records':
                 $pageClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\Page');
+                $contentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem');
                 $entityVersionClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\EntityVersion');
                 $connection = $em->getConnection();
 
@@ -81,6 +83,7 @@ class ClientCommand extends ContainerAwareCommand
                     $connection->query('SET FOREIGN_KEY_CHECKS=0');
                     $connection->query('DELETE FROM '.$pageClassMetadata->getTableName());
                     $connection->query('DELETE FROM '.$entityVersionClassMetadata->getTableName());
+                    $connection->query('DELETE FROM '.$contentItemClassMetadata->getTableName());
                     $connection->query('SET FOREIGN_KEY_CHECKS=1');
                     $connection->commit();
                 } catch (\Exception $e) {
@@ -100,6 +103,24 @@ class ClientCommand extends ContainerAwareCommand
                 $em->flush();
 
                 $output->writeln(json_encode(['id' => $page->getId()]));
+                break;
+
+            case 'create-content-item':
+                $id = $input->getOption('id');
+                $title = $data['title'];
+                $contentItemId = $data['id'];
+
+                /** @var Page $page */
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+
+                $contentItem = new ContentItem();
+                $contentItem->setId($contentItemId);
+                $contentItem->setTitle($title);
+
+                $page->addContentItem($contentItem);
+
+                $em->persist($page);
+                $em->flush();
                 break;
 
             case 'get-active-version':
@@ -155,6 +176,14 @@ class ClientCommand extends ContainerAwareCommand
                 if ($page) {
                     $versioning->setActive($page, $version);
                 }
+                break;
+
+            case 'serialize':
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById(1);
+                $serialize = $serializer->serialize($page);
+
+                var_dump($serialize);
+                exit;
                 break;
 
             default:

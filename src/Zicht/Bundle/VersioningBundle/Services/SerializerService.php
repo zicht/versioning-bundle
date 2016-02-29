@@ -27,10 +27,11 @@ class SerializerService
      */
     public function __construct()
     {
-        $encoders = array(new JsonEncoder());
-        $normalizers = array(new ObjectNormalizer());
-
-        $this->serializer = new Serializer($normalizers, $encoders);
+        $normalizer = new ObjectNormalizer();
+        $normalizer->setCircularReferenceHandler(function ($object) {
+            return $object->getId();
+        });
+        $this->serializer = new Serializer([$normalizer], [new JsonEncoder()]);
     }
 
     /**
