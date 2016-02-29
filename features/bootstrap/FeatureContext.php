@@ -32,7 +32,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public static function console($cmd, $id = null, $data = null)
     {
         $debug = false;
-        if ($cmd == 'create-content-item') {
+        if ($cmd == 'change-property' && array_key_exists('save-as-active', $data) && $data['save-as-active']) {
 //            $debug = true;
         }
 
@@ -440,5 +440,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         if (!$found) {
             throw new RuntimeException(sprintf('The contentitem with id %d could not be found', $contentItemId));
         }
+    }
+
+    /**
+     * @Given /^a page exists with id (\d+), title "([^"]*)" and a contentitem with id (\d+) and title "([^"]*)"$/
+     */
+    public function aPageExistsWithIdTitleAndAContentitemWithIdAndTitle($id, $title, $ci_id, $ci_title)
+    {
+        $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
+        $this->thePageWithIdHasAContentitemWithIdAndTitle($id, $ci_id, $ci_title);
     }
 }

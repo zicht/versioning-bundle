@@ -6,17 +6,15 @@
 
 namespace Zicht\Bundle\VersioningBundle\Doctrine;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
-use Doctrine\ORM\Event\PostFlushEventArgs;
+use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
-use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 use Zicht\Bundle\VersioningBundle\Services\SerializerService;
 use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 
@@ -33,12 +31,6 @@ class EventSubscriber implements DoctrineEventSubscriber
      * @var VersioningService
      */
     private $versioning;
-
-    /**
-     * A queue with items to persist after the flush has triggered
-     * @var array
-     */
-    private $queue = [];
 
     /**
      * EventSubscriber constructor.
@@ -60,34 +52,12 @@ class EventSubscriber implements DoctrineEventSubscriber
     public function getSubscribedEvents()
     {
         return [
-                Events::postPersist,
                 Events::postLoad,
                 Events::preUpdate,
-                Events::postFlush,
+                Events::onFlush,
         ];
     }
 
-
-    /**
-     * postPersist doctrine listener
-     *
-     * @param LifecycleEventArgs $args
-     * @return void
-     */
-    public function postPersist(LifecycleEventArgs $args)
-    {
-        $entity = $args->getObject();
-
-        if (!$entity instanceof IVersionable && !$entity instanceof IVersionableChild) {
-            return;
-        }
-
-        if ($entity instanceof IVersionableChild) {
-            $entity = $entity->getParent();
-        }
-
-        $this->createVersion($entity);
-    }
 
     /**
      * postLoad listener
@@ -129,30 +99,63 @@ class EventSubscriber implements DoctrineEventSubscriber
             return;
         }
 
-        $entityVersion = $this->createVersion($entity);
+        $entityVersionInformation = $this->versioning->getEntityVersionInformation($entity);
 
         /*
          * whipe the changes if we are not working in the active version
-         *
-         * don't worry, the changes already are written to the versioning table (@see createVersion)
+         * don't worry, the changes will be written to the versioning table (@see onFlush)
          */
-        if (!$entityVersion->isActive()) {
+        if (!$entityVersionInformation->isActive()) {
             $args->getEntityManager()->refresh($entity);
             $args->getEntityManager()->getUnitOfWork()->clearEntityChangeSet(spl_object_hash($entity));
         }
     }
 
     /**
-     * postFlush listener
-     * To persist all items in the queue
-     * This is needed, since we want to persist things from the preUpdate, but we can't persist in that handler
+     * onFlush listener
+     * We create the version here
      *
-     * @param PostFlushEventArgs $args
+     * @param OnFlushEventArgs $args
      * @return void
      */
-    public function postFlush(PostFlushEventArgs $args)
+    public function onFlush(OnFlushEventArgs $args)
     {
-        $this->persistQueue($args->getEntityManager());
+        $em  = $args->getEntityManager();
+        $uow = $em->getUnitOfWork();
+
+        foreach ($uow->getScheduledEntityInsertions() as $entity) {
+            $this->handleVersioning($entity, $em);
+        }
+
+        foreach ($uow->getScheduledEntityUpdates() as $entity) {
+            $this->handleVersioning($entity, $em);
+        }
+
+        $uow->computeChangeSets();
+    }
+
+    /**
+     * Handles the versioning for the given entity
+     *
+     * @param IVersionable $entity
+     * @param EntityManager $em
+     * @return void
+     */
+    private function handleVersioning(IVersionable $entity, EntityManager $em)
+    {
+        if ($entity instanceof IVersionable || $entity instanceof IVersionableChild) {
+            if ($entity instanceof IVersionableChild) {
+                $entity = $entity->getParent();
+            }
+
+            $entityVersion = $this->createEntityVersion($entity);
+
+            if ($entityVersion->isActive()) {
+                $this->versioning->deactivateAll($entity);
+            }
+
+            $em->persist($entityVersion);
+        }
     }
 
     /**
@@ -161,7 +164,7 @@ class EventSubscriber implements DoctrineEventSubscriber
      * @param IVersionable $entity
      * @return EntityVersion
      */
-    private function createVersion(IVersionable $entity)
+    private function createEntityVersion(IVersionable $entity)
     {
         $newEntityVersion = new EntityVersion();
 
@@ -180,26 +183,6 @@ class EventSubscriber implements DoctrineEventSubscriber
             $newEntityVersion->setIsActive(true);
         }
 
-        $this->queue[] = $newEntityVersion;
-
         return $newEntityVersion;
-    }
-
-    /**
-     * Helper method to persist the queue
-     *
-     * @param EntityManager $entityManager
-     * @return void
-     */
-    private function persistQueue(EntityManager $entityManager)
-    {
-        if (!empty($this->queue)) {
-            foreach ($this->queue as $thing) {
-                $entityManager->persist($thing);
-            }
-
-            $this->queue = [];
-            $entityManager->flush();
-        }
     }
 }

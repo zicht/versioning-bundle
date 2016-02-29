@@ -94,7 +94,7 @@ class VersioningService
      * @param IVersionable $entity
      * @return void
      */
-    private function deactivateAll(IVersionable $entity)
+    public function deactivateAll(IVersionable $entity)
     {
         $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->deactivateAll($entity);
     }
@@ -143,29 +143,26 @@ class VersioningService
          */
         $entityKey = $this->makeHash($entity);
 
+        //are we currently editing a specific version?
         if (array_key_exists($entityKey, $this->currentWorkingVersionNumberMap)) {
             return $this->getSpecificEntityVersion($entity, $this->currentWorkingVersionNumberMap[$entityKey]);
         }
 
-        //TODO:    !!! nog even nagaan of we eerst moeten checken of we met een versie werken OF eerst de activatedEntityVersions moeten checken !!!
-
-        //we have set a version active
+        //do we have an entity set to active
         if (array_key_exists($entityKey, $this->activatedEntityVersions)) {
             return $this->activatedEntityVersions[$entityKey];
         }
 
-        //we just retrieve the current active version
+        //if none of the above, let's get the active version
         $activeEntityVersion = $this->getActiveVersion($entity);
-        if ($activeEntityVersion) {
+        if ($activeEntityVersion !== null) {
 
             //set the entity to active if it was set specific by the startActiveTransaction()
             if (in_array($this->makeHash($entity), $this->makeEntityActiveMap)) {
-                $this->deactivateAll($entity);
-
                 $activeEntityVersion->setIsActive(true);
             } else {
                 //we don't want an updated version to be set to active by default
-                //we need to set it explicitly to false, since we use the active EntityVersion here ^^
+                //we need to set it explicitly to false, since we use the active EntityVersion here, which is active ^^
                 $activeEntityVersion->setIsActive(false);
             }
             return $activeEntityVersion;
