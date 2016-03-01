@@ -32,7 +32,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public static function console($cmd, $id = null, $data = null)
     {
         $debug = false;
-        if ($cmd == 'change-property' && array_key_exists('save-as-active', $data) && $data['save-as-active']) {
+        if ($cmd == 'create-content-item') {
 //            $debug = true;
         }
 
@@ -449,5 +449,17 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     {
         $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
         $this->thePageWithIdHasAContentitemWithIdAndTitle($id, $ci_id, $ci_title);
+    }
+
+    /**
+     * @Then /^the count of contentitems in the active version of the page with id (\d+) should be (\d+)$/
+     */
+    public function theCountOfContentitemsInTheActiveVersionOfThePageWithIdShouldBe($id, $expectedNumberOfContentItems)
+    {
+        $contentItems = $this->retrievedData['contentItems'];
+
+        if (count($contentItems) != $expectedNumberOfContentItems) {
+            throw new RuntimeException(sprintf('The page with id %d has a different count contentitems [%d] than expected [%d]', $id, count($contentItems), $expectedNumberOfContentItems));
+        }
     }
 }

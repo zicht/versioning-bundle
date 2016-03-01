@@ -10,7 +10,6 @@ use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\ORM\Events;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
@@ -53,7 +52,6 @@ class EventSubscriber implements DoctrineEventSubscriber
     {
         return [
                 Events::postLoad,
-                Events::preUpdate,
                 Events::onFlush,
         ];
     }
@@ -86,32 +84,6 @@ class EventSubscriber implements DoctrineEventSubscriber
     }
 
     /**
-     * preUpdate doctrine listener
-     *
-     * @param PreUpdateEventArgs $args
-     * @return void
-     */
-    public function preUpdate(PreUpdateEventArgs $args)
-    {
-        $entity = $args->getObject();
-
-        if (!$entity instanceof IVersionable) {
-            return;
-        }
-
-        $entityVersionInformation = $this->versioning->getEntityVersionInformation($entity);
-
-        /*
-         * whipe the changes if we are not working in the active version
-         * don't worry, the changes will be written to the versioning table (@see onFlush)
-         */
-        if (!$entityVersionInformation->isActive()) {
-            $args->getEntityManager()->refresh($entity);
-            $args->getEntityManager()->getUnitOfWork()->clearEntityChangeSet(spl_object_hash($entity));
-        }
-    }
-
-    /**
      * onFlush listener
      * We create the version here
      *
@@ -124,11 +96,37 @@ class EventSubscriber implements DoctrineEventSubscriber
         $uow = $em->getUnitOfWork();
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            $this->handleVersioning($entity, $em);
+            if ($entity instanceof IVersionable || $entity instanceof IVersionableChild) {
+
+                $entityVersion = $this->handleVersioning($entity, $em);
+
+                if (!$entityVersion->isActive()) {
+                    if ($entity instanceof IVersionableChild) {
+                        $uow->remove($entity);
+                        $uow->refresh($entity->getParent());
+                    } else {
+                        $uow->refresh($entity);
+                    }
+                }
+            }
         }
 
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            $this->handleVersioning($entity, $em);
+            if ($entity instanceof IVersionable || $entity instanceof IVersionableChild) {
+
+                $entityVersion = $this->handleVersioning($entity, $em);
+
+                if (!$entityVersion->isActive()) {
+                    if ($entity instanceof IVersionableChild) {
+                        $uow->remove($entity);
+                        $uow->refresh($entity->getParent());
+                    } else {
+                        $uow->refresh($entity);
+                    }
+
+                    $uow->refresh($entity);
+                }
+            }
         }
 
         $uow->computeChangeSets();
@@ -139,23 +137,23 @@ class EventSubscriber implements DoctrineEventSubscriber
      *
      * @param IVersionable $entity
      * @param EntityManager $em
-     * @return void
+     * @return EntityVersion
      */
     private function handleVersioning(IVersionable $entity, EntityManager $em)
     {
-        if ($entity instanceof IVersionable || $entity instanceof IVersionableChild) {
-            if ($entity instanceof IVersionableChild) {
-                $entity = $entity->getParent();
-            }
-
-            $entityVersion = $this->createEntityVersion($entity);
-
-            if ($entityVersion->isActive()) {
-                $this->versioning->deactivateAll($entity);
-            }
-
-            $em->persist($entityVersion);
+        if ($entity instanceof IVersionableChild) {
+            $entity = $entity->getParent();
         }
+
+        $entityVersion = $this->createEntityVersion($entity);
+
+        if ($entityVersion->isActive()) {
+            $this->versioning->deactivateAll($entity);
+        }
+
+        $em->persist($entityVersion);
+
+        return $entityVersion;
     }
 
     /**
