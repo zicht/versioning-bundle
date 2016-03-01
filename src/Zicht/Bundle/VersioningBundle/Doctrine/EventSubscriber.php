@@ -102,14 +102,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                 $entityVersion = $this->handleVersioning($entity, $em);
 
                 if (!$entityVersion->isActive()) {
-                    if ($entity instanceof IVersionableChild) {
-                        $uow->remove($entity);
-                        $uow->refresh($entity->getParent());
-                        $uow->clearEntityChangeSet(spl_object_hash($entity->getParent()));
-                    } else {
-                        $uow->refresh($entity);
-                        $uow->clearEntityChangeSet(spl_object_hash($entity));
-                    }
+                    $this->undoEntityChanges($entity, $uow);
                 }
             }
         }
@@ -120,14 +113,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                 $entityVersion = $this->handleVersioning($entity, $em);
 
                 if (!$entityVersion->isActive()) {
-                    if ($entity instanceof IVersionableChild) {
-                        $uow->remove($entity);
-                        $uow->refresh($entity->getParent());
-                        $uow->clearEntityChangeSet(spl_object_hash($entity->getParent()));
-                    } else {
-                        $uow->refresh($entity);
-                        $uow->clearEntityChangeSet(spl_object_hash($entity));
-                    }
+                    $this->undoEntityChanges($entity, $uow);
                 }
             }
         }
@@ -185,5 +171,25 @@ class EventSubscriber implements DoctrineEventSubscriber
         }
 
         return $newEntityVersion;
+    }
+
+    /**
+     * Undo the changes made to the given entity
+     *
+     * @param IVersionable $entity
+     * @param UnitOfWork $uow
+     * @return void
+     */
+    private function undoEntityChanges(IVersionable $entity, UnitOfWork $uow)
+    {
+        if ($entity instanceof IVersionableChild) {
+            //TODO shouldn't we check here the entity state, so we can refresh it instead of removing???!!!
+            $uow->remove($entity);
+
+            $entity = $entity->getParent();
+        }
+
+        $uow->refresh($entity);
+        $uow->clearEntityChangeSet(spl_object_hash($entity));
     }
 }
