@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
@@ -51,7 +52,7 @@ class EventSubscriber implements DoctrineEventSubscriber
     public function getSubscribedEvents()
     {
         return [
-                Events::postLoad,
+//                Events::postLoad,
                 Events::onFlush,
         ];
     }
@@ -104,8 +105,10 @@ class EventSubscriber implements DoctrineEventSubscriber
                     if ($entity instanceof IVersionableChild) {
                         $uow->remove($entity);
                         $uow->refresh($entity->getParent());
+                        $uow->clearEntityChangeSet(spl_object_hash($entity->getParent()));
                     } else {
                         $uow->refresh($entity);
+                        $uow->clearEntityChangeSet(spl_object_hash($entity));
                     }
                 }
             }
@@ -120,11 +123,11 @@ class EventSubscriber implements DoctrineEventSubscriber
                     if ($entity instanceof IVersionableChild) {
                         $uow->remove($entity);
                         $uow->refresh($entity->getParent());
+                        $uow->clearEntityChangeSet(spl_object_hash($entity->getParent()));
                     } else {
                         $uow->refresh($entity);
+                        $uow->clearEntityChangeSet(spl_object_hash($entity));
                     }
-
-                    $uow->refresh($entity);
                 }
             }
         }
