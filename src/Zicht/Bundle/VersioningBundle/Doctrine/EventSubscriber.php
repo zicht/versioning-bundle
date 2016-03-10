@@ -32,6 +32,9 @@ class EventSubscriber implements DoctrineEventSubscriber
      */
     private $versioning;
 
+    /** @var array */
+    private $handledEntities = [];
+
     /**
      * EventSubscriber constructor.
      *
@@ -131,18 +134,26 @@ class EventSubscriber implements DoctrineEventSubscriber
     private function handleVersioning(IVersionable $entity, EntityManager $em)
     {
         if ($entity instanceof IVersionableChild) {
-            $entity = $entity->getParent();
+            do {
+                $entity = $entity->getParent();
+            } while($entity instanceof IVersionableChild);
         }
 
-        $entityVersion = $this->createEntityVersion($entity);
+        $hash = $this->versioning->makeHash($entity);
 
-        if ($entityVersion->isActive()) {
-            $this->versioning->deactivateAll($entity);
+        if (!array_key_exists($hash, $this->handledEntities)) {
+            $entityVersion = $this->createEntityVersion($entity);
+
+            if ($entityVersion->isActive()) {
+                $this->versioning->deactivateAll($entity);
+            }
+
+            $em->persist($entityVersion);
+
+            $this->handledEntities[$hash] = $entityVersion;
         }
 
-        $em->persist($entityVersion);
-
-        return $entityVersion;
+        return $this->handledEntities[$hash];
     }
 
     /**

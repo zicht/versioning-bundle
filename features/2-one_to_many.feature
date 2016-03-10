@@ -43,7 +43,13 @@ Scenario: Mix one to many entity types
   Given a page exists with id 1, title "A" and a contentitem with id 1 and title "CI title"
   Then the number of versions for page with id 1 should be 2
   When i add another one to many entity with id 1 and title "Other OTM title" to page with id 1
+  Then the number of versions for page with id 1 should be 3
   And I change the active version for the page with id 1 to version 3
+  #And throw error
   When i retrieve the page with id 1
   Then the count of contentitems in the active version of the page with id 1 should be 1
   And the count of other ony to many entities of the page with id 1 should be 1
+
+Scenario: Add a nested contentitem
+  Given a new page is created with id 1 and title "title"
+  And i add a nested contentitem with id 1 and title "nested title" and a child contentitem with id 1 and title "child nested title" to page with id 1

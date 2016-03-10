@@ -10,6 +10,7 @@ namespace Zicht\Bundle\VersioningBundle\Services;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
+use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
 /**
  * Class VersioningService
@@ -105,7 +106,7 @@ class VersioningService
      * @param IVersionable $entity
      * @return string
      */
-    private function makeHash(IVersionable $entity)
+    public function makeHash(IVersionable $entity)
     {
 //        return get_class($entity) . '-' . $entity->getId();
         return spl_object_hash($entity);
@@ -237,6 +238,6 @@ class VersioningService
      */
     private function getSpecificEntityVersion(IVersionable $entity, $version)
     {
-        return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity,$version);
+        return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $version);
     }
 }

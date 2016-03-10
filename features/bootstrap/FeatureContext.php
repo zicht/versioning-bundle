@@ -32,7 +32,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public static function console($cmd, $id = null, $data = null)
     {
         $debug = false;
-        if ($cmd == 'create-other-otmr') {
+        if ($cmd == 'set-active') {
 //            $debug = true;
         }
 
@@ -232,7 +232,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public function iChangeTheActiveVersionForThePageWithIdToVersion($id, $versionNumber)
     {
-        self::console('set-active --id=%d', $id, ['version' => $versionNumber]);
+        self::console('set-active', $id, ['version' => $versionNumber]);
     }
 
     /**
@@ -487,5 +487,18 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         if (count($items) != $expectedNumber) {
             throw new RuntimeException(sprintf('The page with id %d has a different count one to many entities [%d] than expected [%d]', $id, count($items), $expectedNumber));
         }
+    }
+
+    /**
+     * @Given /^i add a nested contentitem with id (\d+) and title "([^"]*)" and a child contentitem with id (\d+) and title "([^"]*)" to page with id (\d+)$/
+     */
+    public function iAddANestedContentitemWithIdAndTitleAndAChildContentitemWithIdAndTitleToPageWithId(
+        $nestedContentItemId,
+        $nestedContentItemTitle,
+        $childNestedContentItemId,
+        $childNestedContentItemTitle,
+        $pageId
+    ) {
+        self::console('create-nested-contenitem', $pageId, ['nestedContentItemId' => $nestedContentItemId, 'nestedContentItemTitle' => $nestedContentItemTitle, 'childNestedContentItemId' => $childNestedContentItemId, 'childNestedContentItemTitle' => $childNestedContentItemTitle, 'save-as-active' => true]);
     }
 }

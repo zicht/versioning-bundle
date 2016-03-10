@@ -12,7 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Entity\Test\ChildOfNestedContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
+use Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
@@ -75,6 +77,9 @@ class ClientCommand extends ContainerAwareCommand
             case 'clear-test-records':
                 $pageClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\Page');
                 $contentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem');
+                $otherOneToManyRelationClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation');
+                $nestedContentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem');
+                $nestedChildContentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\ChildOfNestedContentItem');
                 $entityVersionClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\EntityVersion');
                 $connection = $em->getConnection();
 
@@ -85,6 +90,9 @@ class ClientCommand extends ContainerAwareCommand
                     $connection->query('DELETE FROM '.$pageClassMetadata->getTableName());
                     $connection->query('DELETE FROM '.$entityVersionClassMetadata->getTableName());
                     $connection->query('DELETE FROM '.$contentItemClassMetadata->getTableName());
+                    $connection->query('DELETE FROM '.$otherOneToManyRelationClassMetadata->getTableName());
+                    $connection->query('DELETE FROM '.$nestedContentItemClassMetadata->getTableName());
+                    $connection->query('DELETE FROM '.$nestedChildContentItemClassMetadata->getTableName());
                     $connection->query('SET FOREIGN_KEY_CHECKS=1');
                     $connection->commit();
                 } catch (\Exception $e) {
@@ -145,6 +153,28 @@ class ClientCommand extends ContainerAwareCommand
                 $otherEntity->setTitelo($title);
 
                 $page->addOtherOneToManyRelation($otherEntity);
+
+                $em->persist($page);
+                $em->flush();
+                break;
+
+            case 'create-nested-contenitem':
+                /** @var Page $page */
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+
+                if ($data['save-as-active']) {
+                    $versioning->startActiveTransaction($page);
+                }
+
+                $nestedContentItem = new NestedContentItem();
+                $nestedContentItem->setId($data['nestedContentItemId']);
+                $nestedContentItem->setTitle($data['nestedContentItemTitle']);
+                $page->addNestedContentItem($nestedContentItem);
+
+                $childNestedContentItem = new ChildOfNestedContentItem();
+                $childNestedContentItem->setId($data['childNestedContentItemId']);
+                $childNestedContentItem->setTitle($data['childNestedContentItemTitle']);
+                $nestedContentItem->addChildContentItem($childNestedContentItem);
 
                 $em->persist($page);
                 $em->flush();

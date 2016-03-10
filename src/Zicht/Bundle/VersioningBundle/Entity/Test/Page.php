@@ -75,12 +75,18 @@ class Page implements IVersionable
     private $otherOneToManyRelations;
 
     /**
+     * @ORM\OneToMany(targetEntity="Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem", mappedBy="page", cascade={"persist", "remove"}, orphanRemoval=true)
+     */
+    private $nestedContentItems;
+
+    /**
      * Page constructor.
      */
     public function __construct()
     {
         $this->contentItems = new ArrayCollection();
         $this->otherOneToManyRelations = new ArrayCollection();
+        $this->nestedContentItems = new ArrayCollection();
     }
 
     /**
@@ -250,5 +256,39 @@ class Page implements IVersionable
     public function getOtherOneToManyRelations()
     {
         return $this->otherOneToManyRelations;
+    }
+
+    /**
+     * Add NestedContentItem
+     *
+     * @param NestedContentItem $nestedContentItem
+     * @return Page
+     */
+    public function addNestedContentItem(NestedContentItem $nestedContentItem)
+    {
+        $nestedContentItem->setPage($this);
+        $this->nestedContentItems[] = $nestedContentItem;
+
+        return $this;
+    }
+
+    /**
+     * Remove NestedContentItem
+     *
+     * @param NestedContentItem $nestedContentItem
+     */
+    public function removeNestedContentItem(NestedContentItem $nestedContentItem)
+    {
+        $this->nestedContentItems->removeElement($nestedContentItem);
+    }
+
+    /**
+     * Get NestedContentItem
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getNestedContentItems()
+    {
+        return $this->nestedContentItems;
     }
 }
