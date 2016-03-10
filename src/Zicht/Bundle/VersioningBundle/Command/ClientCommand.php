@@ -179,15 +179,45 @@ class ClientCommand extends ContainerAwareCommand
                 break;
 
             case 'serialize':
-                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById(1);
+                $page = $this->createPageWithContentItem();
+
                 $serialize = $serializer->serialize($page);
 
                 var_dump($serialize);
                 exit;
                 break;
 
+            case 'deserialize':
+                $page = $this->createPageWithContentItem();
+                $entityVersion = new EntityVersion();
+                $entityVersion->setData($serializer->serialize($page));
+                $entityVersion->setSourceClass(get_class($page));
+                $deserialize = $serializer->deserialize($entityVersion);
+
+                echo 'echdfsdfskljdfskjdfs';
+                var_dump($deserialize);
+                echo 'daaaar' . PHP_EOL;
+                exit;
+                break;
+
             default:
                 $output->writeln("<error>Invalid sub-command `{$input->getArgument('action')}`");
         }
+    }
+
+    private function createPageWithContentItem()
+    {
+        $page = new Page();
+        $page->setId(1);
+        $page->setTitle('titel');
+        $page->setIntroduction('intro intro');
+
+        $contentItem = new ContentItem();
+        $contentItem->setId(2);
+        $contentItem->setTitle('CI titel');
+
+        $page->addContentItem($contentItem);
+
+        return $page;
     }
 }

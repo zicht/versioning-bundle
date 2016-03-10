@@ -16,7 +16,7 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
  * @package Zicht\Bundle\VersioningBundle\Entity\Test
  *
  * @ORM\Table(name="versioning_test_contentitem")
- * @ORM\Entity(repositoryClass="ContentItemRepository", )
+ * @ORM\Entity()
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
 class ContentItem implements IVersionableChild
