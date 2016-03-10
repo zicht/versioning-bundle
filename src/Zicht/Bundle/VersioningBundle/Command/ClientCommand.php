@@ -113,6 +113,10 @@ class ClientCommand extends ContainerAwareCommand
                 /** @var Page $page */
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
+                if ($data['save-as-active']) {
+                    $versioning->startActiveTransaction($page);
+                }
+
                 $contentItem = new ContentItem();
                 $contentItem->setId($contentItemId);
                 $contentItem->setTitle($title);
@@ -194,9 +198,9 @@ class ClientCommand extends ContainerAwareCommand
                 $entityVersion->setSourceClass(get_class($page));
                 $deserialize = $serializer->deserialize($entityVersion);
 
-                echo 'echdfsdfskljdfskjdfs';
+                echo 'START --- ' . PHP_EOL;
                 var_dump($deserialize);
-                echo 'daaaar' . PHP_EOL;
+                echo 'END --- ' . PHP_EOL;
                 exit;
                 break;
 
@@ -213,10 +217,16 @@ class ClientCommand extends ContainerAwareCommand
         $page->setIntroduction('intro intro');
 
         $contentItem = new ContentItem();
-        $contentItem->setId(2);
+        $contentItem->setId(1);
         $contentItem->setTitle('CI titel');
 
         $page->addContentItem($contentItem);
+
+        $contentItem2 = new ContentItem();
+        $contentItem2->setId(2);
+        $contentItem2->setTitle('CI titel 2');
+
+        $page->addContentItem($contentItem2);
 
         return $page;
     }

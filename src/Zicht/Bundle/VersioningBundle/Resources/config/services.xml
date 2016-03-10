@@ -6,6 +6,7 @@
 
     <services>
         <service id="zicht_versioning.serializer" class="Zicht\Bundle\VersioningBundle\Services\SerializerService">
+            <argument type="service" id="annotations.reader"/>
         </service>
         <service id="zicht_versioning.manager" class="Zicht\Bundle\VersioningBundle\Services\VersioningService">
             <argument type="service" id="doctrine"/>

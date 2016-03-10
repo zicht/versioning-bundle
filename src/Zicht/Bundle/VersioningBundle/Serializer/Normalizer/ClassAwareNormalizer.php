@@ -6,7 +6,13 @@
 
 namespace Zicht\Bundle\VersioningBundle\Serializer\Normalizer;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\ORM\Mapping\OneToMany;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
+use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
 
@@ -18,6 +24,9 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
  */
 class ClassAwareNormalizer extends ObjectNormalizer
 {
+    /** @var AnnotationReader */
+    private $reader;
+
     /**
      * {@inheritDoc}
      */
@@ -61,25 +70,27 @@ class ClassAwareNormalizer extends ObjectNormalizer
 
         $reflectionClass = new \ReflectionClass($class);
 
-        $contentitems = [];
+        $oneToManyMap = [];
 
         if ($reflectionClass->name == 'Zicht\Bundle\VersioningBundle\Entity\Test\Page') {
-            foreach($data['contentItems'] as $ci) {
-                $contentitems[] = $this->denormalize($ci, null, $format, $context);
+            foreach ($reflectionClass->getProperties() as $prop) {
+
+                $metadata = $this->reader->getPropertyAnnotations($prop);
+                foreach($metadata as $m) {
+                    if ($m instanceof OneToMany) {
+                        $this->ignoredAttributes[] = $prop->name;
+
+                        $oneToManyMap[$prop->name] = [];
+
+                        foreach($data[$prop->name] as $ci) {
+                            $oneToManyMap[$prop->name][] = $this->denormalize($ci, null, $format, $context);
+                        }
+                    }
+                }
             }
         }
 
         $object = $this->instantiateObject($normalizedData, $class, $context, $reflectionClass, $allowedAttributes);
-
-
-        foreach($contentitems as $cix) {
-            $object->addContentItem($cix);
-        }
-
-
-        if ($reflectionClass->name == 'Zicht\Bundle\VersioningBundle\Entity\Test\Page') {
-            $this->ignoredAttributes[] = 'contentItems';
-        }
 
         foreach ($normalizedData as $attribute => $value) {
             if ($this->nameConverter) {
@@ -98,6 +109,15 @@ class ClassAwareNormalizer extends ObjectNormalizer
             }
         }
 
+        foreach ($oneToManyMap as $property => $otm) {
+            $this->propertyAccessor->setValue($object, $property, $otm);
+        }
+
         return $object;
+    }
+
+    public function setDoctrine($doctrine)
+    {
+        $this->reader = $doctrine;
     }
 }

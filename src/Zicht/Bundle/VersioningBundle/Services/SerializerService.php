@@ -6,6 +6,8 @@
  */
 namespace Zicht\Bundle\VersioningBundle\Services;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
@@ -22,13 +24,20 @@ class SerializerService
 {
     /** @var Serializer */
     private $serializer;
+    /**
+     * @var AnnotationReader
+     */
+    private $doctrine;
 
     /**
      * SerializerService constructor.
      */
-    public function __construct()
+    public function __construct(AnnotationReader $doctrine)
     {
+        $this->doctrine = $doctrine;
+
         $objectNormalizer = new ClassAwareNormalizer();
+        $objectNormalizer->setDoctrine($this->doctrine);
         $objectNormalizer->setCircularReferenceHandler(function ($object) {
             return $object->getId();
         });
