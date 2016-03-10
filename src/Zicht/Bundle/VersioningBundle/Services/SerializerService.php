@@ -24,20 +24,23 @@ class SerializerService
 {
     /** @var Serializer */
     private $serializer;
+
     /**
      * @var AnnotationReader
      */
-    private $doctrine;
+    private $annotationReader;
 
     /**
      * SerializerService constructor.
+     *
+     * @param AnnotationReader $annotationReader
      */
-    public function __construct(AnnotationReader $doctrine)
+    public function __construct(AnnotationReader $annotationReader)
     {
-        $this->doctrine = $doctrine;
+        $this->annotationReader = $annotationReader;
 
         $objectNormalizer = new ClassAwareNormalizer();
-        $objectNormalizer->setDoctrine($this->doctrine);
+        $objectNormalizer->setAnnotationReader($this->annotationReader);
         $objectNormalizer->setCircularReferenceHandler(function ($object) {
             return $object->getId();
         });

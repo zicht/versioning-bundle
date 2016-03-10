@@ -24,7 +24,7 @@ Scenario: Creating a new version with a content item and save as active
   Then the count of contentitems in the active version of the page with id 1 should be 2
   And the field "title" of the contentitem with id 1 should have the value "3 CI-1"
   And the field "title" of the contentitem with id 2 should have the value "4 CI-2"
-  And throw error
+#  And throw error
 
 Scenario: Changing the title on the page shouldn't change the contentitem
   Given a page exists with id 1, title "A" and a contentitem with id 1 and title "CI title"

@@ -397,8 +397,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function thePageWithIdHasAContentitemWithIdAndTitle($id, $contentItemId, $contentItemTitle)
     {
         self::console('create-content-item', $id, ['id' => $contentItemId, 'title' => $contentItemTitle]);
-        
-        
+    }
+
+    /**
+     * @Given /^the page with id (\d+) has a contentitem with id (\d+) and title "([^"]*)" and save it as the active page$/
+     */
+    public function thePageWithIdHasAContentitemWithIdAndTitleAndSaveItAsTheActivePage($id, $contentItemId, $contentItemTitle)
+    {
+        self::console('create-content-item', $id, ['id' => $contentItemId, 'title' => $contentItemTitle, 'save-as-active' => true]);
     }
 
     /**
@@ -448,7 +454,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public function aPageExistsWithIdTitleAndAContentitemWithIdAndTitle($id, $title, $ci_id, $ci_title)
     {
         $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
-        $this->thePageWithIdHasAContentitemWithIdAndTitle($id, $ci_id, $ci_title);
+        $this->thePageWithIdHasAContentitemWithIdAndTitleAndSaveItAsTheActivePage($id, $ci_id, $ci_title);
     }
 
     /**
