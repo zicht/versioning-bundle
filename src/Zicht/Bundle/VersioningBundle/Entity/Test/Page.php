@@ -70,11 +70,17 @@ class Page implements IVersionable
     private $contentItems;
 
     /**
+     * @ORM\OneToMany(targetEntity="Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation", mappedBy="page", cascade={"persist", "remove"}, orphanRemoval=true)
+     */
+    private $otherOneToManyRelations;
+
+    /**
      * Page constructor.
      */
     public function __construct()
     {
         $this->contentItems = new ArrayCollection();
+        $this->otherOneToManyRelations = new ArrayCollection();
     }
 
     /**
@@ -211,5 +217,38 @@ class Page implements IVersionable
     public function getContentItems()
     {
         return $this->contentItems;
+    }
+
+    /**
+     * Add OtherOneToManyRelation
+     *
+     * @param OtherOneToManyRelation $otherOneToManyRelation
+     * @return Page
+     */
+    public function addOtherOneToManyRelation(OtherOneToManyRelation $otherOneToManyRelation)
+    {
+        $otherOneToManyRelation->setPage($this);
+        $this->otherOneToManyRelations[] = $otherOneToManyRelation;
+        return $this;
+    }
+
+    /**
+     * Remove OtherOneToManyRelation
+     *
+     * @param OtherOneToManyRelation $otherOneToManyRelation
+     */
+    public function removeOtherOneToManyRelation(OtherOneToManyRelation $otherOneToManyRelation)
+    {
+        $this->otherOneToManyRelations->removeElement($otherOneToManyRelation);
+    }
+
+    /**
+     * Get OtherOneToManyRelation
+     *
+     * @return \Doctrine\Common\Collections\Collection
+     */
+    public function getOtherOneToManyRelations()
+    {
+        return $this->otherOneToManyRelations;
     }
 }

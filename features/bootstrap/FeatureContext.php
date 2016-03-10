@@ -32,7 +32,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     public static function console($cmd, $id = null, $data = null)
     {
         $debug = false;
-        if ($cmd == 'create-content-item') {
+        if ($cmd == 'create-other-otmr') {
 //            $debug = true;
         }
 
@@ -408,6 +408,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     }
 
     /**
+     * @When /^i add another one to many entity with id (\d+) and title "([^"]*)" to page with id (\d+)$/
+     */
+    public function iAddAnotherOneToManyEntityWithIdAndTitleToPageWithId($entityId, $entityTitle, $pageId)
+    {
+        self::console('create-other-otmr', $pageId, ['id' => $entityId, 'title' => $entityTitle]);
+    }
+
+    /**
      * @Then /^the field "([^"]*)" of the contentitem with id (\d+) should have the value "([^"]*)"$/
      */
     public function theFieldOfTheContentitemWithIdShouldHaveTheValue($fieldName, $contentItemId, $expectedValue)
@@ -466,6 +474,18 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
 
         if (count($contentItems) != $expectedNumberOfContentItems) {
             throw new RuntimeException(sprintf('The page with id %d has a different count contentitems [%d] than expected [%d]', $id, count($contentItems), $expectedNumberOfContentItems));
+        }
+    }
+
+    /**
+     * @Given /^the count of other ony to many entities of the page with id (\d+) should be (\d+)$/
+     */
+    public function theCountOfOtherOnyToManyEntitiesOfThePageWithIdShouldBe($id, $expectedNumber)
+    {
+        $items = $this->retrievedData['otherOneToManyRelations'];
+
+        if (count($items) != $expectedNumber) {
+            throw new RuntimeException(sprintf('The page with id %d has a different count one to many entities [%d] than expected [%d]', $id, count($items), $expectedNumber));
         }
     }
 }

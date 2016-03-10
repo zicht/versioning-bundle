@@ -13,6 +13,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
+use Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
 class ClientCommand extends ContainerAwareCommand
@@ -122,6 +123,28 @@ class ClientCommand extends ContainerAwareCommand
                 $contentItem->setTitle($title);
 
                 $page->addContentItem($contentItem);
+
+                $em->persist($page);
+                $em->flush();
+                break;
+
+            case 'create-other-otmr':
+                $id = $input->getOption('id');
+                $title = $data['title'];
+                $contentItemId = $data['id'];
+
+                /** @var Page $page */
+                $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
+
+                if ($data['save-as-active']) {
+                    $versioning->startActiveTransaction($page);
+                }
+
+                $otherEntity = new OtherOneToManyRelation();
+                $otherEntity->setId($contentItemId);
+                $otherEntity->setTitelo($title);
+
+                $page->addOtherOneToManyRelation($otherEntity);
 
                 $em->persist($page);
                 $em->flush();
