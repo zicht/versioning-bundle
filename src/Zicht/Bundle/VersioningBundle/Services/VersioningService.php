@@ -194,12 +194,11 @@ class VersioningService
     {
         /** @var IVersionable $storedEntity */
         $storedEntity = $this->serializer->deserialize($entityVersion);
-//        $storedEntity = $this->doctrine->getManager()->merge($storedEntity);
 
         $entity = $this->doctrine->getManager()->getRepository($entityVersion->getSourceClass())->find($entityVersion->getOriginalId());
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
-//
+
         $_reflectionClass = new \ReflectionClass(get_class($storedEntity));
         foreach ($_reflectionClass->getProperties() as $prop) {
             if (!in_array($prop->name, ['id'])) {
