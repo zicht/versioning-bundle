@@ -16,7 +16,7 @@ class PageRepository extends EntityRepository
     {
         return $this->createQueryBuilder('p')
             ->select('p')
-            ->where('p.id = :id')
+            ->where('p.testingId = :id')
             ->setParameter('id', $id)
             ->getQuery()
             ->getOneOrNullResult();

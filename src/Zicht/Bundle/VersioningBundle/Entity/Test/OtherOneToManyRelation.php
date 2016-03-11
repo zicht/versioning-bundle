@@ -22,12 +22,20 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
 class OtherOneToManyRelation implements IVersionableChild
 {
     /**
-     * @var int
+     * @var integer
      *
-     * @ORM\Id()
      * @ORM\Column(type="integer")
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="AUTO")
      */
     private $id;
+
+    /**
+     * @var int
+     *
+     * @ORM\Column(type="integer")
+     */
+    private $testingId;
 
     /**
      * @var string $titelo
@@ -55,15 +63,6 @@ class OtherOneToManyRelation implements IVersionableChild
     public function getId()
     {
         return $this->id;
-    }
-
-    /**
-     * @param int $id
-     * @return void
-     */
-    public function setId($id)
-    {
-        $this->id = $id;
     }
 
     /**
@@ -123,5 +122,22 @@ class OtherOneToManyRelation implements IVersionableChild
     public function getParent()
     {
         return $this->page;
+    }
+
+    /**
+     * @return int
+     */
+    public function getTestingId()
+    {
+        return $this->testingId;
+    }
+
+    /**
+     * @param int $testingId
+     * @return void
+     */
+    public function setTestingId($testingId)
+    {
+        $this->testingId = $testingId;
     }
 }

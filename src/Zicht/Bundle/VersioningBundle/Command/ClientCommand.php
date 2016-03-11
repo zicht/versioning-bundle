@@ -105,7 +105,7 @@ class ClientCommand extends ContainerAwareCommand
                 $title = $data['title'];
 
                 $page = new Page();
-                $page->setId($id);
+                $page->setTestingId($id);
                 $page->setTitle($title);
 
                 $em->persist($page);
@@ -127,7 +127,7 @@ class ClientCommand extends ContainerAwareCommand
                 }
 
                 $contentItem = new ContentItem();
-                $contentItem->setId($contentItemId);
+                $contentItem->setTestingId($contentItemId);
                 $contentItem->setTitle($title);
 
                 $page->addContentItem($contentItem);
@@ -149,7 +149,7 @@ class ClientCommand extends ContainerAwareCommand
                 }
 
                 $otherEntity = new OtherOneToManyRelation();
-                $otherEntity->setId($contentItemId);
+                $otherEntity->setTestingId($contentItemId);
                 $otherEntity->setTitelo($title);
 
                 $page->addOtherOneToManyRelation($otherEntity);
@@ -167,12 +167,12 @@ class ClientCommand extends ContainerAwareCommand
                 }
 
                 $nestedContentItem = new NestedContentItem();
-                $nestedContentItem->setId($data['nestedContentItemId']);
+                $nestedContentItem->setTestingId($data['nestedContentItemId']);
                 $nestedContentItem->setTitle($data['nestedContentItemTitle']);
                 $page->addNestedContentItem($nestedContentItem);
 
                 $childNestedContentItem = new ChildOfNestedContentItem();
-                $childNestedContentItem->setId($data['childNestedContentItemId']);
+                $childNestedContentItem->setTestingId($data['childNestedContentItemId']);
                 $childNestedContentItem->setTitle($data['childNestedContentItemTitle']);
                 $nestedContentItem->addChildContentItem($childNestedContentItem);
 
@@ -265,18 +265,18 @@ class ClientCommand extends ContainerAwareCommand
     private function createPageWithContentItem()
     {
         $page = new Page();
-        $page->setId(1);
+        $page->setTestingId(1);
         $page->setTitle('titel');
         $page->setIntroduction('intro intro');
 
         $contentItem = new ContentItem();
-        $contentItem->setId(1);
+        $contentItem->setTestingId(1);
         $contentItem->setTitle('CI titel');
 
         $page->addContentItem($contentItem);
 
         $contentItem2 = new ContentItem();
-        $contentItem2->setId(2);
+        $contentItem2->setTestingId(2);
         $contentItem2->setTitle('CI titel 2');
 
         $page->addContentItem($contentItem2);

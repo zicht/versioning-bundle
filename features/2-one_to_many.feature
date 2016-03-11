@@ -53,3 +53,4 @@ Scenario: Mix one to many entity types
 Scenario: Add a nested contentitem
   Given a new page is created with id 1 and title "title"
   And i add a nested contentitem with id 1 and title "nested title" and a child contentitem with id 1 and title "child nested title" to page with id 1
+  #TODO: we should add some more tests here with the nested contentitems and such ^^

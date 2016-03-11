@@ -8,9 +8,9 @@ namespace Zicht\Bundle\VersioningBundle\Services;
 
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
-use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
 /**
  * Class VersioningService
@@ -194,9 +194,20 @@ class VersioningService
     {
         /** @var IVersionable $storedEntity */
         $storedEntity = $this->serializer->deserialize($entityVersion);
-        $storedEntity = $this->doctrine->getManager()->merge($storedEntity);
+//        $storedEntity = $this->doctrine->getManager()->merge($storedEntity);
 
-        $this->doctrine->getManager()->persist($storedEntity);
+        $entity = $this->doctrine->getManager()->getRepository($entityVersion->getSourceClass())->find($entityVersion->getOriginalId());
+
+        $propertyAccessor = PropertyAccess::createPropertyAccessor();
+//
+        $_reflectionClass = new \ReflectionClass(get_class($storedEntity));
+        foreach ($_reflectionClass->getProperties() as $prop) {
+            if (!in_array($prop->name, ['id'])) {
+                $propertyAccessor->setValue($entity, $prop->name, $propertyAccessor->getValue($storedEntity, $prop->name));
+            }
+        }
+
+        $this->doctrine->getManager()->persist($entity);
         $this->doctrine->getManager()->flush();
     }
 

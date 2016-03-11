@@ -242,7 +242,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
     {
         $this->aNewPageIsCreatedWithIdAndTitle($id, $title);
 
-        $jsonData = json_encode(['id' => $id, 'title' => 'A', 'introduction' => null], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
+        $jsonData = json_encode(['testingId' => $id, 'title' => 'A', 'introduction' => null], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE);
 
         self::console('inject-data', $id, ['version' => 1, 'data' => $jsonData]);
     }
@@ -429,7 +429,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         $found = false;
 
         foreach($contentItems as $ci) {
-            if ($ci['id'] === intval($contentItemId)) {
+            if ($ci['testingId'] === intval($contentItemId)) {
                 $found = true;
 
                 if (!key_exists($fieldName, $ci)) {

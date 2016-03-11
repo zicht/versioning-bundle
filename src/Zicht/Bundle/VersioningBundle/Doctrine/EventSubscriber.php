@@ -10,6 +10,7 @@ use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Event\LifecycleEventArgs;
 use Doctrine\ORM\Event\OnFlushEventArgs;
+use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
@@ -57,6 +58,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         return [
 //                Events::postLoad,
                 Events::onFlush,
+                Events::postFlush
         ];
     }
 
@@ -125,6 +127,36 @@ class EventSubscriber implements DoctrineEventSubscriber
     }
 
     /**
+     * postFlush listener
+     * We update the ids here for the just inserted entities - since in the onFlush we don't have the ids for the inserted entities
+     *
+     * @param PostFlushEventArgs $args
+     * @return void
+     */
+    public function postFlush(PostFlushEventArgs $args)
+    {
+        $em  = $args->getEntityManager();
+
+        //temporary remove the eventSubscriber - to prevent infinite loop ^^
+        $em->getEventManager()->removeEventSubscriber($this);
+
+        foreach ($this->handledEntities as $entityMap) {
+            /** @var IVersionable $entity */
+            $entity = $entityMap['entity'];
+            /** @var EntityVersion $entityVersion */
+            $entityVersion = $entityMap['entityVersion'];
+
+            $entityVersion->setOriginalId($entity->getId());
+            $em->persist($entityVersion);
+        }
+
+        $em->flush();
+
+        //re-add the eventSubscriber again
+        $em->getEventManager()->addEventSubscriber($this);
+    }
+
+    /**
      * Handles the versioning for the given entity
      *
      * @param IVersionable $entity
@@ -150,10 +182,10 @@ class EventSubscriber implements DoctrineEventSubscriber
 
             $em->persist($entityVersion);
 
-            $this->handledEntities[$hash] = $entityVersion;
+            $this->handledEntities[$hash] = ['entityVersion' => $entityVersion, 'entity' => $entity];
         }
 
-        return $this->handledEntities[$hash];
+        return $this->handledEntities[$hash]['entityVersion'];
     }
 
     /**

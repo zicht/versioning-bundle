@@ -38,6 +38,9 @@ class ClassAwareNormalizer extends ObjectNormalizer
     {
         $data = parent::normalize($object, $format, $context);
         $data['__class__'] = get_class($object);
+
+        unset($data['id']);
+
         return $data;
     }
 
