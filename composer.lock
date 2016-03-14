@@ -1,11 +1,13 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c8828a6e6b5a92f5b91e13320798a9b8",
-    "packages": [
+    "hash": "2885ba9e813be2b76337b3b30023995b",
+    "content-hash": "6dcfc3abea3ff0d514151f1fc9b95631",
+    "packages": [],
+    "packages-dev": [
         {
             "name": "behat/behat",
             "version": "v3.0.15",
@@ -798,7 +800,6 @@
             "time": "2015-11-18 13:41:01"
         }
     ],
-    "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": [],
