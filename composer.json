@@ -1,7 +1,7 @@
 {
     "name" : "zicht/versioning-bundle",
     "description" : "Zicht Versioning",
-    "license" : "proprietary",
+    "license" : "MIT",
     "require-dev": {
         "behat/behat": "~3.0",
         "behat/mink": "~1.6",
