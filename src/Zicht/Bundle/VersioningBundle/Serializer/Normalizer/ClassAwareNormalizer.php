@@ -77,8 +77,6 @@ class ClassAwareNormalizer extends ObjectNormalizer
         if (array_key_exists('__class__', $data)) {
             $class = $data['__class__'];
             $assocationNames = $this->em->getClassMetadata($class)->getAssociationNames();
-            var_dump($assocationNames);
-            var_dump(array_keys($values));
             foreach ($values as $keyName => $assocations) {
                 if (in_array($keyName,  $assocationNames)) {
                     if (is_array($assocations)) {
