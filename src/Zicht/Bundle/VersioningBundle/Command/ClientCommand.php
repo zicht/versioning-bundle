@@ -53,11 +53,11 @@ class ClientCommand extends ContainerAwareCommand
                 
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($id);
 
-                if ($data['save-as-active']) {
+                if (!empty($data['save-as-active'])) {
                     $versioning->startActiveTransaction($page);
                 }
 
-                if ($data['version']) {
+                if (!empty($data['version'])) {
                     $versioning->setCurrentWorkingVersionNumber($page, $data['version']);
                 }
                 
@@ -122,7 +122,7 @@ class ClientCommand extends ContainerAwareCommand
                 /** @var Page $page */
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
-                if ($data['save-as-active']) {
+                if (!empty($data['save-as-active'])) {
                     $versioning->startActiveTransaction($page);
                 }
 
@@ -144,7 +144,7 @@ class ClientCommand extends ContainerAwareCommand
                 /** @var Page $page */
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
-                if ($data['save-as-active']) {
+                if (!empty($data['save-as-active'])) {
                     $versioning->startActiveTransaction($page);
                 }
 

@@ -36,10 +36,12 @@ class ClassAwareNormalizer extends ObjectNormalizer
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        $data = parent::normalize($object, $format, $context);
-        $data['__class__'] = get_class($object);
-
-        unset($data['id']);
+        if ($data = parent::normalize($object, $format, $context)) {
+            if (is_array($data)) {
+                $data['__class__'] = get_class($object);
+                unset($data['id']);
+            }
+        }
 
         return $data;
     }
@@ -76,8 +78,10 @@ class ClassAwareNormalizer extends ObjectNormalizer
 
                     $oneToManyMap[$prop->name] = [];
 
-                    foreach ($data[$prop->name] as $ci) {
-                        $oneToManyMap[$prop->name][] = $this->denormalize($ci, null, $format, $context);
+                    if (!empty($data[$prop->name])) {
+                        foreach ($data[$prop->name] as $ci) {
+                            $oneToManyMap[$prop->name][] = $this->denormalize($ci, null, $format, $context);
+                        }
                     }
                 }
             }
