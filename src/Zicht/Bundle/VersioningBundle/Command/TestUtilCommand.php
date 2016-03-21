@@ -18,12 +18,12 @@ use Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
 
-class ClientCommand extends ContainerAwareCommand
+class TestUtilCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
         $this
-            ->setName('zicht:versioning:client')
+            ->setName('zicht:versioning:test-util')
             ->addArgument('action', InputArgument::REQUIRED, 'The action the client should do')
 
             ->addOption('id', null, InputOption::VALUE_OPTIONAL, 'The page id, for identifing purposes')
