@@ -5,8 +5,8 @@
  */
 namespace Zicht\Bundle\VersioningBundle\Command;
 
+use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -34,6 +34,7 @@ class ClientCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
         $versioning = $this->getContainer()->get('zicht_versioning.manager');
         $serializer = $this->getContainer()->get('zicht_versioning.serializer');
@@ -162,7 +163,7 @@ class ClientCommand extends ContainerAwareCommand
                 /** @var Page $page */
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
 
-                if ($data['save-as-active']) {
+                if (!empty($data['save-as-active'])) {
                     $versioning->startActiveTransaction($page);
                 }
 

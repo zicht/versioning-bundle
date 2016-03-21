@@ -168,7 +168,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         if ($entity instanceof IVersionableChild) {
             do {
                 $entity = $entity->getParent();
-            } while($entity instanceof IVersionableChild);
+            } while ($entity instanceof IVersionableChild);
         }
 
         $hash = $this->versioning->makeHash($entity);
