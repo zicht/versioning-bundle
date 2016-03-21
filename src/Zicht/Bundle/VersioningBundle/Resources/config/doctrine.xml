@@ -7,7 +7,6 @@
     <services>
         <service id="zicht_versioning.doctrine.event_subscriber" public="false" class="Zicht\Bundle\VersioningBundle\Doctrine\EventSubscriber">
             <tag name="doctrine.event_subscriber" connection="default" />
-            <argument type="service" id="zicht_versioning.serializer"/>
             <argument type="service" id="zicht_versioning.manager"/>
         </service>
     </services>

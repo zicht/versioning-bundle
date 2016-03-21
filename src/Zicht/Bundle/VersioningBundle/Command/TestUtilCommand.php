@@ -37,7 +37,7 @@ class TestUtilCommand extends ContainerAwareCommand
         /** @var EntityManager $em */
         $em = $this->getContainer()->get('doctrine')->getManager();
         $versioning = $this->getContainer()->get('zicht_versioning.manager');
-        $serializer = $this->getContainer()->get('zicht_versioning.serializer');
+        $serializer = $versioning->getSerializer();
 
         $data = [];
         foreach ($input->getOption('data') as $optionData) {
@@ -63,6 +63,7 @@ class TestUtilCommand extends ContainerAwareCommand
                 }
                 
                 $methodName = 'set' . ucfirst($property);
+
                 if (method_exists($page, $methodName)) {
                     call_user_func_array(array($page, $methodName), array($value));
                     $em->persist($page);

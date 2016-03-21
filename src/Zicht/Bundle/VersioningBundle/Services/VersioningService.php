@@ -40,12 +40,19 @@ class VersioningService
      * VersioningService constructor.
      *
      * @param Registry $doctrine
-     * @param SerializerService $serializer
      */
-    public function __construct(Registry $doctrine, SerializerService $serializer)
+    public function __construct(Registry $doctrine)
     {
         $this->doctrine = $doctrine;
-        $this->serializer = $serializer;
+    }
+
+
+    public function getSerializer()
+    {
+        if (null === $this->serializer) {
+            $this->serializer = new SerializerService($this->doctrine->getManager());
+        }
+        return $this->serializer;
     }
 
     /**
@@ -192,7 +199,7 @@ class VersioningService
     private function writeEntityToEntityTable(EntityVersion $entityVersion)
     {
         /** @var VersionableInterface $storedEntity */
-        $storedEntity = $this->serializer->deserialize($entityVersion);
+        $storedEntity = $this->getSerializer()->deserialize($entityVersion);
 
         $entity = $this->doctrine->getManager()->getRepository($entityVersion->getSourceClass())->find($entityVersion->getOriginalId());
 
@@ -250,6 +257,12 @@ class VersioningService
         return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $version);
     }
 
+    public function getVersions($object)
+    {
+        return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersions($object);
+    }
+
+
     /**
      * Convenience method to find an entity for the specified repository.
      *
@@ -260,5 +273,17 @@ class VersioningService
     public function find($entity, $id)
     {
         return $this->doctrine->getManager()->find($entity, $id);
+    }
+
+
+    public function touch(VersionableInterface $object)
+    {
+        $this->doctrine->getManager()->persist($object);
+        $this->doctrine->getManager()->flush();
+    }
+
+    public function serialize($entity)
+    {
+        return $this->getSerializer()->serialize($entity);
     }
 }
