@@ -108,7 +108,6 @@ class VersioningService
      */
     public function makeHash(IVersionable $entity)
     {
-//        return get_class($entity) . '-' . $entity->getId();
         return spl_object_hash($entity);
     }
 
