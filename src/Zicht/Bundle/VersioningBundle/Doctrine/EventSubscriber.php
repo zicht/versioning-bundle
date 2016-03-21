@@ -16,7 +16,6 @@ use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Entity\VersionableChildInterface;
-use Zicht\Bundle\VersioningBundle\Services\SerializerService;
 use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 
 /**
@@ -26,8 +25,6 @@ use Zicht\Bundle\VersioningBundle\Services\VersioningService;
  */
 class EventSubscriber implements DoctrineEventSubscriber
 {
-    /** @var SerializerService */
-    private $serializer;
     /**
      * @var VersioningService
      */
@@ -39,12 +36,10 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * EventSubscriber constructor.
      *
-     * @param SerializerService $serializer
      * @param VersioningService $versioning
      */
-    public function __construct(SerializerService $serializer, VersioningService $versioning)
+    public function __construct(VersioningService $versioning)
     {
-        $this->serializer = $serializer;
         $this->versioning = $versioning;
     }
 
@@ -200,7 +195,7 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         $newEntityVersion->setSourceClass(get_class($entity));
         $newEntityVersion->setOriginalId($entity->getId());
-        $newEntityVersion->setData($this->serializer->serialize($entity));
+        $newEntityVersion->setData($this->versioning->serialize($entity));
         $newEntityVersion->setVersionNumber($this->versioning->getVersionCount($entity) + 1);
 
         $entityVersionInformation = $this->versioning->getEntityVersionInformation($entity);
