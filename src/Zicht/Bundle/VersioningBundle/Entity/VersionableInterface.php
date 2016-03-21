@@ -6,12 +6,10 @@
 
 namespace Zicht\Bundle\VersioningBundle\Entity;
 
-interface IVersionableChild extends IVersionable
+interface VersionableInterface
 {
     //not much here - just something to be able to 'mark' entities with ^^
 
-    /**
-     * @return IVersionable
-     */
-    public function getParent();
+    //we need an id, to determine the original source
+    public function getId();
 }

@@ -14,8 +14,8 @@ use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableChildInterface;
 use Zicht\Bundle\VersioningBundle\Services\SerializerService;
 use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 
@@ -73,7 +73,7 @@ class EventSubscriber implements DoctrineEventSubscriber
     {
         $entity = $args->getObject();
 
-        if (!$entity instanceof IVersionable) {
+        if (!$entity instanceof VersionableInterface) {
             return;
         }
 
@@ -102,7 +102,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         $uow = $em->getUnitOfWork();
 
         foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            if ($entity instanceof IVersionable || $entity instanceof IVersionableChild) {
+            if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
 
                 $entityVersion = $this->handleVersioning($entity, $em);
 
@@ -113,7 +113,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         }
 
         foreach ($uow->getScheduledEntityUpdates() as $entity) {
-            if ($entity instanceof IVersionable || $entity instanceof IVersionableChild) {
+            if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
 
                 $entityVersion = $this->handleVersioning($entity, $em);
 
@@ -141,7 +141,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         $em->getEventManager()->removeEventSubscriber($this);
 
         foreach ($this->handledEntities as $entityMap) {
-            /** @var IVersionable $entity */
+            /** @var VersionableInterface $entity */
             $entity = $entityMap['entity'];
             /** @var EntityVersion $entityVersion */
             $entityVersion = $entityMap['entityVersion'];
@@ -159,16 +159,16 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * Handles the versioning for the given entity
      *
-     * @param IVersionable $entity
+     * @param VersionableInterface $entity
      * @param EntityManager $em
      * @return EntityVersion
      */
-    private function handleVersioning(IVersionable $entity, EntityManager $em)
+    private function handleVersioning(VersionableInterface $entity, EntityManager $em)
     {
-        if ($entity instanceof IVersionableChild) {
+        if ($entity instanceof VersionableChildInterface) {
             do {
                 $entity = $entity->getParent();
-            } while ($entity instanceof IVersionableChild);
+            } while ($entity instanceof VersionableChildInterface);
         }
 
         $hash = $this->versioning->makeHash($entity);
@@ -191,10 +191,10 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * Create a new entityVersion
      *
-     * @param IVersionable $entity
+     * @param VersionableInterface $entity
      * @return EntityVersion
      */
-    private function createEntityVersion(IVersionable $entity)
+    private function createEntityVersion(VersionableInterface $entity)
     {
         $newEntityVersion = new EntityVersion();
 
@@ -219,13 +219,13 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * Undo the changes made to the given entity
      *
-     * @param IVersionable $entity
+     * @param VersionableInterface $entity
      * @param UnitOfWork $uow
      * @return void
      */
-    private function undoEntityChanges(IVersionable $entity, UnitOfWork $uow)
+    private function undoEntityChanges(VersionableInterface $entity, UnitOfWork $uow)
     {
-        if ($entity instanceof IVersionableChild) {
+        if ($entity instanceof VersionableChildInterface) {
             //TODO shouldn't we check here the entity state, so we can refresh it instead of removing???!!!
             $uow->remove($entity);
 

@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\ClassAwareNormalizer;
 
 /**
@@ -50,10 +50,10 @@ class SerializerService
     /**
      * Serializes the given entity
      *
-     * @param IVersionable $entity
+     * @param VersionableInterface $entity
      * @return string
      */
-    public function serialize(IVersionable $entity)
+    public function serialize(VersionableInterface $entity)
     {
         return $this->serializer->serialize($entity, 'json');
     }
@@ -62,7 +62,7 @@ class SerializerService
      * Deserializes the given entity
      *
      * @param EntityVersion $entityVersion
-     * @return IVersionable $entity
+     * @return VersionableInterface $entity
      */
     public function deserialize(EntityVersion $entityVersion)
     {

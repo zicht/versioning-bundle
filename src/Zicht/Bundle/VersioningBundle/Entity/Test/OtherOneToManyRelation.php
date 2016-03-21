@@ -7,8 +7,8 @@
 namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\ORM\Mapping as ORM;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableChildInterface;
 
 /**
  * Class OtherOneToManyRelation
@@ -19,7 +19,7 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
  * @ORM\Entity()
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class OtherOneToManyRelation implements IVersionableChild
+class OtherOneToManyRelation implements VersionableChildInterface
 {
     /**
      * @var integer
@@ -117,7 +117,7 @@ class OtherOneToManyRelation implements IVersionableChild
     }
 
     /**
-     * @return IVersionable
+     * @return VersionableInterface
      */
     public function getParent()
     {

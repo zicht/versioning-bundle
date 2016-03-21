@@ -8,7 +8,7 @@ namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 
 /**
  * Class Page
@@ -19,7 +19,7 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
  * @ORM\Entity(repositoryClass="Zicht\Bundle\VersioningBundle\Entity\Test\PageRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class Page implements IVersionable
+class Page implements VersionableInterface
 {
     /**
      * @var integer

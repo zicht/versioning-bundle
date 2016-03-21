@@ -10,7 +10,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\Mapping\OneToMany;
 use Symfony\Component\Debug\Exception\ContextErrorException;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 
 /**
  * Class ClassAwareNormalizer
@@ -28,7 +28,7 @@ class ClassAwareNormalizer extends ObjectNormalizer
      */
     public function supportsNormalization($data, $format = null)
     {
-        return $data instanceof IVersionable && parent::supportsNormalization($data, $format);
+        return $data instanceof VersionableInterface && parent::supportsNormalization($data, $format);
     }
 
     /**
@@ -51,7 +51,6 @@ class ClassAwareNormalizer extends ObjectNormalizer
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
-//        return array_key_exists('__class__', $data) && parent::supportsDenormalization($data, $type, $format);
         return parent::supportsDenormalization($data, $type, $format);
     }
 

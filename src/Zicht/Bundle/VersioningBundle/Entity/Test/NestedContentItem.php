@@ -8,8 +8,8 @@ namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionable;
-use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Entity\VersionableChildInterface;
 
 /**
  * Class NestedContentItem
@@ -20,7 +20,7 @@ use Zicht\Bundle\VersioningBundle\Entity\IVersionableChild;
  * @ORM\Entity()
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class NestedContentItem implements IVersionableChild
+class NestedContentItem implements VersionableChildInterface
 {
     /**
      * @var integer
@@ -130,7 +130,7 @@ class NestedContentItem implements IVersionableChild
     }
 
     /**
-     * @return IVersionable
+     * @return VersionableInterface
      */
     public function getParent()
     {
