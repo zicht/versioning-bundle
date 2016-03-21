@@ -58,7 +58,7 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
             exit;
         }
 
-        $cmd = "(cd $dir; php app/console -v zicht:versioning:client $cmd)";
+        $cmd = "(cd $dir; php app/console -v zicht:versioning:test-util $cmd)";
         $result = shell_exec($cmd);
         return $result;
     }
