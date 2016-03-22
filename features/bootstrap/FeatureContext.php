@@ -51,8 +51,14 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
         $rel = (new \Symfony\Component\Filesystem\Filesystem())->makePathRelative(realpath($dir . '/app'), realpath(getcwd()));
         $cmd = "(php {$rel}console -v zicht:versioning:test-util $cmd)";
         echo $cmd;
-        $result = shell_exec($cmd);
-        return $result;
+
+        $output = [];
+        $exitcode = 0;
+        exec($cmd, $output, $exitcode);
+        if (0 !== $exitcode) {
+            throw new UnexpectedValueException("Console command exited with exit code {$exitcode}");
+        }
+        return join('', $output);
     }
 
     /**

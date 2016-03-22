@@ -94,7 +94,7 @@ class VersioningService
         $entityVersion = $this->getSpecificEntityVersion($entity, $version);
 
         $this->storeActivatedEntityVersion($entity, $entityVersion);
-        $this->writeEntityToEntityTable($entityVersion);
+        $this->restoreVersion($entityVersion);
     }
 
     /**
@@ -197,26 +197,11 @@ class VersioningService
      * @param EntityVersion $entityVersion
      * @return void
      */
-    private function writeEntityToEntityTable(EntityVersion $entityVersion)
+    private function restoreVersion(EntityVersion $entityVersion)
     {
         /** @var VersionableInterface $storedEntity */
-        try {
-            $storedEntity = $this->getSerializer()->deserialize($entityVersion);
-        } catch (UnexpectedValueException $e) {
-            var_dump($entityVersion);
-            throw $e;
-        }
-
         $entity = $this->doctrine->getManager()->getRepository($entityVersion->getSourceClass())->find($entityVersion->getOriginalId());
-
-        $propertyAccessor = PropertyAccess::createPropertyAccessor();
-
-        $_reflectionClass = new \ReflectionClass(get_class($storedEntity));
-        foreach ($_reflectionClass->getProperties() as $prop) {
-            if (!in_array($prop->name, ['id'])) {
-                $propertyAccessor->setValue($entity, $prop->name, $propertyAccessor->getValue($storedEntity, $prop->name));
-            }
-        }
+        $this->getSerializer()->deserialize($entityVersion, $entity);
 
         $this->doctrine->getManager()->persist($entity);
         $this->doctrine->getManager()->flush();
@@ -291,5 +276,12 @@ class VersioningService
     public function serialize($entity)
     {
         return $this->getSerializer()->serialize($entity);
+    }
+
+
+    public function deserialize($data)
+    {
+        $class = $data['__class__'];
+        return $this->getSerializer()->deserialize($data, $class);
     }
 }

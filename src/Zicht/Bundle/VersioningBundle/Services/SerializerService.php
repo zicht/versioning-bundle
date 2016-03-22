@@ -13,6 +13,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DateTimeNormalizer;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer;
 
 /**
@@ -30,11 +31,10 @@ class SerializerService
      */
     public function __construct(EntityManager $manager)
     {
-        $objectNormalizer = new DoctrineEntityNormalizer($manager);
-        $objectNormalizer->setCircularReferenceHandler(function ($object) {
-            return $object->getId();
-        });
-        $this->serializer = new Serializer([$objectNormalizer], [new JsonEncoder()]);
+        $this->serializer = new Serializer(
+            [new DateTimeNormalizer(), new DoctrineEntityNormalizer($manager)],
+            [new JsonEncoder()]
+        );
     }
 
     /**
@@ -54,8 +54,8 @@ class SerializerService
      * @param EntityVersion $entityVersion
      * @return VersionableInterface $entity
      */
-    public function deserialize(EntityVersion $entityVersion)
+    public function deserialize(EntityVersion $entityVersion, $targetObject = null)
     {
-        return $this->serializer->deserialize($entityVersion->getData(), $entityVersion->getSourceClass(), 'json');
+        return $this->serializer->deserialize($entityVersion->getData(), $entityVersion->getSourceClass(), 'json', ['object' => $targetObject]);
     }
 }

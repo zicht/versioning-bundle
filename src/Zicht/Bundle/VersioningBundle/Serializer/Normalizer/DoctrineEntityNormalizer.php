@@ -7,29 +7,38 @@
 namespace Zicht\Bundle\VersioningBundle\Serializer\Normalizer;
 
 use Doctrine\Common\Annotations\AnnotationReader;
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Mapping\OneToMany;
 use Symfony\Component\Debug\Exception\ContextErrorException;
+use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 
 /**
- * Class ClassAwareNormalizer
- * Normalizer to (de)normalize an object, but storing the class information for it's one-to-many relations as well
- *
  * @package Zicht\Bundle\VersioningBundle\Serializer\Normalizer
  */
-class DoctrineEntityNormalizer extends ObjectNormalizer
+class DoctrineEntityNormalizer extends AbstractNormalizer
 {
     public function __construct(EntityManager $em)
     {
         parent::__construct();
 
         $this->em = $em;
+        $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
+
+        $this->setCircularReferenceHandler(function ($object) {
+            return $object->getId();
+        });
     }
 
     /**
@@ -37,19 +46,7 @@ class DoctrineEntityNormalizer extends ObjectNormalizer
      */
     public function supportsNormalization($data, $format = null)
     {
-        return $this->em->getMetadataFactory()->hasMetadataFor(get_class($data));
-    }
-
-
-    protected function getAllowedAttributes($classOrObject, array $context, $attributesAsString = false)
-    {
-        return array_keys(
-            $this->em->getMetadataFactory()->getMetadataFor(
-                is_object($classOrObject)
-                    ? get_class($classOrObject)
-                    : $classOrObject
-            )->reflFields
-        );
+        return is_object($data) && $this->em->getMetadataFactory()->hasMetadataFor(ClassUtils::getRealClass(get_class($data)));
     }
 
 
@@ -58,11 +55,49 @@ class DoctrineEntityNormalizer extends ObjectNormalizer
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        $data = parent::normalize($object, $format, $context);
-        if (is_array($data)) {
-            $data['__class__'] = get_class($object);
+        list($className, $classMetadata) = $this->getClassMetaData($object);
+
+        $ret = [
+            '__class__' => $className
+        ];
+
+        foreach ($classMetadata->getFieldNames() as $fieldName) {
+            $ret[$fieldName] = $this->propertyAccessor->getValue($object, $fieldName);
+            if (null !== $ret[$fieldName] && !is_scalar($ret[$fieldName])) {
+                $ret[$fieldName] = $this->serializer->normalize($ret[$fieldName], $format, $context);
+            }
         }
-        return $data;
+        foreach ($classMetadata->getAssociationNames() as $associationName) {
+            $associationMetadata = $classMetadata->associationMappings[$associationName];
+
+            switch ($associationMetadata['type']) {
+                case ClassMetadataInfo::ONE_TO_MANY:
+                    $ret[$associationName] = [];
+                    if ($this->propertyAccessor->getValue($object, $associationName)) {
+                        foreach ($this->propertyAccessor->getValue($object, $associationName) as $association) {
+                            $ret[$associationName][]= $this->normalize($association, $format, $context);
+                        }
+                    }
+                    break;
+                case ClassMetadataInfo::MANY_TO_ONE:
+                    if ($association = $this->propertyAccessor->getValue($object, $associationName)) {
+                        $ret[$associationName]= $this->serializeReferencedAssociation($association);
+                    } else {
+                        $ret[$associationName]= null;
+                    }
+                    break;
+                case ClassMetadataInfo::MANY_TO_MANY:
+                    $ret[$associationName] = [];
+                    foreach ($this->propertyAccessor->getValue($object, $associationName) as $association) {
+                        $ret[$associationName][]= $this->serializeReferencedAssociation($association);
+                    }
+                    break;
+                default:
+                    throw new UnexpectedValueException("Could not normalize assocation '{$associationName}' on '{$className}'");
+            }
+        }
+
+        return $ret;
     }
 
     /**
@@ -81,27 +116,112 @@ class DoctrineEntityNormalizer extends ObjectNormalizer
      */
     public function denormalize($data, $class, $format = null, array $context = array())
     {
-        $assocationNames = $this->em->getClassMetadata($class)->getAssociationNames();
-        foreach ($data as $keyName => $assocations) {
-            if (!is_array($assocations)) {
-                continue;
+        if (isset($data['__class__'])) {
+            $class = $data['__class__'];
+        }
+        if (isset($context['object'])) {
+            $object = $context['object'];
+            unset($context['object']);
+        } else {
+            $reflectionClass = new \ReflectionClass($class);
+            $object = $reflectionClass->newInstance();
+        }
+
+        list($className, $classMetadata) = $this->getClassMetaData($object);
+
+        foreach ($classMetadata->getFieldNames() as $fieldName) {
+            if (array_key_exists($fieldName, $data)) {
+                $fieldValue = $data[$fieldName];
+                if (null !== $fieldValue && !is_scalar($fieldValue)) {
+                    if (isset($fieldValue['__class__'])) {
+                        $fieldValue = $this->serializer->denormalize($fieldValue, $fieldValue['__class__'], $format, $context);
+                    }
+                }
+            } else {
+                $fieldValue = null;
             }
-            if (!in_array($keyName,  $assocationNames)) {
-                continue;
-            }
-            foreach ($assocations as $idx => $value) {
-                if (isset($value['__class__'])) {
-                    $data[$keyName][$idx] = $this->denormalize($value, $value['__class__']);
+
+            try {
+                $this->propertyAccessor->setValue($object, $fieldName, $fieldValue);
+            } catch (NoSuchPropertyException $e) {
+                try {
+                    $refl = new \ReflectionProperty(
+                        $classMetadata->fieldMappings[$fieldName]['declared'],
+                        $classMetadata->fieldMappings[$fieldName]['fieldName']
+                    );
+                    $refl->setAccessible(true);
+                    $refl->setValue($object, $fieldValue);
+                } catch (\Exception $e) {
                 }
             }
         }
+        foreach ($classMetadata->getAssociationNames() as $associationName) {
+            if (empty($data[$associationName])) {
+                continue;
+            }
 
-        try {
-            $object = parent::denormalize($data, $class, $format, $context);
-        } catch (ContextErrorException $e) {
-            throw new \Exception(sprintf('Denormalisation of class %s failed. Please check your setters and getters if they match the class properties', $class), $e->getCode(), $e);
+            $associationMetadata = $classMetadata->associationMappings[$associationName];
+
+            switch ($associationMetadata['type']) {
+                case ClassMetadataInfo::ONE_TO_MANY:
+                    $values = [];
+                    foreach ($data[$associationName] as $association) {
+                        $values[] = $this->denormalize($association, $association['__class__'], $format, $context);
+                    }
+                    $this->propertyAccessor->setValue($object, $associationName, $values);
+                    break;
+                case ClassMetadataInfo::MANY_TO_ONE:
+                    if (null !== $data[$associationName]) {
+                        $this->propertyAccessor->setValue($object, $associationName, $this->resolveReferencedAssociation($data[$associationName]));
+                    }
+                    break;
+                case ClassMetadataInfo::MANY_TO_MANY:
+                    $values = [];
+                    foreach ($data[$associationName] as $association) {
+                        $values[] = $this->resolveReferencedAssociation($association);
+                    }
+                    $this->propertyAccessor->setValue($object, $associationName, $values);
+                    break;
+                default:
+                    throw new UnexpectedValueException("Could not denormalize assocation '{$associationName}' on '{$className}'");
+            }
         }
 
         return $object;
+    }
+
+    /**
+     * @param $object
+     * @return array
+     * @throws \Doctrine\Common\Persistence\Mapping\MappingException
+     * @throws \Exception
+     */
+    protected function getClassMetaData($object)
+    {
+        $className = ClassUtils::getRealClass(is_object($object) ? get_class($object) : $object);
+        $classMetadata = $this->em->getMetadataFactory()->getMetadataFor($className);
+        return array($className, $classMetadata);
+    }
+
+    /**
+     * @param $data
+     * @param $associationName
+     * @return null|object
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
+    protected function resolveReferencedAssociation($reference)
+    {
+        return $this->em->find($reference['__class__'], $reference['id']);
+    }
+
+    /**
+     * @param mixed $associatedObject
+     * @return array
+     */
+    protected function serializeReferencedAssociation($associatedObject)
+    {
+        return ['__class__' => ClassUtils::getRealClass(get_class($associatedObject)), 'id' => $associatedObject->getId()];
     }
 }
