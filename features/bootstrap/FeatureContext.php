@@ -31,11 +31,6 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
      */
     public static function console($cmd, $id = null, $data = null)
     {
-        $debug = false;
-        if ($cmd == 'set-active') {
-//            $debug = true;
-        }
-
         if ($id) {
             $cmd = $cmd . ' --id=' . $id;
         }
@@ -53,12 +48,9 @@ class FeatureContext extends MinkContext implements SnippetAcceptingContext
             $dir .= '../../../';
         }
 
-        if ($debug) {
-            var_dump($cmd);
-            exit;
-        }
-
-        $cmd = "(cd $dir; php app/console -v zicht:versioning:test-util $cmd)";
+        $rel = (new \Symfony\Component\Filesystem\Filesystem())->makePathRelative(realpath($dir . '/app'), realpath(getcwd()));
+        $cmd = "(php {$rel}console -v zicht:versioning:test-util $cmd)";
+        echo $cmd;
         $result = shell_exec($cmd);
         return $result;
     }
