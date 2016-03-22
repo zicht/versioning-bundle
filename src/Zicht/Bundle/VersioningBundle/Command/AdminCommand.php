@@ -49,33 +49,33 @@ class AdminCommand extends ContainerAwareCommand
 
         if (!$object) {
             $output->writeln("Object not found: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");
-        }
-
-        if ($version = $this->versioning->getActiveVersion($object)) {
-            $output->writeln("Active version: {$version->getVersionNumber()}");
         } else {
-            $output->writeln("<info>No active version for this entity found</info>");
-        }
-
-        if ($activateVersion = $input->getOption('activate')) {
-            $this->versioning->setActive($object, $activateVersion);
-        }
-        if ($input->getOption('versions')) {
-            $table = new Table($output);
-            $table->setHeaders(['Version', 'Based on', 'Date', 'Data']);
-            /** @var EntityVersion[] $versions */
-            $versions = $this->versioning->getVersions($object);
-            foreach ($versions as $version) {
-                $table->addRow([
-                    $version->getVersionNumber() . ($version->isActive() ?  ' *' : ''),
-                    $version->getBasedOnVersion(),
-                    $version->getDateCreated()->format('Y-m-d H:i:s'),
-                    $output->getVerbosity() > 1
-                        ? json_encode(json_decode($version->getData()), JSON_PRETTY_PRINT)
-                        : substr($version->getData(), 0, 40) . ' ...'
-                ]);
+            if ($version = $this->versioning->getActiveVersion($object)) {
+                $output->writeln("Active version: {$version->getVersionNumber()}");
+            } else {
+                $output->writeln("<comment>No active version for this entity found</comment>");
             }
-            $table->render();
+
+            if ($activateVersion = $input->getOption('activate')) {
+                $this->versioning->setActive($object, $activateVersion);
+            }
+            if ($input->getOption('versions')) {
+                $table = new Table($output);
+                $table->setHeaders(['Version', 'Based on', 'Date', 'Data']);
+                /** @var EntityVersion[] $versions */
+                $versions = $this->versioning->getVersions($object);
+                foreach ($versions as $version) {
+                    $table->addRow([
+                        $version->getVersionNumber() . ($version->isActive() ?  ' *' : ''),
+                        $version->getBasedOnVersion(),
+                        $version->getDateCreated()->format('Y-m-d H:i:s'),
+                        $output->getVerbosity() > 1
+                            ? json_encode(json_decode($version->getData()), JSON_PRETTY_PRINT)
+                            : substr($version->getData(), 0, 40) . ' ...'
+                    ]);
+                }
+                $table->render();
+            }
         }
     }
 }

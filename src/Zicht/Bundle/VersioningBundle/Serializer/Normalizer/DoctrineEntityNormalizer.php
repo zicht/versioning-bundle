@@ -23,7 +23,7 @@ use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
  *
  * @package Zicht\Bundle\VersioningBundle\Serializer\Normalizer
  */
-class ClassAwareNormalizer extends ObjectNormalizer
+class DoctrineEntityNormalizer extends ObjectNormalizer
 {
     public function __construct(EntityManager $em)
     {
@@ -37,13 +37,19 @@ class ClassAwareNormalizer extends ObjectNormalizer
      */
     public function supportsNormalization($data, $format = null)
     {
-        return $data instanceof VersionableInterface && parent::supportsNormalization($data, $format);
+        return $this->em->getMetadataFactory()->hasMetadataFor(get_class($data));
     }
 
 
     protected function getAllowedAttributes($classOrObject, array $context, $attributesAsString = false)
     {
-        return array_keys($this->em->getClassMetadata(is_object($classOrObject) ? get_class($classOrObject) : $classOrObject)->reflFields);
+        return array_keys(
+            $this->em->getMetadataFactory()->getMetadataFor(
+                is_object($classOrObject)
+                    ? get_class($classOrObject)
+                    : $classOrObject
+            )->reflFields
+        );
     }
 
 
@@ -52,13 +58,10 @@ class ClassAwareNormalizer extends ObjectNormalizer
      */
     public function normalize($object, $format = null, array $context = array())
     {
-        if ($data = parent::normalize($object, $format, $context)) {
-            if (is_array($data)) {
-                $data['__class__'] = get_class($object);
-                unset($data['id']);
-            }
+        $data = parent::normalize($object, $format, $context);
+        if (is_array($data)) {
+            $data['__class__'] = get_class($object);
         }
-
         return $data;
     }
 
@@ -67,39 +70,30 @@ class ClassAwareNormalizer extends ObjectNormalizer
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
-        return parent::supportsDenormalization($data, $type, $format);
-    }
-
-    protected function prepareForDenormalization($data)
-    {
-        $values = parent::prepareForDenormalization($data);
-
-        if (array_key_exists('__class__', $data)) {
-            $class = $data['__class__'];
-            $assocationNames = $this->em->getClassMetadata($class)->getAssociationNames();
-            foreach ($values as $keyName => $assocations) {
-                if (in_array($keyName,  $assocationNames)) {
-                    if (is_array($assocations)) {
-                        foreach ($assocations as $idx => $value) {
-                            if (isset($value['__class__'])) {
-                                $values[$keyName][$idx] = $this->denormalize($value, $value['__class__']);
-                            }
-                        }
-                    }
-                }
-            }
+        if ($type && $this->em->getMetadataFactory()->hasMetadataFor($type)) {
+            return true;
         }
-        return $values;
+        return isset($data['__class__']) && $this->em->getMetadataFactory()->hasMetadataFor($data['__class__']);
     }
-
 
     /**
      * {@inheritDoc}
      */
     public function denormalize($data, $class, $format = null, array $context = array())
     {
-        if (array_key_exists('__class__', $data)) {
-            $class = $data['__class__'];
+        $assocationNames = $this->em->getClassMetadata($class)->getAssociationNames();
+        foreach ($data as $keyName => $assocations) {
+            if (!is_array($assocations)) {
+                continue;
+            }
+            if (!in_array($keyName,  $assocationNames)) {
+                continue;
+            }
+            foreach ($assocations as $idx => $value) {
+                if (isset($value['__class__'])) {
+                    $data[$keyName][$idx] = $this->denormalize($value, $value['__class__']);
+                }
+            }
         }
 
         try {

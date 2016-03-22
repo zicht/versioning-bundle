@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\ClassAwareNormalizer;
+use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer;
 
 /**
  * Class SerializerService
@@ -30,7 +30,7 @@ class SerializerService
      */
     public function __construct(EntityManager $manager)
     {
-        $objectNormalizer = new ClassAwareNormalizer($manager);
+        $objectNormalizer = new DoctrineEntityNormalizer($manager);
         $objectNormalizer->setCircularReferenceHandler(function ($object) {
             return $object->getId();
         });

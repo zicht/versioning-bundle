@@ -9,6 +9,7 @@ namespace Zicht\Bundle\VersioningBundle\Services;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 
@@ -199,7 +200,12 @@ class VersioningService
     private function writeEntityToEntityTable(EntityVersion $entityVersion)
     {
         /** @var VersionableInterface $storedEntity */
-        $storedEntity = $this->getSerializer()->deserialize($entityVersion);
+        try {
+            $storedEntity = $this->getSerializer()->deserialize($entityVersion);
+        } catch (UnexpectedValueException $e) {
+            var_dump($entityVersion);
+            throw $e;
+        }
 
         $entity = $this->doctrine->getManager()->getRepository($entityVersion->getSourceClass())->find($entityVersion->getOriginalId());
 
