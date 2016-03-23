@@ -14,8 +14,8 @@ use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableChildInterface;
+use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 
 /**

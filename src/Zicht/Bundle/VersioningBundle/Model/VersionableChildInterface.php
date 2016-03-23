@@ -4,7 +4,7 @@
  * @copyright Zicht Online <http://zicht.nl>
  */
 
-namespace Zicht\Bundle\VersioningBundle\Entity;
+namespace Zicht\Bundle\VersioningBundle\Model;
 
 interface VersionableChildInterface extends VersionableInterface
 {

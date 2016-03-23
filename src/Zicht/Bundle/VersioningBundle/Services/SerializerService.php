@@ -12,7 +12,7 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DateTimeNormalizer;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer;
 
@@ -32,7 +32,10 @@ class SerializerService
     public function __construct(EntityManager $manager)
     {
         $this->serializer = new Serializer(
-            [new DateTimeNormalizer(), new DoctrineEntityNormalizer($manager)],
+            [
+                new DateTimeNormalizer(),
+                new DoctrineEntityNormalizer($manager)
+            ],
             [new JsonEncoder()]
         );
     }

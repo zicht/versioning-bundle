@@ -6,23 +6,13 @@
 
 namespace Zicht\Bundle\VersioningBundle\Serializer\Normalizer;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\Mapping\OneToMany;
-use Symfony\Component\Debug\Exception\ContextErrorException;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
-use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
-use Symfony\Component\Serializer\NameConverter\NameConverterInterface;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
 
 /**
  * @package Zicht\Bundle\VersioningBundle\Serializer\Normalizer
@@ -35,10 +25,6 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
 
         $this->em = $em;
         $this->propertyAccessor = PropertyAccess::createPropertyAccessor();
-
-        $this->setCircularReferenceHandler(function ($object) {
-            return $object->getId();
-        });
     }
 
     /**
@@ -53,8 +39,8 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
     /**
      * {@inheritDoc}
      */
-    public function normalize($object, $format = null, array $context = array())
-    {
+    public function normalize($object, $format = null, array $context = array()) {
+        /** @var ClassMetadataInfo $classMetadata */
         list($className, $classMetadata) = $this->getClassMetaData($object);
 
         $ret = [
@@ -127,6 +113,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
             $object = $reflectionClass->newInstance();
         }
 
+        /** @var ClassMetadataInfo $classMetadata */
         list($className, $classMetadata) = $this->getClassMetaData($object);
 
         foreach ($classMetadata->getFieldNames() as $fieldName) {

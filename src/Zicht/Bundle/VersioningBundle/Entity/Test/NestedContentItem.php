@@ -8,8 +8,8 @@ namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableChildInterface;
+use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 
 /**
  * Class NestedContentItem

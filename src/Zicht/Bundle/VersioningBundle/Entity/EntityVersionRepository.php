@@ -7,19 +7,20 @@ namespace Zicht\Bundle\VersioningBundle\Entity;
 
 use Doctrine\ORM\EntityRepository;
 
+use Zicht\Bundle\VersioningBundle\Model;
+
 /**
  * EntityVersionRepository
- *
  */
-class EntityVersionRepository extends EntityRepository
+class EntityVersionRepository extends EntityRepository implements Model\EntityVersionStorageInterface
 {
     /**
      * Find the entityversions for the given entity
      *
-     * @param VersionableInterface $entity
+     * @param Model\VersionableInterface $entity
      * @return mixed
      */
-    public function findVersions(VersionableInterface $entity)
+    public function findVersions(Model\VersionableInterface $entity)
     {
         return $this->createQueryBuilder('ev')
             ->select('ev')
@@ -34,11 +35,11 @@ class EntityVersionRepository extends EntityRepository
     /**
      * Find a specific version of the given entity
      *
-     * @param VersionableInterface $entity
+     * @param Model\VersionableInterface $entity
      * @param integer $version
      * @return mixed
      */
-    public function findVersion(VersionableInterface $entity, $version)
+    public function findVersion(Model\VersionableInterface $entity, $version)
     {
         return $this->createQueryBuilder('ev')
             ->select('ev')
@@ -54,11 +55,11 @@ class EntityVersionRepository extends EntityRepository
     /**
      * Find a specific version of the given entity - using the basedOnVersion
      *
-     * @param VersionableInterface $entity
+     * @param Model\VersionableInterface $entity
      * @param integer $version
      * @return mixed
      */
-    public function findByBasedOnVersion(VersionableInterface $entity, $basedOnVersion)
+    public function findByBasedOnVersion(Model\VersionableInterface $entity, $basedOnVersion)
     {
         return $this->createQueryBuilder('ev')
             ->select('ev')
@@ -74,10 +75,10 @@ class EntityVersionRepository extends EntityRepository
     /**
      * Set all the versions for the given entity to is_active = false
      *
-     * @param VersionableInterface $entity
+     * @param Model\VersionableInterface $entity
      * @return void
      */
-    public function deactivateAll(VersionableInterface $entity)
+    public function deactivateAll(Model\VersionableInterface $entity)
     {
         $this->createQueryBuilder('ev')
             ->update('ZichtVersioningBundle:EntityVersion', 'ev')
@@ -92,10 +93,10 @@ class EntityVersionRepository extends EntityRepository
     /**
      * Gets the active version for the given entity
      *
-     * @param VersionableInterface $entity
+     * @param Model\VersionableInterface $entity
      * @return EntityVersion | null
      */
-    public function findActiveEntityVersion(VersionableInterface $entity)
+    public function findActiveEntityVersion(Model\VersionableInterface $entity)
     {
         return $this->createQueryBuilder('ev')
             ->select('ev')

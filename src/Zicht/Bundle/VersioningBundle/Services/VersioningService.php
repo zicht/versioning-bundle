@@ -11,7 +11,7 @@ use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Entity\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 /**
  * Class VersioningService
