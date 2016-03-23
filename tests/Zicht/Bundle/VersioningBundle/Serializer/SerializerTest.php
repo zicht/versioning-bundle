@@ -38,6 +38,20 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(Entity::class, (new Serializer($this->em))->deserialize($v));
     }
 
+    public function testDeserializingIntoExistingObject()
+    {
+        $meta = $this->getMock(ClassMetadataInfo::class, ['getFieldNames'], [Entity::class]);
+        $meta->expects($this->any())->method('getFieldNames')->will($this->returnValue(['bool']));
+        $this->expectMetadataFor(Entity::class, $meta);
+        $o = new Entity();
+        $o->setBool(false);
+        $v = new EntityVersion();
+        $v->setData(json_encode(['__class__' => Entity::class, 'bool' => true]));
+        $this->assertInstanceOf(Entity::class, (new Serializer($this->em))->deserialize($v, $o));
+
+        $this->assertEquals(true, $o->getBool());
+    }
+
 
     protected function expectMetadataFor($class, $meta)
     {

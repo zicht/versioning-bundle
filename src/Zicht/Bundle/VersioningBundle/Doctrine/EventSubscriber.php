@@ -191,12 +191,7 @@ class EventSubscriber implements DoctrineEventSubscriber
      */
     private function createEntityVersion(VersionableInterface $entity)
     {
-        $newEntityVersion = new EntityVersion();
-
-        $newEntityVersion->setSourceClass(get_class($entity));
-        $newEntityVersion->setOriginalId($entity->getId());
-        $newEntityVersion->setData($this->versioning->serialize($entity));
-        $newEntityVersion->setVersionNumber($this->versioning->getVersionCount($entity) + 1);
+        $newEntityVersion = $this->versioning->createEntityVersion($entity);
 
         $entityVersionInformation = $this->versioning->getEntityVersionInformation($entity);
 

@@ -6,10 +6,7 @@
 
 namespace Zicht\Bundle\VersioningBundle\Services;
 
-
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
@@ -25,17 +22,25 @@ class VersioningManager
      * @var Registry
      */
     private $doctrine;
+
     /**
-     * @var SerializerService
+     * @var Serializer
      */
     private $serializer;
 
-    /** @var array */
+    /**
+     * @var array
+     */
     private $currentWorkingVersionNumberMap = [];
 
-    /** @var array */
+    /**
+     * @var array
+     */
     private $activatedEntityVersions = [];
 
+    /**
+     * @var array
+     */
     private $makeEntityActiveMap = [];
 
     /**
@@ -268,21 +273,15 @@ class VersioningManager
     }
 
 
-    public function touch(VersionableInterface $object)
+    public function createEntityVersion(VersionableInterface $entity)
     {
-        $this->doctrine->getManager()->persist($object);
-        $this->doctrine->getManager()->flush();
-    }
+        $version = new EntityVersion();
 
-    public function serialize($entity)
-    {
-        return $this->getSerializer()->serialize($entity);
-    }
+        $version->setSourceClass(get_class($entity));
+        $version->setOriginalId($entity->getId());
+        $version->setData($this->serializer->serialize($entity));
+        $version->setVersionNumber($this->getVersionCount($entity) + 1);
 
-
-    public function deserialize($data)
-    {
-        $class = $data['__class__'];
-        return $this->getSerializer()->deserialize($data, $class);
+        return $version;
     }
 }
