@@ -22,7 +22,11 @@ class UrlHelper
     {
         $url = new Url($url);
         $versionInfo = $url->getParam($this->paramName, []);
-        $versionInfo[$version->getSourceClass()][$version->getOriginalId()] = $version->getVersionNumber();
+        if ($version->isActive()) {
+            unset($versionInfo[$version->getSourceClass()][$version->getOriginalId()]);
+        } else {
+            $versionInfo[$version->getSourceClass()][$version->getOriginalId()] = $version->getVersionNumber();
+        }
         $url->setParam($this->paramName, $versionInfo);
         return (string)$url;
     }
