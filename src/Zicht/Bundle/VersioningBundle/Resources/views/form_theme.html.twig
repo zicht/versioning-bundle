@@ -6,6 +6,7 @@
                 <th>{{ v.versionNumber }}</th>
                 <th>{{ v.basedOnVersion }}</th>
                 <td><a href="{{ version_url(admin.generateObjectUrl('edit', object), v) }}">EDIT</a></td>
+                <td><a href="{{ version_url(object_url(object), v) }}">SHOW</a></td>
             </tr>
         {% endfor %}
     </table>
