@@ -6,6 +6,7 @@
 
 namespace Zicht\Bundle\VersioningBundle\Command;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
@@ -24,11 +25,12 @@ use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
  */
 class AdminCommand extends ContainerAwareCommand
 {
-    public function __construct(VersioningManager $versioning)
+    public function __construct(VersioningManager $versioning, Registry $doctrine)
     {
         parent::__construct();
 
         $this->versioning = $versioning;
+        $this->doctrine = $doctrine;
     }
 
 
@@ -48,7 +50,7 @@ class AdminCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $object = $this->versioning->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
+        $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
 
         if (!$object) {
             $output->writeln("Object not found: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");

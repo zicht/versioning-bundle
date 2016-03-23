@@ -259,20 +259,6 @@ class VersioningManager
         return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersions($object);
     }
 
-
-    /**
-     * Convenience method to find an entity for the specified repository.
-     *
-     * @param string $entity
-     * @param int $id
-     * @return VersionableInterface
-     */
-    public function find($entity, $id)
-    {
-        return $this->doctrine->getManager()->find($entity, $id);
-    }
-
-
     public function createEntityVersion(VersionableInterface $entity)
     {
         $version = new EntityVersion();

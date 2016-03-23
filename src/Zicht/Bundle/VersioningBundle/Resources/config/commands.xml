@@ -11,6 +11,7 @@
         <service id="zicht_versioning.command.admin" class="Zicht\Bundle\VersioningBundle\Command\AdminCommand">
             <tag name="console.command"/>
             <argument type="service" id="zicht_versioning.manager" />
+            <argument type="service" id="doctrine" />
         </service>
     </services>
 </container>
