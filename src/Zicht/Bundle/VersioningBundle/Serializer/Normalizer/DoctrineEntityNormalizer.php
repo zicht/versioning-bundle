@@ -43,9 +43,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
         /** @var ClassMetadataInfo $classMetadata */
         list($className, $classMetadata) = $this->getClassMetaData($object);
 
-        $ret = [
-            '__class__' => $className
-        ];
+        $ret = ['__class__' => $className];
 
         foreach ($classMetadata->getFieldNames() as $fieldName) {
             $ret[$fieldName] = $this->propertyAccessor->getValue($object, $fieldName);

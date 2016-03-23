@@ -10,110 +10,11 @@ namespace Zicht\Bundle\VersioningBundle\Serializer\Normalizer;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Serializer;
+use Zicht\Bundle\VersioningBundle\Serializer\SerializerTest;
+use Zicht\Bundle\VersioningBundle\TestAssets\Entity;
+use Zicht\Bundle\VersioningBundle\TestAssets\OtherEntity;
 
-class Entity
-{
-    protected $bool = null;
-
-    protected $object = null;
-
-    private $other;
-    private $others;
-
-    private $priv = 1;
-
-    public function setObject($entity)
-    {
-        $this->object = $entity;
-    }
-
-
-    public function getObject()
-    {
-        return $this->object;
-    }
-
-    public function setBool($bool)
-    {
-        $this->bool = $bool;
-    }
-
-
-    public function getBool()
-    {
-        return $this->bool;
-    }
-
-
-    public function setOther($o)
-    {
-        $this->other = $o;
-    }
-
-    public function getOther()
-    {
-        return $this->other;
-    }
-
-
-    public function addOther($o)
-    {
-        return $this->others[]= $o;
-    }
-
-    public function getOthers()
-    {
-        return $this->others;
-    }
-
-    public function setOthers($others)
-    {
-        $this->others = $others;
-    }
-
-    public function getPrivateValue()
-    {
-        return $this->priv;
-    }
-}
-
-class OtherEntity
-{
-    private $id;
-    private $name;
-
-    public function __construct($id = null, $name = 'otha!')
-    {
-        $this->id = $id;
-        $this->name = $name;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $name
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-    }
-}
-
-class DoctrineEntityNormalizerTest extends \PHPUnit_Framework_TestCase
+class DoctrineEntityNormalizerTest extends SerializerTest
 {
     /**
      * @var DoctrineEntityNormalizer
@@ -124,13 +25,7 @@ class DoctrineEntityNormalizerTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->metadata = [];
-        $this->entities = [];
-
-        $this->meta = $this->getMockBuilder('Doctrine\Bundle\DoctrineBundle\Mapping\MetadataFactory')->disableOriginalConstructor()->setMethods(['hasMetadataFor', 'getMetadataFor'])->getMock();
-
-        $this->em = $this->getMockBuilder('Doctrine\ORM\EntityManager')->disableOriginalConstructor()->getMock();
-        $this->em->expects($this->any())->method('getMetadataFactory')->will($this->returnValue($this->meta));
+        parent::setUp();
 
         $this->normalizer = new DoctrineEntityNormalizer($this->em);
     }
@@ -538,27 +433,5 @@ class DoctrineEntityNormalizerTest extends \PHPUnit_Framework_TestCase
 
         $this->expectMetadataFor(Entity::class, $meta1);
         $this->normalizer->denormalize(['__class__' => Entity::class, 'others' => [1, 2, 3]], Entity::class);
-    }
-
-
-    private function expectMetadataFor($class, $meta)
-    {
-        $this->metadata[$class] = $meta;
-
-        $this->meta->expects($this->any())->method('hasMetadataFor')->will($this->returnCallback(function($class) {
-            return array_key_exists($class, $this->metadata);
-        }));
-        $this->meta->expects($this->any())->method('getMetadataFor')->will($this->returnCallback(function($class) {
-            return $this->metadata[$class];
-        }));
-    }
-
-    private function expectToBeFound($class, $int, $entity)
-    {
-        $this->entities[$class][$int] = $entity;
-
-        $this->em->expects($this->any())->method('find')->will($this->returnCallback(function($class, $id) {
-            return isset($this->entities[$class][$id]) ? $this->entities[$class][$id] : null;
-        }));
     }
 }

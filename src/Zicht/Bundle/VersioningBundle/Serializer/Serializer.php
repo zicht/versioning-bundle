@@ -4,24 +4,22 @@
  * @author Oskar van Velden <oskar@zicht.nl>
  * @copyright Zicht Online <http://zicht.nl>
  */
-namespace Zicht\Bundle\VersioningBundle\Services;
+namespace Zicht\Bundle\VersioningBundle\Serializer;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\ORM\EntityManager;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DateTimeNormalizer;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer;
+use Symfony\Component\Serializer\Serializer as BaseSerializer;
 
 /**
- * Class SerializerService
+ * Class Serializer
  *
  * @package Zicht\Bundle\VersioningBundle\Services
  */
-class SerializerService
+class Serializer
 {
     /** @var Serializer */
     private $serializer;
@@ -31,11 +29,8 @@ class SerializerService
      */
     public function __construct(EntityManager $manager)
     {
-        $this->serializer = new Serializer(
-            [
-                new DateTimeNormalizer(),
-                new DoctrineEntityNormalizer($manager)
-            ],
+        $this->serializer = new BaseSerializer(
+            [new DateTimeNormalizer(), new DoctrineEntityNormalizer($manager)],
             [new JsonEncoder()]
         );
     }

@@ -12,13 +12,14 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
+use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
 
 /**
  * Class VersioningService
  *
  * @package Zicht\Bundle\VersioningBundle\Services
  */
-class VersioningService
+class VersioningManager
 {
     /**
      * @var Registry
@@ -51,7 +52,7 @@ class VersioningService
     public function getSerializer()
     {
         if (null === $this->serializer) {
-            $this->serializer = new SerializerService($this->doctrine->getManager());
+            $this->serializer = new Serializer($this->doctrine->getManager());
         }
         return $this->serializer;
     }

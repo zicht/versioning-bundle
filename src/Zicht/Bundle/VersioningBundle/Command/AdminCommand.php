@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Services\VersioningService;
+use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
 
 /**
  * Class AdminCommand
@@ -24,7 +24,7 @@ use Zicht\Bundle\VersioningBundle\Services\VersioningService;
  */
 class AdminCommand extends ContainerAwareCommand
 {
-    public function __construct(VersioningService $versioning)
+    public function __construct(VersioningManager $versioning)
     {
         parent::__construct();
 

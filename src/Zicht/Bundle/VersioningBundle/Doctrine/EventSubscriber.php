@@ -16,7 +16,7 @@ use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
-use Zicht\Bundle\VersioningBundle\Services\VersioningService;
+use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
 
 /**
  * Class EventSubscriber
@@ -26,7 +26,7 @@ use Zicht\Bundle\VersioningBundle\Services\VersioningService;
 class EventSubscriber implements DoctrineEventSubscriber
 {
     /**
-     * @var VersioningService
+     * @var VersioningManager
      */
     private $versioning;
 
@@ -36,9 +36,9 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * EventSubscriber constructor.
      *
-     * @param VersioningService $versioning
+     * @param VersioningManager $versioning
      */
-    public function __construct(VersioningService $versioning)
+    public function __construct(VersioningManager $versioning)
     {
         $this->versioning = $versioning;
     }
