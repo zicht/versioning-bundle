@@ -14,6 +14,7 @@ use Doctrine\ORM\Event\PostFlushEventArgs;
 use Doctrine\ORM\Events;
 use Doctrine\ORM\UnitOfWork;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
@@ -51,7 +52,7 @@ class EventSubscriber implements DoctrineEventSubscriber
     public function getSubscribedEvents()
     {
         return [
-//                Events::postLoad,
+                Events::postLoad,
                 Events::onFlush,
                 Events::postFlush
         ];
@@ -72,16 +73,19 @@ class EventSubscriber implements DoctrineEventSubscriber
             return;
         }
 
-        //TODO: this needs to be tested!
-        if ($this->versioning->getCurrentWorkingVersionNumber($entity)) {
-            //we have requested a different one than the active one, so we need to replace it
-
-            $result = $args->getEntityManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $this->versioning->getCurrentWorkingVersionNumber($entity));
-
-            if ($result) {
-                $entity = $result;
-            }
+        if ($version = $this->versioning->getVersionToLoad($entity)) {
+            $this->versioning->populateVersion($entity, $version);
         }
+//        //TODO: this needs to be tested!
+//        if ($this->versioning->getCurrentWorkingVersionNumber($entity)) {
+//            //we have requested a different one than the active one, so we need to replace it
+//
+//            $result = $args->getEntityManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $this->versioning->getCurrentWorkingVersionNumber($entity));
+//
+//            if ($result) {
+//                $entity = $result;
+//            }
+//        }
     }
 
     /**
@@ -138,7 +142,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         foreach ($this->handledEntities as $entityMap) {
             /** @var VersionableInterface $entity */
             $entity = $entityMap['entity'];
-            /** @var EntityVersion $entityVersion */
+            /** @var EntityVersionInterface $entityVersion */
             $entityVersion = $entityMap['entityVersion'];
 
             $entityVersion->setOriginalId($entity->getId());
@@ -156,7 +160,7 @@ class EventSubscriber implements DoctrineEventSubscriber
      *
      * @param VersionableInterface $entity
      * @param EntityManager $em
-     * @return EntityVersion
+     * @return EntityVersionInterface
      */
     private function handleVersioning(VersionableInterface $entity, EntityManager $em)
     {
@@ -166,7 +170,7 @@ class EventSubscriber implements DoctrineEventSubscriber
             } while ($entity instanceof VersionableChildInterface);
         }
 
-        $hash = $this->versioning->makeHash($entity);
+        $hash = spl_object_hash($entity);
 
         if (!array_key_exists($hash, $this->handledEntities)) {
             $entityVersion = $this->createEntityVersion($entity);
@@ -187,7 +191,7 @@ class EventSubscriber implements DoctrineEventSubscriber
      * Create a new entityVersion
      *
      * @param VersionableInterface $entity
-     * @return EntityVersion
+     * @return EntityVersionInterface
      */
     private function createEntityVersion(VersionableInterface $entity)
     {

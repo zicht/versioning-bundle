@@ -16,6 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
 
 /**
@@ -71,7 +72,7 @@ class AdminCommand extends ContainerAwareCommand
                     $headers[]= $column;
                 }
                 $table->setHeaders($headers);
-                /** @var EntityVersion[] $versions */
+                /** @var EntityVersionInterface $versions */
                 $versions = $this->versioning->getVersions($object);
                 foreach ($versions as $version) {
                     $row = [

@@ -9,6 +9,7 @@ namespace Zicht\Bundle\VersioningBundle\Serializer;
 use Doctrine\ORM\EntityManager;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DateTimeNormalizer;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer;
@@ -49,10 +50,10 @@ class Serializer
     /**
      * Deserializes the given entity
      *
-     * @param EntityVersion $entityVersion
+     * @param EntityVersionInterface $entityVersion
      * @return VersionableInterface $entity
      */
-    public function deserialize(EntityVersion $entityVersion, $targetObject = null)
+    public function deserialize(EntityVersionInterface $entityVersion, $targetObject = null)
     {
         return $this->serializer->deserialize($entityVersion->getData(), $entityVersion->getSourceClass(), 'json', ['object' => $targetObject]);
     }

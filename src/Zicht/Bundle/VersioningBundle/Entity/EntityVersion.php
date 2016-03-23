@@ -7,6 +7,7 @@
 namespace Zicht\Bundle\VersioningBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 
 /**
  * Class EntityVersion
@@ -17,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity(repositoryClass="EntityVersionRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class EntityVersion
+class EntityVersion implements EntityVersionInterface
 {
     /**
      * @var int

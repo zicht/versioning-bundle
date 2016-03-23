@@ -8,5 +8,12 @@
         <service id="zicht_versioning.manager" class="Zicht\Bundle\VersioningBundle\Services\VersioningManager">
             <argument type="service" id="doctrine"/>
         </service>
+        <service id="zicht_versioning.http.url_helper" class="Zicht\Bundle\VersioningBundle\Http\UrlHelper">
+        </service>
+        <service id="zicht_versioning.http.listener" class="Zicht\Bundle\VersioningBundle\Http\Listener">
+            <argument type="service" id="zicht_versioning.manager"/>
+            <argument type="service" id="zicht_versioning.http.url_helper"/>
+            <tag name="kernel.event_listener" event="kernel.request" />
+        </service>
     </services>
 </container>

@@ -8,6 +8,7 @@ namespace Zicht\Bundle\VersioningBundle\Services;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
 
@@ -42,6 +43,8 @@ class VersioningManager
      * @var array
      */
     private $makeEntityActiveMap = [];
+
+    private $versionsToLoad = [];
 
     /**
      * VersioningService constructor.
@@ -115,33 +118,22 @@ class VersioningManager
     }
 
     /**
-     * Generate an identifier unique for the given entity, so we can get some information about this exact entity later on
-     *
-     * @param VersionableInterface $entity
-     * @return string
-     */
-    public function makeHash(VersionableInterface $entity)
-    {
-        return spl_object_hash($entity);
-    }
-
-    /**
      * Store the entityVersion information for later usage
      *
      * @param VersionableInterface $entity
-     * @param EntityVersion $entityVersion
+     * @param EntityVersionInterface $entityVersion
      */
-    private function storeActivatedEntityVersion(VersionableInterface $entity, EntityVersion $entityVersion)
+    private function storeActivatedEntityVersion(VersionableInterface $entity, EntityVersionInterface $entityVersion)
     {
         $entityVersion->setIsActive(true);
-        $this->activatedEntityVersions[$this->makeHash($entity)] = $entityVersion;
+        $this->activatedEntityVersions[spl_object_hash($entity)] = $entityVersion;
     }
 
     /**
      * Gets the entityVersion information for the given entity
      *
      * @param VersionableInterface $entity
-     * @return EntityVersion
+     * @return EntityVersionInterface
      */
     public function getEntityVersionInformation(VersionableInterface $entity)
     {
@@ -155,7 +147,7 @@ class VersioningManager
          *           ja: teruggeven (UPDATE)
          *          nee: nieuwe (PERSIST)
          */
-        $entityKey = $this->makeHash($entity);
+        $entityKey = spl_object_hash($entity);
 
         //are we currently editing a specific version?
         if (array_key_exists($entityKey, $this->currentWorkingVersionNumberMap)) {
@@ -172,7 +164,7 @@ class VersioningManager
         if ($activeEntityVersion !== null) {
 
             //set the entity to active if it was set specific by the startActiveTransaction()
-            if (in_array($this->makeHash($entity), $this->makeEntityActiveMap)) {
+            if (in_array(spl_object_hash($entity), $this->makeEntityActiveMap)) {
                 $activeEntityVersion->setIsActive(true);
             } else {
                 //we don't want an updated version to be set to active by default
@@ -190,7 +182,7 @@ class VersioningManager
      * Get the active version for the given entity
      *
      * @param VersionableInterface $entity
-     * @return EntityVersion | null
+     * @return EntityVersionInterface | null
      */
     public function getActiveVersion(VersionableInterface $entity)
     {
@@ -200,10 +192,10 @@ class VersioningManager
     /**
      * Writes the stored serialized entity information to the entity table
      *
-     * @param EntityVersion $entityVersion
+     * @param EntityVersionInterface $entityVersion
      * @return void
      */
-    private function restoreVersion(EntityVersion $entityVersion)
+    private function restoreVersion(EntityVersionInterface $entityVersion)
     {
         /** @var VersionableInterface $storedEntity */
         $entity = $this->doctrine->getManager()->getRepository($entityVersion->getSourceClass())->find($entityVersion->getOriginalId());
@@ -219,12 +211,12 @@ class VersioningManager
      */
     public function setCurrentWorkingVersionNumber(VersionableInterface $entity, $versionNumber)
     {
-        $this->currentWorkingVersionNumberMap[$this->makeHash($entity)] = $versionNumber;
+        $this->currentWorkingVersionNumberMap[spl_object_hash($entity)] = $versionNumber;
     }
 
     public function getCurrentWorkingVersionNumber(VersionableInterface $entity)
     {
-        $key = $this->makeHash($entity);
+        $key = spl_object_hash($entity);
 
         if (key_exists($key, $this->currentWorkingVersionNumberMap)) {
             return $this->currentWorkingVersionNumberMap[$key];
@@ -241,13 +233,13 @@ class VersioningManager
      */
     public function startActiveTransaction(VersionableInterface $entity)
     {
-        $this->makeEntityActiveMap[] = $this->makeHash($entity);
+        $this->makeEntityActiveMap[] = spl_object_hash($entity);
     }
 
     /**
      * @param VersionableInterface $entity
      * @param integer $version
-     * @return EntityVersion | null
+     * @return EntityVersionInterface | null
      */
     private function getSpecificEntityVersion(VersionableInterface $entity, $version)
     {
@@ -265,9 +257,27 @@ class VersioningManager
 
         $version->setSourceClass(get_class($entity));
         $version->setOriginalId($entity->getId());
-        $version->setData($this->serializer->serialize($entity));
+        $version->setData($this->getSerializer()->serialize($entity));
         $version->setVersionNumber($this->getVersionCount($entity) + 1);
 
         return $version;
+    }
+
+    public function setVersionToLoad($entityName, $id, $version)
+    {
+        $this->versionsToLoad[$entityName][$id]= $version;
+    }
+
+
+    public function getVersionToLoad(VersionableInterface $entity)
+    {
+        $className = get_class($entity);
+        $id = $entity->getId();
+        return isset($this->versionsToLoad[$className][$id]) ? $this->versionsToLoad[$className][$id] : null;
+    }
+
+    public function populateVersion($entity, $version)
+    {
+        $this->getSerializer()->deserialize($this->getSpecificEntityVersion($entity, $version), $entity);
     }
 }

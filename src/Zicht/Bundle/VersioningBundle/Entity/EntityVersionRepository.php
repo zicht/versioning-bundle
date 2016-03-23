@@ -8,6 +8,7 @@ namespace Zicht\Bundle\VersioningBundle\Entity;
 use Doctrine\ORM\EntityRepository;
 
 use Zicht\Bundle\VersioningBundle\Model;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 
 /**
  * EntityVersionRepository
@@ -94,7 +95,7 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
      * Gets the active version for the given entity
      *
      * @param Model\VersionableInterface $entity
-     * @return EntityVersion | null
+     * @return EntityVersionInterface | null
      */
     public function findActiveEntityVersion(Model\VersionableInterface $entity)
     {

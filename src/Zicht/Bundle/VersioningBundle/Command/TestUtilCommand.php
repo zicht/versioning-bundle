@@ -17,6 +17,7 @@ use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 
 class TestUtilCommand extends ContainerAwareCommand
 {
@@ -199,7 +200,7 @@ class TestUtilCommand extends ContainerAwareCommand
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
                 $version = $data['version'];
 
-                /** @var EntityVersion $entityVersion */
+                /** @var EntityVersionInterface $entityVersion */
                 $entityVersion = $em->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($page, $version);
                 $entityVersion->setData($data['data']);
                 $em->persist($entityVersion);
