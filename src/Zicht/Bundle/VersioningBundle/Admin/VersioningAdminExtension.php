@@ -16,8 +16,10 @@ class VersioningAdminExtension extends AdminExtension
     public function configureFormFields(FormMapper $form)
     {
         $form
-            ->with('versions')
-                ->add('versions', 'zicht_version')
+            ->tab('versions')
+                ->with('versions')
+                    ->add('versions', 'zicht_version')
+                ->end()
             ->end()
         ;
     }
