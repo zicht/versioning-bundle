@@ -95,7 +95,6 @@ class EventSubscriber implements DoctrineEventSubscriber
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
             foreach ($entities as $entity) {
                 if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
-
                     if ('update' === $type) {
                         list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
                         switch ($versionOperation) {
@@ -112,7 +111,6 @@ class EventSubscriber implements DoctrineEventSubscriber
                                     $currentActive->setIsActive(false);
                                     $uow->scheduleForUpdate($currentActive);
                                     $uow->scheduleForDirtyCheck($currentActive);
-                                    $uow->computeChangeSets();
                                 }
 
                                 break;
@@ -129,13 +127,18 @@ class EventSubscriber implements DoctrineEventSubscriber
                                 $uow->scheduleForUpdate($version);
                                 $uow->scheduleForDirtyCheck($version);
                                 $this->versioning->addAffectedVersion($entity, $version);
-                                $uow->computeChangeSets();
                                 break;
                             default:
                                 throw new \UnexpectedValueException("Can't handle this operation: '{$versionOperation}'");
                         }
                     } else {
-                        $this->createdEntities[]= ['entity' => $entity, 'version' => $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity))];
+                        $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
+                        $version->setIsActive(true);
+                        $uow->scheduleForInsert($version);
+                        $this->createdEntities[]= [
+                            'entity' => $entity,
+                            'version' => $version
+                        ];
                     }
                 }
             }

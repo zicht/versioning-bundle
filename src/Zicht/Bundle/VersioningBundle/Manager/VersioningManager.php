@@ -301,7 +301,10 @@ class VersioningManager
         if (null !== $this->getVersionToLoad($entity)) {
             return [self::ACTION_UPDATE, $this->getVersionToLoad($entity)];
         }
-        return [self::ACTION_NEW, $this->getActiveVersion($entity)->getVersionNumber()];
+        if ($this->getActiveVersion($entity)) {
+            return [self::ACTION_NEW, $this->getActiveVersion($entity)->getVersionNumber()];
+        }
+        return [self::ACTION_NEW, null];
     }
 
     public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersion)
