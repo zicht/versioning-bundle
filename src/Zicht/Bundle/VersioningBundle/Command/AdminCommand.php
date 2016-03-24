@@ -17,7 +17,7 @@ use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
-use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
 /**
  * Class AdminCommand

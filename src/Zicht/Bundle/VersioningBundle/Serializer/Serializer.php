@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Serializer as BaseSerializer;
 /**
  * Class Serializer
  *
- * @package Zicht\Bundle\VersioningBundle\Services
+ * @package Zicht\Bundle\VersioningBundle\Serializer
  */
 class Serializer
 {

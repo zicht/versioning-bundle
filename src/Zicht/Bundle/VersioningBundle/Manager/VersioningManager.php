@@ -4,7 +4,7 @@
  * @copyright Zicht Online <http://zicht.nl>
  */
 
-namespace Zicht\Bundle\VersioningBundle\Services;
+namespace Zicht\Bundle\VersioningBundle\Manager;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
@@ -15,7 +15,7 @@ use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
 /**
  * Class VersioningService
  *
- * @package Zicht\Bundle\VersioningBundle\Services
+ * @package Zicht\Bundle\VersioningBundle\Manager
  */
 class VersioningManager
 {
@@ -238,12 +238,12 @@ class VersioningManager
 
     /**
      * @param VersionableInterface $entity
-     * @param integer $version
+     * @param integer $versionId
      * @return EntityVersionInterface | null
      */
-    private function getSpecificEntityVersion(VersionableInterface $entity, $version)
+    private function getSpecificEntityVersion(VersionableInterface $entity, $versionId)
     {
-        return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $version);
+        return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $versionId);
     }
 
     public function getVersions($object)
@@ -276,8 +276,8 @@ class VersioningManager
         return isset($this->versionsToLoad[$className][$id]) ? $this->versionsToLoad[$className][$id] : null;
     }
 
-    public function populateVersion($entity, $version)
+    public function loadVersion(VersionableInterface $entity, $versionId)
     {
-        $this->getSerializer()->deserialize($this->getSpecificEntityVersion($entity, $version), $entity);
+        $this->getSerializer()->deserialize($this->getSpecificEntityVersion($entity, $versionId), $entity);
     }
 }

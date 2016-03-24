@@ -11,7 +11,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
 class VersionType extends AbstractType
 {

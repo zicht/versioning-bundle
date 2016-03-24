@@ -36,8 +36,10 @@ class UrlHelper
     {
         $ret = [];
         foreach ($request->query->get($this->paramName, []) as $entityName => $idToVersionMap) {
-            foreach ($idToVersionMap as $id => $version) {
-                $ret[$entityName][(int)$id] = (int)$version;
+            if (is_array($idToVersionMap)) {
+                foreach ($idToVersionMap as $id => $version) {
+                    $ret[$entityName][(int)$id] = (int)$version;
+                }
             }
         }
         return $ret;

@@ -17,7 +17,7 @@ use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
-use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
 /**
  * Class EventSubscriber
@@ -52,9 +52,9 @@ class EventSubscriber implements DoctrineEventSubscriber
     public function getSubscribedEvents()
     {
         return [
-                Events::postLoad,
-                Events::onFlush,
-                Events::postFlush
+            Events::postLoad,
+            Events::onFlush,
+            Events::postFlush
         ];
     }
 
@@ -74,18 +74,8 @@ class EventSubscriber implements DoctrineEventSubscriber
         }
 
         if ($version = $this->versioning->getVersionToLoad($entity)) {
-            $this->versioning->populateVersion($entity, $version);
+            $this->versioning->loadVersion($entity, $version);
         }
-//        //TODO: this needs to be tested!
-//        if ($this->versioning->getCurrentWorkingVersionNumber($entity)) {
-//            //we have requested a different one than the active one, so we need to replace it
-//
-//            $result = $args->getEntityManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $this->versioning->getCurrentWorkingVersionNumber($entity));
-//
-//            if ($result) {
-//                $entity = $result;
-//            }
-//        }
     }
 
     /**

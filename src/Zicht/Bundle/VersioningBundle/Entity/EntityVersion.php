@@ -80,6 +80,12 @@ class EntityVersion implements EntityVersionInterface
     private $sourceClass;
 
     /**
+     * @var
+     * @ORM\Column(type="text")
+     */
+    private $notes;
+
+    /**
      * EntityVersion constructor.
      */
     public function __construct()
