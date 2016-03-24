@@ -239,10 +239,11 @@ class VersioningManager
         return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersions($object);
     }
 
-    public function createEntityVersion(VersionableInterface $entity)
+    public function createEntityVersion(VersionableInterface $entity, $changeset)
     {
         $version = new EntityVersion();
 
+        $version->setChangeset(json_encode($changeset));
         $version->setSourceClass(get_class($entity));
         $version->setOriginalId($entity->getId());
         $version->setData($this->getSerializer()->serialize($entity));
@@ -255,7 +256,6 @@ class VersioningManager
     {
         $this->versionsToLoad[$entityName][$id]= $version;
     }
-
 
     public function getVersionToLoad(VersionableInterface $entity)
     {
