@@ -90,18 +90,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         $em  = $args->getEntityManager();
         $uow = $em->getUnitOfWork();
 
-        foreach ($uow->getScheduledEntityInsertions() as $entity) {
-            if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
-
-                $entityVersion = $this->handleVersioning($entity, $em);
-
-                if (!$entityVersion->isActive()) {
-                    $this->undoEntityChanges($entity, $uow);
-                }
-            }
-        }
-
-        foreach ($uow->getScheduledEntityUpdates() as $entity) {
+        foreach (array_merge($uow->getScheduledEntityInsertions(), $uow->getScheduledEntityUpdates()) as $entity) {
             if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
 
                 $entityVersion = $this->handleVersioning($entity, $em);
