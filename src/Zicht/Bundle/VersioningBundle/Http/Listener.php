@@ -6,6 +6,8 @@
 
 namespace Zicht\Bundle\VersioningBundle\Http;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
@@ -43,6 +45,23 @@ class Listener
         foreach ($this->urlHelper->extractVersionInfo($event->getRequest()) as $entityName => $versions) {
             foreach ($versions as $id => $version) {
                 $this->versioning->setVersionToLoad($entityName, $id, $version);
+            }
+        }
+    }
+
+
+    public function onKernelResponse(FilterResponseEvent $event)
+    {
+        if ($event->isMasterRequest()) {
+            $response = $event->getResponse();
+            if ($response->isRedirection() && $this->versioning->getAffectedVersions()) {
+                $event->setResponse(new RedirectResponse(
+                    $this->urlHelper->decorateVersionsUrl(
+                        $response->headers->get('Location'),
+                        array_column($this->versioning->getAffectedVersions(), 1)
+                    ),
+                    $event->getResponse()->getStatusCode()
+                ));
             }
         }
     }

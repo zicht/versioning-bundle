@@ -81,9 +81,14 @@ class EntityVersion implements EntityVersionInterface
 
     /**
      * @var
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      */
     private $notes;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $changeset;
 
     /**
      * EntityVersion constructor.
@@ -209,5 +214,37 @@ class EntityVersion implements EntityVersionInterface
     public function setSourceClass($sourceClass)
     {
         $this->sourceClass = $sourceClass;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNotes()
+    {
+        return $this->notes;
+    }
+
+    /**
+     * @param mixed $notes
+     */
+    public function setNotes($notes)
+    {
+        $this->notes = $notes;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getChangeset()
+    {
+        return $this->changeset;
+    }
+
+    /**
+     * @param mixed $changeset
+     */
+    public function setChangeset($changeset)
+    {
+        $this->changeset = $changeset;
     }
 }

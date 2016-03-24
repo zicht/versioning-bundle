@@ -32,7 +32,9 @@ class EventSubscriber implements DoctrineEventSubscriber
     private $versioning;
 
     /** @var array */
-    private $handledEntities = [];
+    private $createdEntities = [];
+
+    private $activatedVersions = [];
 
     /**
      * EventSubscriber constructor.
@@ -90,13 +92,51 @@ class EventSubscriber implements DoctrineEventSubscriber
         $em  = $args->getEntityManager();
         $uow = $em->getUnitOfWork();
 
-        foreach (array_merge($uow->getScheduledEntityInsertions(), $uow->getScheduledEntityUpdates()) as $entity) {
-            if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
+        foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
+            foreach ($entities as $entity) {
+                if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
 
-                $entityVersion = $this->handleVersioning($entity, $em);
+                    if ('update' === $type) {
+                        list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
+                        switch ($versionOperation) {
+                            case VersioningManager::ACTION_ACTIVATE:
+                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
+                                $version->setBasedOnVersion($baseVersion);
+                                $uow->scheduleForInsert($version);
+                                $this->versioning->addAffectedVersion($entity, $version);
+                                $version->setIsActive(true);
 
-                if (!$entityVersion->isActive()) {
-                    $this->undoEntityChanges($entity, $uow);
+                                $currentActive = $this->versioning->getActiveVersion($entity);
+
+                                if ($currentActive && $currentActive->getVersionNumber() !== $version->getVersionNumber()) {
+                                    $currentActive->setIsActive(false);
+                                    $uow->scheduleForUpdate($currentActive);
+                                    $uow->scheduleForDirtyCheck($currentActive);
+                                    $uow->computeChangeSets();
+                                }
+
+                                break;
+                            case VersioningManager::ACTION_NEW:
+                                // new version does not update the current active version
+                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
+                                $version->setBasedOnVersion($baseVersion);
+                                $uow->scheduleForInsert($version);
+                                $uow->clearEntityChangeSet(spl_object_hash($entity));
+                                $this->versioning->addAffectedVersion($entity, $version);
+                                break;
+                            case VersioningManager::ACTION_UPDATE:
+                                $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                                $uow->scheduleForUpdate($version);
+                                $uow->scheduleForDirtyCheck($version);
+                                $this->versioning->addAffectedVersion($entity, $version);
+                                $uow->computeChangeSets();
+                                break;
+                            default:
+                                throw new \UnexpectedValueException("Can't handle this operation: '{$versionOperation}'");
+                        }
+                    } else {
+                        $this->createdEntities[]= ['entity' => $entity, 'version' => $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity))];
+                    }
                 }
             }
         }
@@ -118,94 +158,23 @@ class EventSubscriber implements DoctrineEventSubscriber
         //temporary remove the eventSubscriber - to prevent infinite loop ^^
         $em->getEventManager()->removeEventSubscriber($this);
 
-        foreach ($this->handledEntities as $entityMap) {
+        $num = 0;
+        foreach ($this->createdEntities as $entityMap) {
             /** @var VersionableInterface $entity */
             $entity = $entityMap['entity'];
             /** @var EntityVersionInterface $entityVersion */
-            $entityVersion = $entityMap['entityVersion'];
+            $entityVersion = $entityMap['version'];
 
             $entityVersion->setOriginalId($entity->getId());
             $em->persist($entityVersion);
+            $num ++;
         }
 
-        $em->flush();
+        if ($num > 0) {
+            $em->flush();
+        }
 
         //re-add the eventSubscriber again
         $em->getEventManager()->addEventSubscriber($this);
-    }
-
-    /**
-     * Handles the versioning for the given entity
-     *
-     * @param VersionableInterface $entity
-     * @param EntityManager $em
-     * @return EntityVersionInterface
-     */
-    private function handleVersioning(VersionableInterface $entity, EntityManager $em)
-    {
-        if ($entity instanceof VersionableChildInterface) {
-            do {
-                $entity = $entity->getParent();
-            } while ($entity instanceof VersionableChildInterface);
-        }
-
-        $hash = spl_object_hash($entity);
-
-        if (!array_key_exists($hash, $this->handledEntities)) {
-            $entityVersion = $this->createEntityVersion($entity);
-
-            if ($entityVersion->isActive()) {
-                $this->versioning->deactivateAll($entity);
-            }
-
-            $em->persist($entityVersion);
-
-            $this->handledEntities[$hash] = ['entityVersion' => $entityVersion, 'entity' => $entity];
-        }
-
-        return $this->handledEntities[$hash]['entityVersion'];
-    }
-
-    /**
-     * Create a new entityVersion
-     *
-     * @param VersionableInterface $entity
-     * @return EntityVersionInterface
-     */
-    private function createEntityVersion(VersionableInterface $entity)
-    {
-        $newEntityVersion = $this->versioning->createEntityVersion($entity);
-
-        $entityVersionInformation = $this->versioning->getEntityVersionInformation($entity);
-
-        if ($entityVersionInformation) {
-            $newEntityVersion->setIsActive($entityVersionInformation->isActive());
-            $newEntityVersion->setBasedOnVersion($entityVersionInformation->getVersionNumber());
-        } else {
-            //if there is no version information, the entity is new and should be set to active
-            $newEntityVersion->setIsActive(true);
-        }
-
-        return $newEntityVersion;
-    }
-
-    /**
-     * Undo the changes made to the given entity
-     *
-     * @param VersionableInterface $entity
-     * @param UnitOfWork $uow
-     * @return void
-     */
-    private function undoEntityChanges(VersionableInterface $entity, UnitOfWork $uow)
-    {
-        if ($entity instanceof VersionableChildInterface) {
-            //TODO shouldn't we check here the entity state, so we can refresh it instead of removing???!!!
-            $uow->remove($entity);
-
-            $entity = $entity->getParent();
-        }
-
-        $uow->refresh($entity);
-        $uow->clearEntityChangeSet(spl_object_hash($entity));
     }
 }

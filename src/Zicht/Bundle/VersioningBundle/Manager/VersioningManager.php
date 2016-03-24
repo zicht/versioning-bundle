@@ -19,6 +19,9 @@ use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
  */
 class VersioningManager
 {
+    const ACTION_NEW = 'new';
+    const ACTION_ACTIVATE = 'activate';
+    const ACTION_UPDATE = 'update';
     /**
      * @var Registry
      */
@@ -45,6 +48,8 @@ class VersioningManager
     private $makeEntityActiveMap = [];
 
     private $versionsToLoad = [];
+    private $versionOperations = [];
+    private $affectedVersions;
 
     /**
      * VersioningService constructor.
@@ -227,13 +232,17 @@ class VersioningManager
     /**
      * @param VersionableInterface $entity
      * @param integer $versionId
-     * @return EntityVersionInterface | null
+     * @return EntityVersionInterface
      */
     private function getSpecificEntityVersion(VersionableInterface $entity, $versionId)
     {
         return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersion($entity, $versionId);
     }
 
+    /**
+     * @param $object
+     * @return EntityVersionInterface[]
+     */
     public function getVersions($object)
     {
         return $this->doctrine->getManager()->getRepository('ZichtVersioningBundle:EntityVersion')->findVersions($object);
@@ -252,6 +261,15 @@ class VersioningManager
         return $version;
     }
 
+
+    public function updateEntityVersion(VersionableInterface $entity, $changeset, $versionNumber)
+    {
+        $version = $this->getSpecificEntityVersion($entity, $versionNumber);
+        $version->setData($this->getSerializer()->serialize($entity));
+        $version->setChangeSet(json_encode($changeset));
+        return $version;
+    }
+
     public function setVersionToLoad($entityName, $id, $version)
     {
         $this->versionsToLoad[$entityName][$id]= $version;
@@ -267,5 +285,44 @@ class VersioningManager
     public function loadVersion(VersionableInterface $entity, $versionId)
     {
         $this->getSerializer()->deserialize($this->getSpecificEntityVersion($entity, $versionId), $entity);
+    }
+
+    /**
+     * @param VersionableInterface $entity
+     * @return string
+     */
+    public function getVersionOperation(VersionableInterface $entity)
+    {
+        $className = get_class($entity);
+        $id = $entity->getId();
+        if (isset($this->versionOperations[$className][$id])) {
+            return $this->versionOperations[$className][$id];
+        }
+        if (null !== $this->getVersionToLoad($entity)) {
+            return [self::ACTION_UPDATE, $this->getVersionToLoad($entity)];
+        }
+        return [self::ACTION_NEW, $this->getActiveVersion($entity)->getVersionNumber()];
+    }
+
+    public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersion)
+    {
+        $className = get_class($entity);
+        $id = $entity->getId();
+        $this->versionOperations[$className][$id] = [$versionOperation, $baseVersion];
+    }
+
+    public function getLoadedVersion($entity)
+    {
+        return $this->getVersionToLoad($entity) ?: $this->getActiveVersion($entity);
+    }
+
+    public function addAffectedVersion($entity, $version)
+    {
+        $this->affectedVersions[]= [$entity, $version];
+    }
+
+    public function getAffectedVersions()
+    {
+        return $this->affectedVersions;
     }
 }

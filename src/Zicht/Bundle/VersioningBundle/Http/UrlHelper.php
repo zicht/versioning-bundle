@@ -17,15 +17,26 @@ class UrlHelper
         $this->paramName = $paramName;
     }
 
-
     public function decorateVersionUrl($url, EntityVersionInterface $version)
+    {
+        return $this->decorateVersionsUrl($url, [$version]);
+    }
+
+    /**
+     * @param string $url
+     * @param EntityVersionInterface[] $versions
+     * @return string
+     */
+    public function decorateVersionsUrl($url, array $versions)
     {
         $url = new Url($url);
         $versionInfo = $url->getParam($this->paramName, []);
-        if ($version->isActive()) {
-            unset($versionInfo[$version->getSourceClass()][$version->getOriginalId()]);
-        } else {
-            $versionInfo[$version->getSourceClass()][$version->getOriginalId()] = $version->getVersionNumber();
+        foreach ($versions as $version) {
+            if ($version->isActive()) {
+                unset($versionInfo[$version->getSourceClass()][$version->getOriginalId()]);
+            } else {
+                $versionInfo[$version->getSourceClass()][$version->getOriginalId()] = $version->getVersionNumber();
+            }
         }
         $url->setParam($this->paramName, $versionInfo);
         return (string)$url;

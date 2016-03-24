@@ -1,7 +1,9 @@
 {% block zicht_version_row %}
+    {{ form_row(form.version_operation) }}
+    {{ form_widget(form.version) }}
     <table class="table-bordered table-condensed">
         {% for v in versions %}
-            <tr>
+            <tr {% if v.versionNumber == form.version.vars.value %} style="background-color: green"{% endif %}>
                 <td>{% if v.isActive %}*{% endif %}</td>
                 <th>{{ v.versionNumber }}</th>
                 <th>{{ v.basedOnVersion }}</th>

@@ -18,6 +18,7 @@ use Symfony\Component\PropertyAccess\PropertyPath;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 /**
  * Class AdminCommand
@@ -44,10 +45,12 @@ class AdminCommand extends ContainerAwareCommand
             ->addArgument('entityId', InputArgument::REQUIRED, 'Entity id to work on')
             ->addOption('set-active', '', InputOption::VALUE_REQUIRED, 'Activate a specific version')
             ->addOption('versions', '', InputOption::VALUE_NONE, 'List all versions')
+//            ->addOption('check', '', InputOption::VALUE_NONE, 'Do a consistency check for all versions')
 //            ->addOption('touch', '', InputOption::VALUE_NONE, 'Touch the active version (i.e. force a new version to be created)')
             ->addOption('column', '', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, "Additional fields to be shown");
         ;
     }
+
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -55,6 +58,8 @@ class AdminCommand extends ContainerAwareCommand
 
         if (!$object) {
             $output->writeln("Object not found: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");
+        } elseif (!$object instanceof VersionableInterface) {
+            $output->writeln("Object is not versionable: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");
         } else {
             if ($version = $this->versioning->getActiveVersion($object)) {
                 $output->writeln("Active version: {$version->getVersionNumber()}");
@@ -72,7 +77,6 @@ class AdminCommand extends ContainerAwareCommand
                     $headers[]= $column;
                 }
                 $table->setHeaders($headers);
-                /** @var EntityVersionInterface $versions */
                 $versions = $this->versioning->getVersions($object);
                 foreach ($versions as $version) {
                     $row = [

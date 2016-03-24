@@ -87,4 +87,14 @@ interface EntityVersionInterface
      * @return void
      */
     public function setSourceClass($sourceClass);
+
+    /**
+     * @return mixed
+     */
+    public function setChangeset($changeset);
+
+    /**
+     * @return mixed
+     */
+    public function getChangeset();
 }

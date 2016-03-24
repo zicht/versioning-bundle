@@ -14,6 +14,7 @@
             <argument type="service" id="zicht_versioning.manager"/>
             <argument type="service" id="zicht_versioning.http.url_helper"/>
             <tag name="kernel.event_listener" event="kernel.request" />
+            <tag name="kernel.event_listener" event="kernel.response" priority="128" />
         </service>
     </services>
 </container>
