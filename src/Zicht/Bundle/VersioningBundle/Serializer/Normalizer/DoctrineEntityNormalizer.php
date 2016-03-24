@@ -72,8 +72,10 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                     break;
                 case ClassMetadataInfo::MANY_TO_MANY:
                     $ret[$associationName] = [];
-                    foreach ($this->propertyAccessor->getValue($object, $associationName) as $association) {
-                        $ret[$associationName][]= $this->serializeReferencedAssociation($association);
+                    if ($associations = $this->propertyAccessor->getValue($object, $associationName)) {
+                        foreach ($associations as $association) {
+                            $ret[$associationName][]= $this->serializeReferencedAssociation($association);
+                        }
                     }
                     break;
                 default:
