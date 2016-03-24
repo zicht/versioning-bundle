@@ -1,6 +1,7 @@
 {% block zicht_version_row %}
-    {{ form_row(form.version_operation) }}
+    {{ form_row(form.operation) }}
     {{ form_widget(form.version) }}
+
     <table class="table-bordered table-condensed">
         {% for v in versions %}
             <tr {% if v.versionNumber == form.version.vars.value %} style="background-color: green"{% endif %}>

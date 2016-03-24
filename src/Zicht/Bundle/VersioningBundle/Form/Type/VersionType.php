@@ -18,7 +18,7 @@ use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
 class VersionType extends AbstractType
 {
-    function __construct(VersioningManager $v, Pool $sonata)
+    public function __construct(VersioningManager $v, Pool $sonata)
     {
         $this->versioning = $v;
         $this->sonata = $sonata;
@@ -35,19 +35,16 @@ class VersionType extends AbstractType
     {
         $builder
             ->add(
-                'version_operation',
+                'operation',
                 'choice', [
                     'choices' => [
-                        VersioningManager::ACTION_NEW => 'Nieuwe versie opslaan',
-                        VersioningManager::ACTION_ACTIVATE => 'Activeren',
-                        VersioningManager::ACTION_UPDATE => 'Deze versie bewerken',
+                        VersioningManager::VERSION_OPERATION_NEW => 'Nieuwe versie opslaan',
+                        VersioningManager::VERSION_OPERATION_ACTIVATE => 'Activeren',
+                        VersioningManager::VERSION_OPERATION_UPDATE => 'Deze versie bewerken',
                     ]
                 ]
             )
-            ->add(
-                'version',
-                'hidden'
-            );
+            ->add('version', 'hidden');
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $e) {
             $entity = $e->getForm()->getParent()->getData();
             if ($entity === null) {
@@ -55,14 +52,14 @@ class VersionType extends AbstractType
             }
             list($op, $version) = $this->versioning->getVersionOperation($entity);
             $e->setData([
-                'version_operation' => $op,
+                'operation' => $op,
                 'version' => $version
             ]);
         });
         $builder->addEventListener(FormEvents::SUBMIT, function(FormEvent $e) {
             $this->versioning->setVersionOperation(
                 $e->getForm()->getParent()->getData(),
-                $e->getData()['version_operation'],
+                $e->getData()['operation'],
                 $e->getData()['version']
             );
         });

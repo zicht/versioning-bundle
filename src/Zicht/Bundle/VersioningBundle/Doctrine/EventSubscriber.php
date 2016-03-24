@@ -7,14 +7,10 @@
 namespace Zicht\Bundle\VersioningBundle\Doctrine;
 
 use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Event\LifecycleEventArgs;
-use Doctrine\ORM\Event\OnFlushEventArgs;
-use Doctrine\ORM\Event\PostFlushEventArgs;
+use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\UnitOfWork;
-use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
@@ -29,21 +25,16 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * @var VersioningManager
      */
-    private $versioning;
-
-    /** @var array */
-    private $createdEntities = [];
-
-    private $activatedVersions = [];
+    private $versioning = null;
 
     /**
      * EventSubscriber constructor.
      *
      * @param VersioningManager $versioning
      */
-    public function __construct(VersioningManager $versioning)
+    public function __construct(ContainerInterface $container)
     {
-        $this->versioning = $versioning;
+        $this->container = $container;
     }
 
     /**
@@ -64,16 +55,18 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * postLoad listener
      *
-     * @param LifecycleEventArgs $args
+     * @param Event\LifecycleEventArgs $args
      * @return void
      */
-    public function postLoad(LifecycleEventArgs $args)
+    public function postLoad(Event\LifecycleEventArgs $args)
     {
         $entity = $args->getObject();
 
         if (!$entity instanceof VersionableInterface) {
             return;
         }
+
+        $this->fetchVersioningService();
 
         if ($version = $this->versioning->getVersionToLoad($entity)) {
             $this->versioning->loadVersion($entity, $version);
@@ -84,11 +77,13 @@ class EventSubscriber implements DoctrineEventSubscriber
      * onFlush listener
      * We create the version here
      *
-     * @param OnFlushEventArgs $args
+     * @param Event\OnFlushEventArgs $args
      * @return void
      */
-    public function onFlush(OnFlushEventArgs $args)
+    public function onFlush(Event\OnFlushEventArgs $args)
     {
+        $this->fetchVersioningService();
+
         $em  = $args->getEntityManager();
         $uow = $em->getUnitOfWork();
 
@@ -98,7 +93,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                     if ('update' === $type) {
                         list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
                         switch ($versionOperation) {
-                            case VersioningManager::ACTION_ACTIVATE:
+                            case VersioningManager::VERSION_OPERATION_ACTIVATE:
                                 $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
                                 $version->setBasedOnVersion($baseVersion);
                                 $uow->scheduleForInsert($version);
@@ -114,20 +109,22 @@ class EventSubscriber implements DoctrineEventSubscriber
                                 }
 
                                 break;
-                            case VersioningManager::ACTION_NEW:
-                                // new version does not update the current active version
+
+                            case VersioningManager::VERSION_OPERATION_NEW:
                                 $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
                                 $version->setBasedOnVersion($baseVersion);
                                 $uow->scheduleForInsert($version);
                                 $uow->clearEntityChangeSet(spl_object_hash($entity));
                                 $this->versioning->addAffectedVersion($entity, $version);
                                 break;
-                            case VersioningManager::ACTION_UPDATE:
+
+                            case VersioningManager::VERSION_OPERATION_UPDATE:
                                 $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
                                 $uow->scheduleForUpdate($version);
                                 $uow->scheduleForDirtyCheck($version);
                                 $this->versioning->addAffectedVersion($entity, $version);
                                 break;
+
                             default:
                                 throw new \UnexpectedValueException("Can't handle this operation: '{$versionOperation}'");
                         }
@@ -135,10 +132,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                         $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
                         $version->setIsActive(true);
                         $uow->scheduleForInsert($version);
-                        $this->createdEntities[]= [
-                            'entity' => $entity,
-                            'version' => $version
-                        ];
+                        $this->versioning->addAffectedVersion($entity, $version);
                     }
                 }
             }
@@ -151,26 +145,27 @@ class EventSubscriber implements DoctrineEventSubscriber
      * postFlush listener
      * We update the ids here for the just inserted entities - since in the onFlush we don't have the ids for the inserted entities
      *
-     * @param PostFlushEventArgs $args
+     * @param Event\PostFlushEventArgs $args
      * @return void
      */
-    public function postFlush(PostFlushEventArgs $args)
+    public function postFlush(Event\PostFlushEventArgs $args)
     {
+        $this->fetchVersioningService();
+
         $em  = $args->getEntityManager();
 
         //temporary remove the eventSubscriber - to prevent infinite loop ^^
         $em->getEventManager()->removeEventSubscriber($this);
 
         $num = 0;
-        foreach ($this->createdEntities as $entityMap) {
-            /** @var VersionableInterface $entity */
-            $entity = $entityMap['entity'];
-            /** @var EntityVersionInterface $entityVersion */
-            $entityVersion = $entityMap['version'];
+        foreach ($this->versioning->getAffectedVersions() as $affectedVersion) {
+            list($entity, $version) = $affectedVersion;
 
-            $entityVersion->setOriginalId($entity->getId());
-            $em->persist($entityVersion);
-            $num ++;
+            if (!$version->getOriginalId()) {
+                $version->setOriginalId($entity->getId());
+                $em->persist($version);
+                $num ++;
+            }
         }
 
         if ($num > 0) {
@@ -179,5 +174,15 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         //re-add the eventSubscriber again
         $em->getEventManager()->addEventSubscriber($this);
+    }
+
+    /**
+     * Get the versioninig service. Needed to get rid of an otherwise circular dependency.
+     */
+    private function fetchVersioningService()
+    {
+        if (null === $this->versioning) {
+            $this->versioning = $this->container->get('zicht_versioning.manager');
+        }
     }
 }

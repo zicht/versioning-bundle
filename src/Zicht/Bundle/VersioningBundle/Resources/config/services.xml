@@ -6,10 +6,20 @@
 
     <services>
         <service id="zicht_versioning.manager" class="Zicht\Bundle\VersioningBundle\Manager\VersioningManager">
-            <argument type="service" id="doctrine"/>
+            <argument type="service" id="_zicht_versioning.serializer" />
+            <argument type="service" id="_zicht_versioning.entity_version_storage" />
         </service>
-        <service id="zicht_versioning.http.url_helper" class="Zicht\Bundle\VersioningBundle\Http\UrlHelper">
+        <service id="_zicht_versioning.entity_version_storage" factory-service="doctrine" class="Zicht\Bundle\VersioningBundle\Entity\EntityVersionRepository" factory-method="getRepository" public="false">
+            <argument type="string">ZichtVersioningBundle:EntityVersion</argument>
         </service>
+        <service id="_zicht_versioning.serializer" class="Zicht\Bundle\VersioningBundle\Serializer\Serializer" public="false">
+            <argument type="service" id="doctrine.orm.default_entity_manager" />
+        </service>
+        <service id="zicht_versioning.doctrine.event_subscriber" public="false" class="Zicht\Bundle\VersioningBundle\Doctrine\EventSubscriber">
+            <tag name="doctrine.event_subscriber" connection="default" />
+            <argument type="service" id="service_container"/>
+        </service>
+        <service id="zicht_versioning.http.url_helper" class="Zicht\Bundle\VersioningBundle\Http\UrlHelper" />
         <service id="zicht_versioning.http.listener" class="Zicht\Bundle\VersioningBundle\Http\Listener">
             <argument type="service" id="zicht_versioning.manager"/>
             <argument type="service" id="zicht_versioning.http.url_helper"/>
