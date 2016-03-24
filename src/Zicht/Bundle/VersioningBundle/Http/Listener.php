@@ -6,19 +6,34 @@
 
 namespace Zicht\Bundle\VersioningBundle\Http;
 
-
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Zicht\Bundle\VersioningBundle\Services\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
+/**
+ * Class Listener
+ *
+ * @package Zicht\Bundle\VersioningBundle\Http
+ */
 class Listener
 {
+    /**
+     * Constructor
+     *
+     * @param VersioningManager $versioning
+     * @param UrlHelper $urlHelper
+     */
     public function __construct(VersioningManager $versioning, UrlHelper $urlHelper)
     {
         $this->versioning = $versioning;
         $this->urlHelper = $urlHelper;
     }
 
-
+    /**
+     * Listens to the master request and informs the version manager to load a specific version if specified in the URL
+     *
+     * @param GetResponseEvent $event
+     * @return void
+     */
     public function onKernelRequest(GetResponseEvent $event)
     {
         if (!$event->isMasterRequest()) {
