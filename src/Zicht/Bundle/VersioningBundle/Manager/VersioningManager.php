@@ -78,18 +78,6 @@ class VersioningManager
     }
 
     /**
-     * Get the active version number for the given entity
-     *
-     * @param VersionableInterface $entity
-     * @return integer
-     */
-    public function getActiveVersionNumber(VersionableInterface $entity)
-    {
-        $entityVersion = $this->getActiveVersion($entity);
-        return $entityVersion->getVersionNumber();
-    }
-
-    /**
      * Sets the given page to the version information of the given version
      *
      * @param VersionableInterface $entity
