@@ -97,6 +97,13 @@ class VersioningManager
         return $this->storage->findVersions($object);
     }
 
+    /**
+     * Create a new entity version based on the specified entity and changeset.
+     *
+     * @param VersionableInterface $entity
+     * @param array $changeset
+     * @return EntityVersion
+     */
     public function createEntityVersion(VersionableInterface $entity, $changeset)
     {
         $version = new EntityVersion();
@@ -111,6 +118,14 @@ class VersioningManager
     }
 
 
+    /**
+     * Update an existing entity version.
+     *
+     * @param VersionableInterface $entity
+     * @param array $changeset
+     * @param int $versionNumber
+     * @return EntityVersionInterface
+     */
     public function updateEntityVersion(VersionableInterface $entity, $changeset, $versionNumber)
     {
         $version = $this->findVersion($entity, $versionNumber);
@@ -119,11 +134,25 @@ class VersioningManager
         return $version;
     }
 
+    /**
+     * Marks an entity to be loaded as the specified version
+     *
+     * @param string $entityName
+     * @param int $id
+     * @param int $version
+     */
     public function setVersionToLoad($entityName, $id, $version)
     {
         $this->versionsToLoad[$entityName][$id]= $version;
     }
 
+    /**
+     * Returns a version number to load for the specified entity, based on what was previously registered as
+     * the version to load by setVersionToLoad().
+     *
+     * @param VersionableInterface $entity
+     * @return int|null
+     */
     public function getVersionToLoad(VersionableInterface $entity)
     {
         $className = get_class($entity);
@@ -131,12 +160,22 @@ class VersioningManager
         return isset($this->versionsToLoad[$className][$id]) ? $this->versionsToLoad[$className][$id] : null;
     }
 
-    public function loadVersion(VersionableInterface $entity, $versionId)
+
+    /**
+     * Injects the values of the specified version number into the specified entity.
+     *
+     * @param VersionableInterface $entity
+     * @param int $versionNumber
+     */
+    public function loadVersion(VersionableInterface $entity, $versionNumber)
     {
-        $this->serializer->deserialize($this->findVersion($entity, $versionId), $entity);
+        $this->serializer->deserialize($this->findVersion($entity, $versionNumber), $entity);
     }
 
     /**
+     * Returns the version operation and base version number for the specified entity. If there is none currently
+     * avaiable, defaults to a new version based on the currently active version
+     *
      * @param VersionableInterface $entity
      * @return string
      */
@@ -156,23 +195,37 @@ class VersioningManager
         return [self::VERSION_OPERATION_NEW, null];
     }
 
-    public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersion)
+    /**
+     * Schedule any operation on the entity to be the specified version operation based on the specified version number
+     *
+     * @param VersionableInterface $entity
+     * @param $versionOperation
+     * @param $baseVersionNumber
+     */
+    public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersionNumber)
     {
         $className = get_class($entity);
         $id = $entity->getId();
-        $this->versionOperations[$className][$id] = [$versionOperation, $baseVersion];
+        $this->versionOperations[$className][$id] = [$versionOperation, $baseVersionNumber];
     }
 
-    public function getLoadedVersion($entity)
-    {
-        return $this->getVersionToLoad($entity) ?: $this->getActiveVersion($entity);
-    }
-
+    /**
+     * Mark a version as affected.
+     *
+     * @param VersionableInterface $entity
+     * @param EntityVersionInterface $version
+     */
     public function addAffectedVersion($entity, $version)
     {
         $this->affectedVersions[]= [$entity, $version];
     }
 
+    /**
+     * Returns a list of tuples containing the entity and it's associated version that was affected during
+     * the current request.
+     *
+     * @return array
+     */
     public function getAffectedVersions()
     {
         return $this->affectedVersions;
