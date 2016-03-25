@@ -190,9 +190,9 @@ class VersioningManager
      * @param int $versionNumber
      * @return void
      */
-    public function loadVersion(VersionableInterface $entity)
+    public function loadVersion(VersionableInterface $entity, $versionNumber = null)
     {
-        if ($versionNumber = $this->getVersionToLoad($entity)) {
+        if (null !== $versionNumber || ($versionNumber = $this->getVersionToLoad($entity))) {
             $this->serializer->deserialize($this->findVersion($entity, $versionNumber), $entity);
         }
     }

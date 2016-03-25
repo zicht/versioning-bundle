@@ -61,6 +61,9 @@ class Serializer
     public function deserialize(EntityVersionInterface $entityVersion, $targetObject = null)
     {
         $className = $entityVersion->getSourceClass();
+        if (!class_exists($className)) {
+            throw new \InvalidArgumentException("Entity version does not have a source class");
+        }
         if (null !== $targetObject && !$targetObject instanceof $className) {
             throw new \InvalidArgumentException("Trying to deserialize into an object of a mismatching type");
         }

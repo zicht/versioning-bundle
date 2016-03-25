@@ -11,6 +11,7 @@ use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
@@ -87,7 +88,12 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
             foreach ($entities as $entity) {
-                if ($entity instanceof VersionableInterface) {
+                if ($entity instanceof VersionableInterface || $entity instanceof ContentItem) {
+                    if ($entity instanceof ContentItem) {
+                        $uow->clear($entity);
+                        return;
+                    }
+
                     if ('update' === $type) {
                         list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
                         switch ($versionOperation) {
@@ -96,6 +102,7 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                                 $uow->scheduleForInsert($version);
                                 $uow->clearEntityChangeSet(spl_object_hash($entity));
+
                                 break;
 
                             case VersioningManager::VERSION_OPERATION_UPDATE:

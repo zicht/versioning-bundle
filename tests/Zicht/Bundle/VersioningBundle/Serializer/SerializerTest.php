@@ -8,6 +8,7 @@ namespace Zicht\Bundle\VersioningBundle\Serializer;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\TestAssets\Entity;
+use Zicht\Bundle\VersioningBundle\TestAssets\OtherEntity;
 
 class SerializerTest extends \PHPUnit_Framework_TestCase
 {
@@ -34,8 +35,30 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
     {
         $this->expectMetadataFor(Entity::class, new ClassMetadataInfo(Entity::class));
         $v = new EntityVersion();
+        $v->setSourceClass(Entity::class);
         $v->setData(json_encode(['__class__' => Entity::class]));
         $this->assertInstanceOf(Entity::class, (new Serializer($this->em))->deserialize($v));
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testDeserializerThrowsExceptionIfSourceClassNotSet()
+    {
+        $this->expectMetadataFor(Entity::class, new ClassMetadataInfo(Entity::class));
+        $v = new EntityVersion();
+        (new Serializer($this->em))->deserialize($v);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testDeserializerThrowsExceptionIfSourceClassDoesNotMatchObjectClass()
+    {
+        $this->expectMetadataFor(Entity::class, new ClassMetadataInfo(Entity::class));
+        $v = new EntityVersion();
+        $v->setSourceClass(Entity::class);
+        (new Serializer($this->em))->deserialize($v, new OtherEntity());
     }
 
     public function testDeserializingIntoExistingObject()
@@ -46,6 +69,7 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
         $o = new Entity();
         $o->setBool(false);
         $v = new EntityVersion();
+        $v->setSourceClass(Entity::class);
         $v->setData(json_encode(['__class__' => Entity::class, 'bool' => true]));
         $this->assertInstanceOf(Entity::class, (new Serializer($this->em))->deserialize($v, $o));
 

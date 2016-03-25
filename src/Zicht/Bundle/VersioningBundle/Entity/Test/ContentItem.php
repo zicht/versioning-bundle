@@ -30,13 +30,6 @@ class ContentItem
     private $id;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(type="integer")
-     */
-    private $testingId;
-
-    /**
      * @var string $title
      *
      * @ORM\Column(type="string", nullable=true)
@@ -55,6 +48,13 @@ class ContentItem
      * @ORM\JoinColumn(onDelete="CASCADE")
      */
     private $page;
+
+    public function __construct($title = null)
+    {
+        if (null !== $title) {
+            $this->setTitle($title);
+        }
+    }
 
     /**
      * @return int

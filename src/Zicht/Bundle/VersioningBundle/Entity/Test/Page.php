@@ -31,13 +31,6 @@ class Page implements VersionableInterface
     private $id;
 
     /**
-     * @var int
-     *
-     * @ORM\Column(type="integer")
-     */
-    private $testingId;
-
-    /**
      * @var string $title
      *
      * @ORM\Column(type="string", nullable=true)
