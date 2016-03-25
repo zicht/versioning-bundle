@@ -92,7 +92,7 @@ class VersionType extends AbstractType
      */
     public function finishView(FormView $view, FormInterface $form, array $options)
     {
-        $view->vars['versions']= $this->versioning->getVersions($form->getParent()->getData());
+        $view->vars['versions']= $this->versioning->findVersions($form->getParent()->getData());
         $view->vars['admin'] = $this->sonata->getAdminByClass(get_class($form->getParent()->getData()));
         $view->vars['object'] = $form->getParent()->getData();
     }

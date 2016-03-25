@@ -185,7 +185,7 @@ class TestUtilCommand extends ContainerAwareCommand
 
             case 'get-active-version':
                 $page = $em->getRepository('Zicht\Bundle\VersioningBundle\Entity\Test\Page')->findById($input->getOption('id'));
-                $entityVersion = $versioning->getActiveVersion($page);
+                $entityVersion = $versioning->findActiveVersion($page);
 
                 $output->writeln(json_encode(['versionNumber' => $entityVersion->getVersionNumber(), 'basedOnVersion' => $entityVersion->getBasedOnVersion()]));
                 break;

@@ -84,7 +84,7 @@ class EntityVersion implements EntityVersionInterface
     private $notes;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(type="json_array", nullable=true)
      */
     private $changeset;
 

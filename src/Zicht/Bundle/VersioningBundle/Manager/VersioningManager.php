@@ -6,7 +6,9 @@
 
 namespace Zicht\Bundle\VersioningBundle\Manager;
 
+use Gedmo\Exception\RuntimeException;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
+use Zicht\Bundle\VersioningBundle\Exception\VersionNotFoundException;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionStorageInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
@@ -73,25 +75,14 @@ class VersioningManager
 
 
     /**
-     * Returns the next (available) version number for the specified entity
-     *
-     * @param VersionableInterface $entity
-     * @return mixed
-     */
-    public function getNextVersionNumber(VersionableInterface $entity)
-    {
-        return $this->storage->getNextVersionNumber($entity);
-    }
-
-    /**
      * Get the active version for the given entity
      *
      * @param VersionableInterface $entity
      * @return EntityVersionInterface | null
      */
-    public function getActiveVersion(VersionableInterface $entity)
+    public function findActiveVersion(VersionableInterface $entity)
     {
-        return $this->storage->findActiveEntityVersion($entity);
+        return $this->storage->findActiveVersion($entity);
     }
 
     /**
@@ -101,7 +92,7 @@ class VersioningManager
      * @param integer $versionId
      * @return EntityVersionInterface
      */
-    private function findVersion(VersionableInterface $entity, $versionId)
+    public function findVersion(VersionableInterface $entity, $versionId)
     {
         return $this->storage->findVersion($entity, $versionId);
     }
@@ -112,7 +103,7 @@ class VersioningManager
      * @param VersionableInterface $object
      * @return EntityVersionInterface[]
      */
-    public function getVersions(VersionableInterface $object)
+    public function findVersions(VersionableInterface $object)
     {
         return $this->storage->findVersions($object);
     }
@@ -128,11 +119,11 @@ class VersioningManager
     {
         $version = new EntityVersion();
 
-        $version->setChangeset(json_encode($changeset));
+        $version->setChangeset($changeset);
         $version->setSourceClass(get_class($entity));
         $version->setOriginalId($entity->getId());
         $version->setData($this->serializer->serialize($entity));
-        $version->setVersionNumber($this->getNextVersionNumber($entity));
+        $version->setVersionNumber($this->storage->getNextVersionNumber($entity));
         if ($baseVersion !== null) {
             $version->setBasedOnVersion($baseVersion);
         }
@@ -153,6 +144,9 @@ class VersioningManager
     public function updateEntityVersion(VersionableInterface $entity, $changeset, $versionNumber)
     {
         $version = $this->findVersion($entity, $versionNumber);
+        if (!$version) {
+            throw new VersionNotFoundException("Version not found: {$versionNumber}");
+        }
         $version->setData($this->serializer->serialize($entity));
         $version->setChangeSet(json_encode($changeset));
 
@@ -180,7 +174,7 @@ class VersioningManager
      * @param VersionableInterface $entity
      * @return int|null
      */
-    public function getVersionToLoad(VersionableInterface $entity)
+    protected function getVersionToLoad(VersionableInterface $entity)
     {
         $className = get_class($entity);
         $id = $entity->getId();
@@ -189,15 +183,18 @@ class VersioningManager
 
 
     /**
-     * Injects the values of the specified version number into the specified entity.
+     * Injects the values of the version number that was specified earlier using setVersionToLoad into the specified
+     * entity.
      *
      * @param VersionableInterface $entity
      * @param int $versionNumber
      * @return void
      */
-    public function loadVersion(VersionableInterface $entity, $versionNumber)
+    public function loadVersion(VersionableInterface $entity)
     {
-        $this->serializer->deserialize($this->findVersion($entity, $versionNumber), $entity);
+        if ($versionNumber = $this->getVersionToLoad($entity)) {
+            $this->serializer->deserialize($this->findVersion($entity, $versionNumber), $entity);
+        }
     }
 
     /**
@@ -217,8 +214,8 @@ class VersioningManager
         if (null !== $this->getVersionToLoad($entity)) {
             return [self::VERSION_OPERATION_UPDATE, $this->getVersionToLoad($entity)];
         }
-        if ($this->getActiveVersion($entity)) {
-            return [self::VERSION_OPERATION_NEW, $this->getActiveVersion($entity)->getVersionNumber()];
+        if ($activeVersion = $this->findActiveVersion($entity)) {
+            return [self::VERSION_OPERATION_NEW, $activeVersion->getVersionNumber()];
         }
         return [self::VERSION_OPERATION_NEW, null];
     }

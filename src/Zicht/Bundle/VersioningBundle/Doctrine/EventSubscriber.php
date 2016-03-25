@@ -11,6 +11,7 @@ use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
+use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
@@ -67,9 +68,7 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         $this->fetchVersioningService();
 
-        if ($version = $this->versioning->getVersionToLoad($entity)) {
-            $this->versioning->loadVersion($entity, $version);
-        }
+        $this->versioning->loadVersion($entity);
     }
 
     /**
@@ -104,6 +103,8 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                                 $uow->scheduleForUpdate($version);
                                 $uow->scheduleForDirtyCheck($version);
+                                $uow->clearEntityChangeSet(spl_object_hash($entity));
+
                                 break;
 
                             case VersioningManager::VERSION_OPERATION_ACTIVATE:
@@ -112,7 +113,7 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                                 $uow->scheduleForInsert($version);
 
-                                $currentActive = $this->versioning->getActiveVersion($entity);
+                                $currentActive = $this->versioning->findActiveVersion($entity);
 
                                 if ($currentActive && $currentActive->getVersionNumber() !== $version->getVersionNumber()) {
                                     $currentActive->setIsActive(false);
@@ -123,7 +124,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                                 break;
 
                             default:
-                                throw new \UnexpectedValueException("Can't handle this operation: '{$versionOperation}'");
+                                throw new UnsupportedVersionOperationException("Can't handle this operation: '{$versionOperation}'");
                         }
                     } else {
                         $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));

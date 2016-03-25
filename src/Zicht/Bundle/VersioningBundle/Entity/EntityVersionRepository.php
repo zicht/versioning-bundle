@@ -51,7 +51,7 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
     /**
      * @{inheritDoc}
      */
-    public function findActiveEntityVersion(Model\VersionableInterface $entity)
+    public function findActiveVersion(Model\VersionableInterface $entity)
     {
         return $this->createQueryBuilder('ev')
             ->select('ev')

@@ -61,7 +61,7 @@ class AdminCommand extends ContainerAwareCommand
         } elseif (!$object instanceof VersionableInterface) {
             $output->writeln("Object is not versionable: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");
         } else {
-            if ($version = $this->versioning->getActiveVersion($object)) {
+            if ($version = $this->versioning->findActiveVersion($object)) {
                 $output->writeln("Active version: {$version->getVersionNumber()}");
             } else {
                 $output->writeln("<comment>No active version for this entity found</comment>");
@@ -77,7 +77,7 @@ class AdminCommand extends ContainerAwareCommand
                     $headers[]= $column;
                 }
                 $table->setHeaders($headers);
-                $versions = $this->versioning->getVersions($object);
+                $versions = $this->versioning->findVersions($object);
                 foreach ($versions as $version) {
                     $row = [
                         $version->getVersionNumber() . ($version->isActive() ? ' *' : ''),

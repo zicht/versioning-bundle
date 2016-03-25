@@ -12,9 +12,14 @@ class Entity implements VersionableInterface
 {
     protected $bool = null;
 
+    public function __construct()
+    {
+        $this->id = rand(1, 100);
+    }
+
     public function getId()
     {
-        return rand(1, 100);
+        return $this->id;
     }
 
     protected $object = null;

@@ -34,7 +34,7 @@ interface EntityVersionStorageInterface
      * @param VersionableInterface $entity
      * @return mixed
      */
-    public function findActiveEntityVersion(VersionableInterface $entity);
+    public function findActiveVersion(VersionableInterface $entity);
 
     /**
      * Get the next version number for the specified entity.
