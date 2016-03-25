@@ -12,7 +12,6 @@ use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
 /**
@@ -89,16 +88,29 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
             foreach ($entities as $entity) {
-                if ($entity instanceof VersionableInterface || $entity instanceof VersionableChildInterface) {
+                if ($entity instanceof VersionableInterface) {
                     if ('update' === $type) {
                         list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
                         switch ($versionOperation) {
-                            case VersioningManager::VERSION_OPERATION_ACTIVATE:
-                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
-                                $version->setBasedOnVersion($baseVersion);
+                            case VersioningManager::VERSION_OPERATION_NEW:
+                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+
                                 $uow->scheduleForInsert($version);
-                                $this->versioning->addAffectedVersion($entity, $version);
+                                $uow->clearEntityChangeSet(spl_object_hash($entity));
+                                break;
+
+                            case VersioningManager::VERSION_OPERATION_UPDATE:
+                                $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+
+                                $uow->scheduleForUpdate($version);
+                                $uow->scheduleForDirtyCheck($version);
+                                break;
+
+                            case VersioningManager::VERSION_OPERATION_ACTIVATE:
+                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
                                 $version->setIsActive(true);
+
+                                $uow->scheduleForInsert($version);
 
                                 $currentActive = $this->versioning->getActiveVersion($entity);
 
@@ -110,21 +122,6 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                                 break;
 
-                            case VersioningManager::VERSION_OPERATION_NEW:
-                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
-                                $version->setBasedOnVersion($baseVersion);
-                                $uow->scheduleForInsert($version);
-                                $uow->clearEntityChangeSet(spl_object_hash($entity));
-                                $this->versioning->addAffectedVersion($entity, $version);
-                                break;
-
-                            case VersioningManager::VERSION_OPERATION_UPDATE:
-                                $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
-                                $uow->scheduleForUpdate($version);
-                                $uow->scheduleForDirtyCheck($version);
-                                $this->versioning->addAffectedVersion($entity, $version);
-                                break;
-
                             default:
                                 throw new \UnexpectedValueException("Can't handle this operation: '{$versionOperation}'");
                         }
@@ -132,7 +129,6 @@ class EventSubscriber implements DoctrineEventSubscriber
                         $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
                         $version->setIsActive(true);
                         $uow->scheduleForInsert($version);
-                        $this->versioning->addAffectedVersion($entity, $version);
                     }
                 }
             }

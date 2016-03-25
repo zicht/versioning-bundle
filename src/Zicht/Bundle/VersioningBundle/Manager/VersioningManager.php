@@ -6,7 +6,6 @@
 
 namespace Zicht\Bundle\VersioningBundle\Manager;
 
-use Doctrine\Bundle\DoctrineBundle\Registry;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionStorageInterface;
@@ -20,18 +19,30 @@ use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
  */
 class VersioningManager
 {
-    const VERSION_OPERATION_NEW = 'new';
-    const VERSION_OPERATION_ACTIVATE = 'activate';
-    const VERSION_OPERATION_UPDATE = 'update';
     /**
-     * @var Registry
+     * Used to identify the operation of creating a new version
      */
-    private $doctrine;
+    const VERSION_OPERATION_NEW = 'new';
+
+    /**
+     * Used to identify the operation of activating a version
+     */
+    const VERSION_OPERATION_ACTIVATE = 'activate';
+
+    /**
+     * Used to identify the operation of updating the version's contents
+     */
+    const VERSION_OPERATION_UPDATE = 'update';
 
     /**
      * @var Serializer
      */
     private $serializer;
+
+    /**
+     * @var EntityVersionStorageInterface
+     */
+    private $storage;
 
     private $versionsToLoad = [];
     private $versionOperations = [];
@@ -40,7 +51,8 @@ class VersioningManager
     /**
      * VersioningService constructor.
      *
-     * @param Registry $doctrine
+     * @param Serializer $serializer
+     * @param EntityVersionStorageInterface $storage
      */
     public function __construct(Serializer $serializer, EntityVersionStorageInterface $storage)
     {
@@ -60,6 +72,12 @@ class VersioningManager
     }
 
 
+    /**
+     * Returns the next (available) version number for the specified entity
+     *
+     * @param VersionableInterface $entity
+     * @return mixed
+     */
     public function getNextVersionNumber(VersionableInterface $entity)
     {
         return $this->storage->getNextVersionNumber($entity);
@@ -77,6 +95,8 @@ class VersioningManager
     }
 
     /**
+     * Find the specified entity version
+     *
      * @param VersionableInterface $entity
      * @param integer $versionId
      * @return EntityVersionInterface
@@ -104,7 +124,7 @@ class VersioningManager
      * @param array $changeset
      * @return EntityVersion
      */
-    public function createEntityVersion(VersionableInterface $entity, $changeset)
+    public function createEntityVersion(VersionableInterface $entity, $changeset, $baseVersion = null)
     {
         $version = new EntityVersion();
 
@@ -113,7 +133,11 @@ class VersioningManager
         $version->setOriginalId($entity->getId());
         $version->setData($this->serializer->serialize($entity));
         $version->setVersionNumber($this->getNextVersionNumber($entity));
+        if ($baseVersion !== null) {
+            $version->setBasedOnVersion($baseVersion);
+        }
 
+        $this->affectedVersions[]= [$entity, $version];
         return $version;
     }
 
@@ -131,6 +155,8 @@ class VersioningManager
         $version = $this->findVersion($entity, $versionNumber);
         $version->setData($this->serializer->serialize($entity));
         $version->setChangeSet(json_encode($changeset));
+
+        $this->affectedVersions[]= [$entity, $version];
         return $version;
     }
 
@@ -140,6 +166,7 @@ class VersioningManager
      * @param string $entityName
      * @param int $id
      * @param int $version
+     * @return void
      */
     public function setVersionToLoad($entityName, $id, $version)
     {
@@ -166,6 +193,7 @@ class VersioningManager
      *
      * @param VersionableInterface $entity
      * @param int $versionNumber
+     * @return void
      */
     public function loadVersion(VersionableInterface $entity, $versionNumber)
     {
@@ -199,25 +227,15 @@ class VersioningManager
      * Schedule any operation on the entity to be the specified version operation based on the specified version number
      *
      * @param VersionableInterface $entity
-     * @param $versionOperation
-     * @param $baseVersionNumber
+     * @param string $versionOperation
+     * @param int $baseVersionNumber
+     * @return void
      */
     public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersionNumber)
     {
         $className = get_class($entity);
         $id = $entity->getId();
         $this->versionOperations[$className][$id] = [$versionOperation, $baseVersionNumber];
-    }
-
-    /**
-     * Mark a version as affected.
-     *
-     * @param VersionableInterface $entity
-     * @param EntityVersionInterface $version
-     */
-    public function addAffectedVersion($entity, $version)
-    {
-        $this->affectedVersions[]= [$entity, $version];
     }
 
     /**

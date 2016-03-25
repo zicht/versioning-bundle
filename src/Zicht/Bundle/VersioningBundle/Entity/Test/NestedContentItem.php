@@ -9,7 +9,6 @@ namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 
 /**
  * Class NestedContentItem
@@ -20,7 +19,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
  * @ORM\Entity()
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class NestedContentItem implements VersionableChildInterface
+class NestedContentItem
 {
     /**
      * @var integer

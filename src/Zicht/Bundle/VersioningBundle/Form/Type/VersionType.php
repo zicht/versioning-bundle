@@ -16,14 +16,26 @@ use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
+/**
+ * Class VersionType
+ */
 class VersionType extends AbstractType
 {
+    /**
+     * Constructor.
+     *
+     * @param VersioningManager $v
+     * @param Pool $sonata
+     */
     public function __construct(VersioningManager $v, Pool $sonata)
     {
         $this->versioning = $v;
         $this->sonata = $sonata;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
@@ -31,6 +43,9 @@ class VersionType extends AbstractType
         ]);
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -45,27 +60,36 @@ class VersionType extends AbstractType
                 ]
             )
             ->add('version', 'hidden');
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $e) {
-            $entity = $e->getForm()->getParent()->getData();
-            if ($entity === null) {
-                return;
+
+        $builder->addEventListener(
+            FormEvents::PRE_SET_DATA,
+            function(FormEvent $e) {
+                $entity = $e->getForm()->getParent()->getData();
+                if ($entity === null) {
+                    return;
+                }
+                list($op, $version) = $this->versioning->getVersionOperation($entity);
+                $e->setData([
+                    'operation' => $op,
+                    'version' => $version
+                ]);
             }
-            list($op, $version) = $this->versioning->getVersionOperation($entity);
-            $e->setData([
-                'operation' => $op,
-                'version' => $version
-            ]);
-        });
-        $builder->addEventListener(FormEvents::SUBMIT, function(FormEvent $e) {
-            $this->versioning->setVersionOperation(
-                $e->getForm()->getParent()->getData(),
-                $e->getData()['operation'],
-                $e->getData()['version']
-            );
-        });
+        );
+        $builder->addEventListener(
+            FormEvents::SUBMIT,
+            function(FormEvent $e) {
+                $this->versioning->setVersionOperation(
+                    $e->getForm()->getParent()->getData(),
+                    $e->getData()['operation'],
+                    $e->getData()['version']
+                );
+            }
+        );
     }
 
-
+    /**
+     * @{inheritDoc}
+     */
     public function finishView(FormView $view, FormInterface $form, array $options)
     {
         $view->vars['versions']= $this->versioning->getVersions($form->getParent()->getData());
@@ -73,7 +97,9 @@ class VersionType extends AbstractType
         $view->vars['object'] = $form->getParent()->getData();
     }
 
-
+    /**
+     * @{inheritDoc}
+     */
     public function getName()
     {
         return 'zicht_version';

@@ -15,10 +15,17 @@ use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 /**
+ * Normalizer handling the serialization of doctrine entities based on doctrine meta data
+ *
  * @package Zicht\Bundle\VersioningBundle\Serializer\Normalizer
  */
 class DoctrineEntityNormalizer extends AbstractNormalizer
 {
+    /**
+     * Construct the normalizer
+     *
+     * @param EntityManager $em
+     */
     public function __construct(EntityManager $em)
     {
         parent::__construct();
@@ -39,7 +46,8 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
     /**
      * {@inheritDoc}
      */
-    public function normalize($object, $format = null, array $context = array()) {
+    public function normalize($object, $format = null, array $context = array())
+    {
         /** @var ClassMetadataInfo $classMetadata */
         list($className, $classMetadata) = $this->getClassMetaData($object);
 
@@ -178,8 +186,11 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
     }
 
     /**
-     * @param $object
+     * Helper method to find the class meta data.
+     *
+     * @param object $object
      * @return array
+     *
      * @throws \Doctrine\Common\Persistence\Mapping\MappingException
      * @throws \Exception
      */
@@ -191,9 +202,11 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
     }
 
     /**
-     * @param $data
-     * @param $associationName
+     * Finds the referenced entity in the entity manager.
+     *
+     * @param array $reference
      * @return null|object
+     *
      * @throws \Doctrine\ORM\ORMException
      * @throws \Doctrine\ORM\OptimisticLockException
      * @throws \Doctrine\ORM\TransactionRequiredException
@@ -204,7 +217,9 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
     }
 
     /**
-     * @param mixed $associatedObject
+     * Returns the class and id in an array which can be used to deserialize as a reference to an existing object.
+     *
+     * @param object $associatedObject
      * @return array
      */
     protected function serializeReferencedAssociation($associatedObject)

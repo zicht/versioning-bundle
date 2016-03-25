@@ -8,7 +8,6 @@ namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\ORM\Mapping as ORM;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
 
 /**
  * Class OtherOneToManyRelation
@@ -19,7 +18,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableChildInterface;
  * @ORM\Entity()
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class OtherOneToManyRelation implements VersionableChildInterface
+class OtherOneToManyRelation
 {
     /**
      * @var integer

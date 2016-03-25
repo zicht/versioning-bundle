@@ -8,23 +8,36 @@ namespace Zicht\Bundle\VersioningBundle\Twig;
 
 use Zicht\Bundle\VersioningBundle\Http\UrlHelper;
 
+/**
+ * Twig extension for versioning related functions:
+ *
+ * - version_url() decorates any url with the version specified; delegates to UrlHelper::decorateVersionUrl
+ */
 class Extension extends \Twig_Extension
 {
-    function __construct(UrlHelper $helper)
+    /**
+     * Construct the extension
+     *
+     * @param UrlHelper $helper
+     */
+    public function __construct(UrlHelper $helper)
     {
         $this->urlHelper = $helper;
     }
 
-
+    /**
+     * @{inheritDoc}
+     */
     public function getFunctions()
     {
         return [
-            'version_url' => new \Twig_SimpleFunction('version_url', function($url, $entityVersion) {
-                return $this->urlHelper->decorateVersionUrl($url, $entityVersion);
-            })
+            'version_url' => new \Twig_SimpleFunction('version_url', [$this->urlHelper, 'decorateVersionUrl'])
         ];
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function getName()
     {
         return 'zicht_versioning';

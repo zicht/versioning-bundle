@@ -12,8 +12,6 @@ use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 /**
  * Class EntityVersion
  *
- * @package Zicht\Bundle\VersioningBundle\Entity
- *
  * @ORM\Table(name="_entity_version")
  * @ORM\Entity(repositoryClass="EntityVersionRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")

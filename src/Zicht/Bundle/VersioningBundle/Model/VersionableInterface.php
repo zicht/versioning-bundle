@@ -6,10 +6,15 @@
 
 namespace Zicht\Bundle\VersioningBundle\Model;
 
+/**
+ * Interface VersionableInterface
+ */
 interface VersionableInterface
 {
-    //not much here - just something to be able to 'mark' entities with ^^
-
-    //we need an id, to determine the original source
+    /**
+     * Anything versionable must have an id.
+     *
+     * @return mixed
+     */
     public function getId();
 }

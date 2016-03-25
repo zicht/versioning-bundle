@@ -8,12 +8,6 @@ namespace Zicht\Bundle\VersioningBundle\Model;
 
 /**
  * Class EntityVersion
- *
- * @package Zicht\Bundle\VersioningBundle\Entity
- *
- * @ORM\Table(name="_entity_version")
- * @ORM\Entity(repositoryClass="EntityVersionRepository")
- * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
 interface EntityVersionInterface
 {
@@ -89,6 +83,7 @@ interface EntityVersionInterface
     public function setSourceClass($sourceClass);
 
     /**
+     * @param string $changeset
      * @return mixed
      */
     public function setChangeset($changeset);

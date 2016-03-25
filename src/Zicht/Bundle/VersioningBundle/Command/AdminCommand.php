@@ -42,10 +42,10 @@ class AdminCommand extends ContainerAwareCommand
             ->setName('zicht:versioning:admin')
             ->setDescription('Administrative utilities related to versioning')
             ->addArgument('entityClass', InputArgument::REQUIRED, 'Entity to work on')
-            ->addArgument('entityId', InputArgument::REQUIRED, 'Entity id to work on')
+            ->addArgument('entityId', InputArgument::OPTIONAL, 'Entity id to work on')
             ->addOption('set-active', '', InputOption::VALUE_REQUIRED, 'Activate a specific version')
             ->addOption('versions', '', InputOption::VALUE_NONE, 'List all versions')
-//            ->addOption('check', '', InputOption::VALUE_NONE, 'Do a consistency check for all versions')
+            ->addOption('check', '', InputOption::VALUE_NONE, 'Do a consistency check for all versions')
 //            ->addOption('touch', '', InputOption::VALUE_NONE, 'Touch the active version (i.e. force a new version to be created)')
             ->addOption('column', '', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, "Additional fields to be shown");
         ;

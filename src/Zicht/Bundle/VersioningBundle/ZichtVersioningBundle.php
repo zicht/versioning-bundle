@@ -5,8 +5,12 @@
  */
 namespace Zicht\Bundle\VersioningBundle;
 
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
+/**
+ * Class ZichtVersioningBundle
+ */
 class ZichtVersioningBundle extends Bundle
 {
 }

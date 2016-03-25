@@ -22,11 +22,15 @@ use Symfony\Component\Serializer\Serializer as BaseSerializer;
  */
 class Serializer
 {
-    /** @var Serializer */
+    /**
+     * @var Serializer
+     */
     private $serializer;
 
     /**
      * SerializerService constructor.
+     *
+     * @param EntityManager $manager
      */
     public function __construct(EntityManager $manager)
     {
@@ -51,10 +55,20 @@ class Serializer
      * Deserializes the given entity
      *
      * @param EntityVersionInterface $entityVersion
+     * @param VersionableInterface $targetObject
      * @return VersionableInterface $entity
      */
     public function deserialize(EntityVersionInterface $entityVersion, $targetObject = null)
     {
-        return $this->serializer->deserialize($entityVersion->getData(), $entityVersion->getSourceClass(), 'json', ['object' => $targetObject]);
+        $className = $entityVersion->getSourceClass();
+        if (null !== $targetObject && !$targetObject instanceof $className) {
+            throw new \InvalidArgumentException("Trying to deserialize into an object of a mismatching type");
+        }
+        return $this->serializer->deserialize(
+            $entityVersion->getData(),
+            $entityVersion->getSourceClass(),
+            'json',
+            ['object' => $targetObject]
+        );
     }
 }
