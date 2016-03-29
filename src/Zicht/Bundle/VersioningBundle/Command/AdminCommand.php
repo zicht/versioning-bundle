@@ -7,7 +7,7 @@
 namespace Zicht\Bundle\VersioningBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,8 +16,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
-use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 /**
@@ -25,7 +25,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
  *
  * @package Zicht\Bundle\VersioningBundle\Command\AdminCommand
  */
-class AdminCommand extends ContainerAwareCommand
+class AdminCommand extends Command
 {
     public function __construct(VersioningManager $versioning, Registry $doctrine)
     {
@@ -54,6 +54,7 @@ class AdminCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
 
         if (!$object) {

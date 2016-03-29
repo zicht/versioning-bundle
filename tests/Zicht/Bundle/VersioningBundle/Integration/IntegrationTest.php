@@ -131,7 +131,6 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(1, $this->vm->findActiveVersion($o)->getVersionNumber());
 
         $o->setTitle("V2");
-        $o->addContentItem(new ContentItem("item 1"));
         $this->em->persist($o);
         $this->em->flush();
 
@@ -167,5 +166,30 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(3, $this->vm->getVersionCount($o));
         $this->assertEquals(3, $this->vm->findActiveVersion($o)->getVersionNumber());
+    }
+
+
+    public function testOneToManyWhenPageIsPersisted()
+    {
+        $o = new Page();
+        $o->setTestingId(1);
+        $o->setTitle("V1");
+
+        $this->em->persist($o);
+        $this->em->flush();
+        $this->assertEquals(1, $this->vm->getVersionCount($o));
+        $this->assertEquals(1, $this->vm->findActiveVersion($o)->getVersionNumber());
+
+        $o->addContentItem(new ContentItem("item 1"));
+        $this->em->persist($o);
+        $this->em->flush();
+
+        $this->assertEquals(2, $this->vm->getVersionCount($o));
+
+        $this->vm->loadVersion($o, 1);
+        $this->assertEquals([], $o->getContentItems()->toArray());
+
+        $this->vm->loadVersion($o, 2);
+        $this->assertEquals(1, count($o->getContentItems()->toArray()));
     }
 }

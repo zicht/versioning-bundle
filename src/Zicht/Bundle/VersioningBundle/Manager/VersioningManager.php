@@ -245,4 +245,19 @@ class VersioningManager
     {
         return $this->affectedVersions;
     }
+
+
+    public function isManaged($className)
+    {
+        return (new \ReflectionClass($className))->implementsInterface(VersionableInterface::class);
+    }
+
+    public function fix($object)
+    {
+        if (!$this->findActiveVersion($object)) {
+            $v = $this->createEntityVersion($object, [], null);
+            $v->setIsActive(true);
+            $this->storage->save($v);
+        }
+    }
 }

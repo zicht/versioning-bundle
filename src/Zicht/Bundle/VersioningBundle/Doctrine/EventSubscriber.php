@@ -90,8 +90,9 @@ class EventSubscriber implements DoctrineEventSubscriber
             foreach ($entities as $entity) {
                 if ($entity instanceof VersionableInterface || $entity instanceof ContentItem) {
                     if ($entity instanceof ContentItem) {
+                        $entity = $entity->getPage();
+                        $type = 'update';
                         $uow->clear($entity);
-                        return;
                     }
 
                     if ('update' === $type) {

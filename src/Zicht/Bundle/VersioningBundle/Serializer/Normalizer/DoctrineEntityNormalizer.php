@@ -151,7 +151,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
             }
         }
         foreach ($classMetadata->getAssociationNames() as $associationName) {
-            if (empty($data[$associationName])) {
+            if (!array_key_exists($associationName, $data)) {
                 continue;
             }
 
@@ -163,11 +163,14 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                     foreach ($data[$associationName] as $association) {
                         $values[] = $this->denormalize($association, $association['__class__'], $format, $context);
                     }
+
                     $this->propertyAccessor->setValue($object, $associationName, $values);
                     break;
                 case ClassMetadataInfo::MANY_TO_ONE:
                     if (null !== $data[$associationName]) {
                         $this->propertyAccessor->setValue($object, $associationName, $this->resolveReferencedAssociation($data[$associationName]));
+                    } else {
+                        $this->propertyAccessor->setValue($object, $associationName, null);
                     }
                     break;
                 case ClassMetadataInfo::MANY_TO_MANY:

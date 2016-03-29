@@ -43,4 +43,11 @@ interface EntityVersionStorageInterface
      * @return mixed
      */
     public function getNextVersionNumber(VersionableInterface $entity);
+
+    /**
+     * @internal
+     * @param EntityVersionInterface $v
+     * @return mixed
+     */
+    public function save(EntityVersionInterface $v);
 }

@@ -380,17 +380,7 @@ class DoctrineEntityNormalizerTest extends SerializerTest
      */
     public function testPropertyDenormalizationForOneToManyAssociation()
     {
-        $meta1 = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
-        $meta1->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['others']));
-        $meta1->associationMappings['others'] = [
-            'type' => ClassMetadataInfo::ONE_TO_MANY
-        ];
-
-        $this->expectMetadataFor(Entity::class, $meta1);
-
-        $meta2 = $this->getMock(ClassMetadataInfo::class, ['getFieldNames'], [OtherEntity::class]);
-        $meta2->expects($this->any())->method('getFieldNames')->will($this->returnValue(['name']));
-        $this->expectMetadataFor(OtherEntity::class, $meta2);
+        $this->setupOneToMany();
 
         $o = $this->normalizer->denormalize(
             ['__class__' => Entity::class, 'others' => [['__class__' => OtherEntity::class, 'name' => 'I am nr 1'], ['__class__' => OtherEntity::class, 'name' => 'Who does number two work for!']]],
@@ -400,6 +390,49 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $this->assertEquals(2, count($o->getOthers()));
         $this->assertEquals('I am nr 1', $o->getOthers()[0]->getName());
         $this->assertEquals('Who does number two work for!', $o->getOthers()[1]->getName());
+    }
+
+    /**
+     * @covers Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer::denormalize
+     */
+    public function testPropertyDenormalizationForOneToManyAssociationWillClearExistingAssociations()
+    {
+        $this->setupOneToMany();
+
+        $o = new Entity();
+        $o->addOther(new OtherEntity());
+        $o->addOther(new OtherEntity());
+        $o->addOther(new OtherEntity());
+
+        $this->normalizer->denormalize(
+            ['__class__' => Entity::class, 'others' => []],
+            Entity::class,
+            null,
+            ['object' => $o]
+        );
+
+        $this->assertEquals(0, count($o->getOthers()));
+    }
+
+    /**
+     * @covers Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer::denormalize
+     */
+    public function testPropertyDenormalizationForOneToManyAssociationWillOverwriteExistingAssociations()
+    {
+        $this->setupOneToMany();
+
+        $o = new Entity();
+        $o->addOther(new OtherEntity());
+        $o->addOther(new OtherEntity());
+        $o->addOther(new OtherEntity());
+
+        $this->normalizer->denormalize(
+            ['__class__' => Entity::class, 'others' => [['__class__' => OtherEntity::class, 'name' => 'I am nr 1'], ['__class__' => OtherEntity::class, 'name' => 'Who does number two work for!']]],
+            Entity::class,
+            null,
+            ['object' => $o]
+        );
+        $this->assertEquals(2, count($o->getOthers()));
     }
 
     /**
@@ -433,5 +466,20 @@ class DoctrineEntityNormalizerTest extends SerializerTest
 
         $this->expectMetadataFor(Entity::class, $meta1);
         $this->normalizer->denormalize(['__class__' => Entity::class, 'others' => [1, 2, 3]], Entity::class);
+    }
+
+    private function setupOneToMany()
+    {
+        $meta1 = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
+        $meta1->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['others']));
+        $meta1->associationMappings['others'] = [
+            'type' => ClassMetadataInfo::ONE_TO_MANY
+        ];
+
+        $this->expectMetadataFor(Entity::class, $meta1);
+
+        $meta2 = $this->getMock(ClassMetadataInfo::class, ['getFieldNames'], [OtherEntity::class]);
+        $meta2->expects($this->any())->method('getFieldNames')->will($this->returnValue(['name']));
+        $this->expectMetadataFor(OtherEntity::class, $meta2);
     }
 }

@@ -71,7 +71,8 @@ class VersionType extends AbstractType
                 list($op, $version) = $this->versioning->getVersionOperation($entity);
                 $e->setData([
                     'operation' => $op,
-                    'version' => $version
+                    'version' => $version,
+                    'date_planned'
                 ]);
             }
         );
