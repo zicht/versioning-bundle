@@ -73,7 +73,7 @@ class ValidateCommand extends Command
                         if ($input->getOption('fix')) {
                             $this->vm->fix($object);
                         }
-                    svn }
+                    }
                 }
             }
         }
