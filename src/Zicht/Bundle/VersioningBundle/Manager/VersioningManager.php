@@ -49,6 +49,7 @@ class VersioningManager
     private $versionsToLoad = [];
     private $versionOperations = [];
     private $affectedVersions = [];
+    private $loadedVersions = [];
 
     /**
      * VersioningService constructor.
@@ -174,7 +175,7 @@ class VersioningManager
      * @param VersionableInterface $entity
      * @return int|null
      */
-    protected function getVersionToLoad(VersionableInterface $entity)
+    public function getVersionToLoad(VersionableInterface $entity)
     {
         $className = get_class($entity);
         $id = $entity->getId();
@@ -193,7 +194,10 @@ class VersioningManager
     public function loadVersion(VersionableInterface $entity, $versionNumber = null)
     {
         if (null !== $versionNumber || ($versionNumber = $this->getVersionToLoad($entity))) {
-            $this->serializer->deserialize($this->findVersion($entity, $versionNumber), $entity);
+            $version = $this->findVersion($entity, $versionNumber);
+            $this->loadedVersions[]= $version;
+
+            $this->serializer->deserialize($version, $entity);
         }
     }
 
@@ -259,5 +263,10 @@ class VersioningManager
             $v->setIsActive(true);
             $this->storage->save($v);
         }
+    }
+
+    public function getLoadedVersions()
+    {
+        return $this->loadedVersions;
     }
 }

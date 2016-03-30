@@ -13,4 +13,8 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
  */
 class ZichtVersioningBundle extends Bundle
 {
+    public function build(ContainerBuilder $container)
+    {
+        $container->addCompilerPass(new DependencyInjection\CompilerPass\ReplaceCRUDControllerPass());
+    }
 }

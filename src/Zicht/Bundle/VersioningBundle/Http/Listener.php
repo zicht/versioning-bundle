@@ -48,21 +48,4 @@ class Listener
             }
         }
     }
-
-
-    public function onKernelResponse(FilterResponseEvent $event)
-    {
-        if ($event->isMasterRequest()) {
-            $response = $event->getResponse();
-            if ($response->isRedirection() && $this->versioning->getAffectedVersions()) {
-                $event->setResponse(new RedirectResponse(
-                    $this->urlHelper->decorateVersionsUrl(
-                        $response->headers->get('Location'),
-                        array_column($this->versioning->getAffectedVersions(), 1)
-                    ),
-                    $event->getResponse()->getStatusCode()
-                ));
-            }
-        }
-    }
 }

@@ -88,11 +88,10 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
             foreach ($entities as $entity) {
-                if ($entity instanceof VersionableInterface || $entity instanceof ContentItem) {
-                    if ($entity instanceof ContentItem) {
-                        $entity = $entity->getPage();
-                        $type = 'update';
-                        $uow->clear($entity);
+                if ($entity instanceof VersionableInterface || $entity instanceof \Zicht\Bundle\RcoSiteBundle\Entity\ContentItem) {
+                    if ($entity instanceof \Zicht\Bundle\RcoSiteBundle\Entity\ContentItem) {
+                        $uow->detach($entity);
+                        continue;
                     }
 
                     if ('update' === $type) {

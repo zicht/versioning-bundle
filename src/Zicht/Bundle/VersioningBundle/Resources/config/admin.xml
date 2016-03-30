@@ -8,5 +8,11 @@
         <service id="zicht_versioning.admin.versioning_extension" class="Zicht\Bundle\VersioningBundle\Admin\VersioningAdminExtension">
             <tag name="sonata.admin.extension"/>
         </service>
+        <service id="zicht_versioning.admin.versioning_child_extension" class="Zicht\Bundle\VersioningBundle\Admin\VersioningAdminChildExtension" />
+        <service id="zicht_versioning.admin.route_generator" class="Zicht\Bundle\VersioningBundle\Admin\RouteGenerator\VersioningDecorator">
+            <argument type="service" id="sonata.admin.route.default_generator" />
+            <argument type="service" id="zicht_versioning.manager" />
+            <argument type="service" id="zicht_versioning.http.url_helper" />
+        </service>
     </services>
 </container>
