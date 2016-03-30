@@ -7,6 +7,7 @@
 namespace Zicht\Bundle\VersioningBundle\Entity\Test;
 
 use Doctrine\ORM\Mapping as ORM;
+use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 /**
@@ -18,7 +19,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
  * @ORM\Entity()
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
-class ContentItem
+class ContentItem implements EmbeddedVersionableInterface
 {
     /**
      * @var integer
@@ -118,7 +119,7 @@ class ContentItem
     /**
      * @return VersionableInterface
      */
-    public function getParent()
+    public function getVersionableParent()
     {
         return $this->page;
     }

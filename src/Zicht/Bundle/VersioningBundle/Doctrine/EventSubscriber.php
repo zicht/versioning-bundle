@@ -13,6 +13,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
+use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
@@ -88,12 +89,15 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
             foreach ($entities as $entity) {
-                if ($entity instanceof VersionableInterface || $entity instanceof \Zicht\Bundle\RcoSiteBundle\Entity\ContentItem) {
-                    if ($entity instanceof \Zicht\Bundle\RcoSiteBundle\Entity\ContentItem) {
-                        $uow->detach($entity);
-                        continue;
-                    }
+                if ($entity instanceof EmbeddedVersionableInterface && $parent = $entity->getVersionableParent()) {
+                    $uow->detach($entity);
 
+                    // mimic an update for this entity
+                    $type = 'update';
+                    $entity = $parent;
+                }
+
+                if ($entity instanceof VersionableInterface) {
                     if ('update' === $type) {
                         list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
                         switch ($versionOperation) {

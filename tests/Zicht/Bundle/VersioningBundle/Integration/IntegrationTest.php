@@ -177,6 +177,7 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
 
         $this->em->persist($o);
         $this->em->flush();
+
         $this->assertEquals(1, $this->vm->getVersionCount($o));
         $this->assertEquals(1, $this->vm->findActiveVersion($o)->getVersionNumber());
 

@@ -25,6 +25,7 @@ class VersioningDecorator implements RouteGeneratorInterface
     public function generateUrl(AdminInterface $admin, $name, array $parameters = array(), $absolute = false)
     {
         $url = $this->generator->generateUrl($admin, $name, $parameters, $absolute);
+
         if (
             ($admin instanceof ContentItemDetailAdmin && in_array($name, ['edit', 'list']))
             || ((new \ReflectionClass($admin->getClass()))->implementsInterface(VersionableInterface::class) && in_array($name, ['show', 'edit']))

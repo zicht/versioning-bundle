@@ -67,7 +67,9 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                     $ret[$associationName] = [];
                     if ($this->propertyAccessor->getValue($object, $associationName)) {
                         foreach ($this->propertyAccessor->getValue($object, $associationName) as $association) {
-                            $ret[$associationName][]= $this->normalize($association, $format, $context);
+                            $child = $this->normalize($association, $format, $context);
+                            unset($child['id']);
+                            $ret[$associationName][]= $child;
                         }
                     }
                     break;
