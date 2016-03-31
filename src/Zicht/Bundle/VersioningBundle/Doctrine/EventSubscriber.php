@@ -87,6 +87,8 @@ class EventSubscriber implements DoctrineEventSubscriber
         $em  = $args->getEntityManager();
         $uow = $em->getUnitOfWork();
 
+        $objectMap = [];
+
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates()] as $type => $entities) {
             foreach ($entities as $entity) {
                 if ($entity instanceof EmbeddedVersionableInterface && $parent = $entity->getVersionableParent()) {
@@ -95,53 +97,61 @@ class EventSubscriber implements DoctrineEventSubscriber
                     // mimic an update for this entity
                     $type = 'update';
                     $entity = $parent;
+                    $objectMap['update'][spl_object_hash($entity)] = $entity;
                 }
 
                 if ($entity instanceof VersionableInterface) {
-                    if ('update' === $type) {
-                        list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
-                        switch ($versionOperation) {
-                            case VersioningManager::VERSION_OPERATION_NEW:
-                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                    $objectMap[$type][spl_object_hash($entity)]= $entity;
+                }
+            }
+        }
 
-                                $uow->scheduleForInsert($version);
-                                $uow->clearEntityChangeSet(spl_object_hash($entity));
+        foreach ($objectMap as $type => $entities) {
+            foreach ($entities as $entity) {
+                if ('update' === $type) {
+                    list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
+                    switch ($versionOperation) {
+                        case VersioningManager::VERSION_OPERATION_NEW:
+                            $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
 
-                                break;
+                            $uow->scheduleForInsert($version);
+                            $uow->clearEntityChangeSet(spl_object_hash($entity));
 
-                            case VersioningManager::VERSION_OPERATION_UPDATE:
-                                $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                            break;
 
-                                $uow->scheduleForUpdate($version);
-                                $uow->scheduleForDirtyCheck($version);
-                                $uow->clearEntityChangeSet(spl_object_hash($entity));
+                        case VersioningManager::VERSION_OPERATION_UPDATE:
+                            $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
 
-                                break;
+                            $uow->scheduleForUpdate($version);
+                            $uow->scheduleForDirtyCheck($version);
+                            $uow->clearEntityChangeSet(spl_object_hash($entity));
 
-                            case VersioningManager::VERSION_OPERATION_ACTIVATE:
-                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
-                                $version->setIsActive(true);
+                            break;
 
-                                $uow->scheduleForInsert($version);
+                        case VersioningManager::VERSION_OPERATION_ACTIVATE:
+                            $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                            $version->setIsActive(true);
 
-                                $currentActive = $this->versioning->findActiveVersion($entity);
+                            $uow->scheduleForUpdate($version);
+                            $uow->scheduleForDirtyCheck($version);
 
-                                if ($currentActive && $currentActive->getVersionNumber() !== $version->getVersionNumber()) {
-                                    $currentActive->setIsActive(false);
-                                    $uow->scheduleForUpdate($currentActive);
-                                    $uow->scheduleForDirtyCheck($currentActive);
-                                }
+                            $currentActive = $this->versioning->findActiveVersion($entity);
 
-                                break;
+                            if ($currentActive && $currentActive->getVersionNumber() !== $version->getVersionNumber()) {
+                                $currentActive->setIsActive(false);
+                                $uow->scheduleForUpdate($currentActive);
+                                $uow->scheduleForDirtyCheck($currentActive);
+                            }
 
-                            default:
-                                throw new UnsupportedVersionOperationException("Can't handle this operation: '{$versionOperation}'");
-                        }
-                    } else {
-                        $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
-                        $version->setIsActive(true);
-                        $uow->scheduleForInsert($version);
+                            break;
+
+                        default:
+                            throw new UnsupportedVersionOperationException("Can't handle this operation: '{$versionOperation}'");
                     }
+                } else {
+                    $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
+                    $version->setIsActive(true);
+                    $uow->scheduleForInsert($version);
                 }
             }
         }

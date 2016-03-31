@@ -68,12 +68,16 @@ class VersionType extends AbstractType
                 if ($entity === null) {
                     return;
                 }
-                list($op, $version) = $this->versioning->getVersionOperation($entity);
-                $e->setData([
-                    'operation' => $op,
-                    'version' => $version,
-                    'date_planned'
-                ]);
+//                if (!$entity->getId()) {
+//                    $e->getForm()->remove('operation');
+//                    $e->getForm()->remove('version');
+//                } else {
+                    list($op, $version) = $this->versioning->getVersionOperation($entity);
+                    $e->setData([
+                        'operation' => $op,
+                        'version' => $version
+                    ]);
+//                }
             }
         );
         $builder->addEventListener(

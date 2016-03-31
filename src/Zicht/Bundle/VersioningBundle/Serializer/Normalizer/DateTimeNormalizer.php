@@ -16,6 +16,14 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class DateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
 {
+    const STRATEGY_ARRAY = 'array';
+    const STRATEGY_STRING = 'string';
+
+    public function __construct($strategy = self::STRATEGY_ARRAY)
+    {
+        $this->strategy = $strategy;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -29,6 +37,9 @@ class DateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
      */
     public function normalize($object, $format = null, array $context = array())
     {
+        if ($this->strategy === self::STRATEGY_STRING) {
+            return $object->format(\DateTime::RFC3339);
+        }
         return ['__class__' => 'DateTime', 'rfc3339' => $object->format(\DateTime::RFC3339)];
     }
 
@@ -37,6 +48,12 @@ class DateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
      */
     public function supportsDenormalization($data, $type, $format = null)
     {
+        if ($this->strategy !== self::STRATEGY_ARRAY) {
+            // We could "try" to parse the data if it is a string, but in that case we do not know
+            // for sure that the normalization was also done with this class. So let's not support this.
+            return false;
+        }
+
         return is_array($data) && isset($data['__class__']) && $data['__class__'] === 'DateTime' && isset($data['rfc3339']);
     }
 

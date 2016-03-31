@@ -127,6 +127,10 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
         list($className, $classMetadata) = $this->getClassMetaData($object);
 
         foreach ($classMetadata->getFieldNames() as $fieldName) {
+            if ($fieldName === 'id') {
+                continue;
+            }
+
             if (array_key_exists($fieldName, $data)) {
                 $fieldValue = $data[$fieldName];
                 if (null !== $fieldValue && !is_scalar($fieldValue)) {

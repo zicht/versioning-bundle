@@ -44,10 +44,6 @@ class ReplaceCRUDControllerPass implements CompilerPassInterface
         }
 
         foreach ($childDefs as $serviceId => $childDef) {
-//            $container->getParameterBag()->resolveValue($childDef->getArguments());
-//            $childDef->replaceArgument(2, 'ZichtVersioningBundle:CRUD');
-            $childDef->addMethodCall('addExtension', [new Reference('zicht_versioning.admin.versioning_child_extension')]);
-
             $childDef->removeMethodCall('setRouteGenerator');
             $childDef->addMethodCall('setRouteGenerator', [new Reference('zicht_versioning.admin.route_generator')]);
         }

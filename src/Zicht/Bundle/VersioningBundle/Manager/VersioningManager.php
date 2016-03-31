@@ -216,7 +216,7 @@ class VersioningManager
             return $this->versionOperations[$className][$id];
         }
         if (null !== $this->getVersionToLoad($entity)) {
-            return [self::VERSION_OPERATION_UPDATE, $this->getVersionToLoad($entity)];
+            return [self::VERSION_OPERATION_NEW, $this->getVersionToLoad($entity)];
         }
         if ($activeVersion = $this->findActiveVersion($entity)) {
             return [self::VERSION_OPERATION_NEW, $activeVersion->getVersionNumber()];
@@ -236,7 +236,11 @@ class VersioningManager
     {
         $className = get_class($entity);
         $id = $entity->getId();
-        $this->versionOperations[$className][$id] = [$versionOperation, $baseVersionNumber];
+        if (null === $versionOperation) {
+            unset($this->versionOperations[$className][$id]);
+        } else {
+            $this->versionOperations[$className][$id] = [$versionOperation, $baseVersionNumber];
+        }
     }
 
     /**
@@ -268,5 +272,10 @@ class VersioningManager
     public function getLoadedVersions()
     {
         return $this->loadedVersions;
+    }
+
+    public function resetVersionOperation($o)
+    {
+        $this->setVersionOperation($o, null, null);
     }
 }

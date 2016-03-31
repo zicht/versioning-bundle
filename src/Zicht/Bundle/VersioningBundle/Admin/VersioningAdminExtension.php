@@ -23,4 +23,9 @@ class VersioningAdminExtension extends AdminExtension
             ->end()
         ;
     }
+
+    public function configureRoutes(AdminInterface $admin, RouteCollection $collection)
+    {
+        $collection->add('versions', $admin->getRouterIdParameter().'/versions.json', ['_controller' => 'ZichtVersioningBundle:SonataCRUD:versions']);
+    }
 }
