@@ -121,7 +121,7 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testUpdateEntityVersionThrowsExceptionIfVersionNotFound()
     {
-        $version = $this->manager->updateEntityVersion(new Entity(), ['foo' => 'bar'], 0);
+        $this->manager->updateEntityVersion(new Entity(), ['foo' => 'bar'], 0);
     }
 
 
@@ -177,7 +177,7 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $version->setVersionNumber(rand(1000, 9999));
         $this->manager->setVersionToLoad(Entity::class, $entity->getId(), $version->getVersionNumber());
         $this->storage->expects($this->never())->method('findActiveVersion')->with($entity)->will($this->returnValue($version));
-        $this->assertEquals([VersioningManager::VERSION_OPERATION_UPDATE, $version->getVersionNumber()], $this->manager->getVersionOperation($entity));
+        $this->assertEquals([VersioningManager::VERSION_OPERATION_NEW, $version->getVersionNumber()], $this->manager->getVersionOperation($entity));
     }
 
 

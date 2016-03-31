@@ -121,60 +121,9 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
         $this->em->persist($o2);
         $this->em->flush();
 
-        $this->assertEquals(3, $this->vm->getVersionCount($o));
-        $this->assertEquals(3, $this->vm->findActiveVersion($o)->getVersionNumber());
-    }
-
-    public function testScalarFieldWithUpdateOperation()
-    {
-        $o = new Page();
-        $o->setTestingId(1);
-
-        $o->setTitle("V1");
-
-        $this->em->persist($o);
-        $this->em->flush();
-        $this->assertEquals(1, $this->vm->getVersionCount($o));
-        $this->assertEquals(1, $this->vm->findActiveVersion($o)->getVersionNumber());
-
-        $o->setTitle("V2");
-        $this->em->persist($o);
-        $this->em->flush();
-
         $this->assertEquals(2, $this->vm->getVersionCount($o));
-        $this->assertEquals(1, $this->vm->findActiveVersion($o)->getVersionNumber());
-
-        $this->em->clear();
-
-        $o2 = $this->em->find(get_class($o), $o->getId());
-        $this->assertEquals("V1", $o2->getTitle());
-
-        $this->vm->loadVersion($o2, 2);
-        $this->assertEquals("V2", $o2->getTitle());
-
-        $this->vm->setVersionOperation($o2, VersioningManager::VERSION_OPERATION_UPDATE, 2);
-        $o2->setTitle("V2 updated");
-        $this->em->persist($o2);
-        $this->em->flush();
-
-        $this->vm->loadVersion($o2, 1);
-        $this->assertEquals("V1", $o2->getTitle());
-
-        $this->vm->loadVersion($o2, 2);
-        $this->assertEquals("V2 updated", $o2->getTitle());
-
-        $this->assertEquals(2, $this->vm->getVersionCount($o));
-        $this->assertEquals(1, $this->vm->findActiveVersion($o)->getVersionNumber());
-
-        $this->vm->setVersionOperation($o2, VersioningManager::VERSION_OPERATION_ACTIVATE, 2);
-        $o2->setTitle("V2 updated2");
-        $this->em->persist($o2);
-        $this->em->flush();
-
-        $this->assertEquals(3, $this->vm->getVersionCount($o));
-        $this->assertEquals(3, $this->vm->findActiveVersion($o)->getVersionNumber());
+        $this->assertEquals(2, $this->vm->findActiveVersion($o)->getVersionNumber());
     }
-
 
     public function testOneToManyWhenPageIsPersisted()
     {

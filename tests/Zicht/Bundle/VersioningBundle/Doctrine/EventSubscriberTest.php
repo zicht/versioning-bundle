@@ -140,7 +140,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function testOnFlushWillActivateCurrentVersionAsNewVersion()
+    public function testOnFlushWillActivateCurrentVersion()
     {
         $entity = new Entity();
         $version = new EntityVersion();
@@ -152,10 +152,11 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
-        $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
+        $this->uow->expects($this->once())->method('scheduleForUpdate')->with($version);
+        $this->uow->expects($this->once())->method('scheduleForDirtyCheck')->with($version);
         $this->uow->expects($this->never())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234]));
-        $this->manager->expects($this->once())->method('createEntityVersion')->will($this->returnValue($version));
+        $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
         $this->subscriber->onFlush($event);
     }
 
@@ -175,12 +176,9 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
-        $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
-        $this->uow->expects($this->once())->method('scheduleForUpdate')->with($currentActive);
-        $this->uow->expects($this->once())->method('scheduleForDirtyCheck')->with($currentActive);
         $this->uow->expects($this->never())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234]));
-        $this->manager->expects($this->once())->method('createEntityVersion')->will($this->returnValue($version));
+        $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
         $this->manager->expects($this->once())->method('findActiveVersion')->will($this->returnValue($currentActive));
         $this->subscriber->onFlush($event);
 
