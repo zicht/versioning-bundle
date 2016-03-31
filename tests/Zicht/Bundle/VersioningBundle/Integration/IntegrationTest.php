@@ -7,8 +7,10 @@
 namespace Zicht\Bundle\VersioningBundle\Integration;
 
 use Doctrine\ORM\EntityManager;
+use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
 use Zicht\Bundle\VersioningBundle\Entity\Test\Page;
+use Zicht\Bundle\VersioningBundle\Entity\Test;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
 /**
@@ -37,24 +39,28 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
 
         $em = $kernel->getContainer()->get('doctrine.orm.default_entity_manager');
 
-        $pageClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\Page');
-        $contentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem');
-        $otherOneToManyRelationClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation');
-        $nestedContentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem');
-        $nestedChildContentItemClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\Test\ChildOfNestedContentItem');
-        $entityVersionClassMetadata = $em->getClassMetadata('Zicht\Bundle\VersioningBundle\Entity\EntityVersion');
+        $classes = [
+            Test\Page::class,
+            Test\OtherOneToManyRelation::class,
+            Test\NestedContentItem::class,
+            Test\ChildOfNestedContentItem::class,
+        ];
+
+        $entityVersionClassMetadata = $em->getClassMetadata(EntityVersion::class);
         $connection = $em->getConnection();
 
         $connection->beginTransaction();
 
         try {
             $connection->query('SET FOREIGN_KEY_CHECKS=0');
-            $connection->query('DELETE FROM '.$pageClassMetadata->getTableName());
-            $connection->query('DELETE FROM '.$entityVersionClassMetadata->getTableName());
-            $connection->query('DELETE FROM '.$contentItemClassMetadata->getTableName());
-            $connection->query('DELETE FROM '.$otherOneToManyRelationClassMetadata->getTableName());
-            $connection->query('DELETE FROM '.$nestedContentItemClassMetadata->getTableName());
-            $connection->query('DELETE FROM '.$nestedChildContentItemClassMetadata->getTableName());
+            foreach ($classes as $className) {
+                $connection->query('DELETE FROM '.$em->getClassMetadata($className)->getTableName());
+            }
+            $connection->query(sprintf(
+                'DELETE FROM %s WHERE source_class IN(%s)',
+                $entityVersionClassMetadata->getTableName(),
+                join(', ', array_map([$connection, 'quote'], $classes)))
+            );
             $connection->query('SET FOREIGN_KEY_CHECKS=1');
             $connection->commit();
         } catch (\Exception $e) {
@@ -65,6 +71,7 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->em = self::$kernel->getContainer()->get('doctrine')->getManager();
+        $this->em->clear();
         $this->vm = self::$kernel->getContainer()->get('zicht_versioning.manager');
     }
 
@@ -192,5 +199,45 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
 
         $this->vm->loadVersion($o, 2);
         $this->assertEquals(1, count($o->getContentItems()->toArray()));
+
+        $this->em->clear();
+        $this->em->persist($o);
+    }
+
+
+    public function testOneToManyWhenContentItemIsPersisted()
+    {
+        $o = new Page();
+        $o->setTestingId(1);
+        $o->setTitle("V1");
+        $this->em->persist($o);
+        $this->em->flush();
+
+        $this->vm->setVersionOperation($o, VersioningManager::VERSION_OPERATION_UPDATE, 1);
+
+        $o->addContentItem(new ContentItem("item 1"));
+        $this->em->persist($o);
+        $this->em->flush();
+
+        $this->assertEquals(1, $this->vm->getVersionCount($o));
+
+        $this->vm->resetVersionOperation($o);
+        /** @var ContentItem $item */
+        $item = $o->getContentItems()->first();
+        $item->setTitle('item 1 was updated');
+        $this->em->persist($item);
+        $this->em->flush();
+
+        $this->assertEquals(2, $this->vm->getVersionCount($o));
+
+        $this->em->clear();
+        $o = $this->em->find(get_class($o), $o->getId());
+        $this->assertEquals('item 1', $o->getContentItems()->first()->getTitle());
+
+        $this->em->clear();
+        $this->vm->setVersionToLoad(get_class($o), $o->getId(), 2);
+
+        $o = $this->em->find(get_class($o), $o->getId());
+        $this->assertEquals('item 1 was updated', $o->getContentItems()->first()->getTitle());
     }
 }
