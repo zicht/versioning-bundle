@@ -93,6 +93,12 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
         return ['sourceClass' => get_class($entity), 'originalId' => $entity->getId()];
     }
 
+    /**
+     * Store a version
+     *
+     * @param EntityVersionInterface $v
+     * @return void
+     */
     public function save(EntityVersionInterface $v)
     {
         $this->getEntityManager()->persist($v);

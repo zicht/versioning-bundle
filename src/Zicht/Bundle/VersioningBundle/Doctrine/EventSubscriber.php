@@ -157,6 +157,15 @@ class EventSubscriber implements DoctrineEventSubscriber
         }
 
         $uow->computeChangeSets();
+        // See if any of the remaining entities would be inserted after recompute of the change sets.
+        foreach ($uow->getScheduledEntityInsertions() as $entity) {
+            if ($entity instanceof EmbeddedVersionableInterface) {
+                list ($op)= $this->versioning->getVersionOperation($entity->getVersionableParent());
+                if ($op !== VersioningManager::VERSION_OPERATION_ACTIVATE) {
+                    $uow->detach($entity);
+                }
+            }
+        }
     }
 
     /**

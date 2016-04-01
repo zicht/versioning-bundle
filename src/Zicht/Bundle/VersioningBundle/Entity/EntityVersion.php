@@ -224,6 +224,7 @@ class EntityVersion implements EntityVersionInterface
 
     /**
      * @param mixed $notes
+     * @return void
      */
     public function setNotes($notes)
     {
@@ -240,6 +241,7 @@ class EntityVersion implements EntityVersionInterface
 
     /**
      * @param mixed $changeset
+     * @return void
      */
     public function setChangeset($changeset)
     {

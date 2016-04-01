@@ -50,6 +50,11 @@ class ContentItem implements EmbeddedVersionableInterface
      */
     private $page;
 
+    /**
+     * Construct the item and initial optionally with a title
+     *
+     * @param null $title
+     */
     public function __construct($title = null)
     {
         if (null !== $title) {

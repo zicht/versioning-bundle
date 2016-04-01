@@ -71,16 +71,6 @@ class Page implements VersionableInterface
     private $contentItems;
 
     /**
-     * @ORM\OneToMany(targetEntity="Zicht\Bundle\VersioningBundle\Entity\Test\OtherOneToManyRelation", mappedBy="page", cascade={"persist", "remove"}, orphanRemoval=true)
-     */
-    private $otherOneToManyRelations;
-
-    /**
-     * @ORM\OneToMany(targetEntity="Zicht\Bundle\VersioningBundle\Entity\Test\NestedContentItem", mappedBy="page", cascade={"persist", "remove"}, orphanRemoval=true)
-     */
-    private $nestedContentItems;
-
-    /**
      * Page constructor.
      */
     public function __construct()
@@ -201,6 +191,7 @@ class Page implements VersionableInterface
      * Remove ContentItem
      *
      * @param ContentItem $contentItem
+     * @return void
      */
     public function removeContentItem(ContentItem $contentItem)
     {
@@ -217,72 +208,6 @@ class Page implements VersionableInterface
         return $this->contentItems;
     }
 
-    /**
-     * Add OtherOneToManyRelation
-     *
-     * @param OtherOneToManyRelation $otherOneToManyRelation
-     * @return Page
-     */
-    public function addOtherOneToManyRelation(OtherOneToManyRelation $otherOneToManyRelation)
-    {
-        $otherOneToManyRelation->setPage($this);
-        $this->otherOneToManyRelations[] = $otherOneToManyRelation;
-        return $this;
-    }
-
-    /**
-     * Remove OtherOneToManyRelation
-     *
-     * @param OtherOneToManyRelation $otherOneToManyRelation
-     */
-    public function removeOtherOneToManyRelation(OtherOneToManyRelation $otherOneToManyRelation)
-    {
-        $this->otherOneToManyRelations->removeElement($otherOneToManyRelation);
-    }
-
-    /**
-     * Get OtherOneToManyRelation
-     *
-     * @return \Doctrine\Common\Collections\Collection
-     */
-    public function getOtherOneToManyRelations()
-    {
-        return $this->otherOneToManyRelations;
-    }
-
-    /**
-     * Add NestedContentItem
-     *
-     * @param NestedContentItem $nestedContentItem
-     * @return Page
-     */
-    public function addNestedContentItem(NestedContentItem $nestedContentItem)
-    {
-        $nestedContentItem->setPage($this);
-        $this->nestedContentItems[] = $nestedContentItem;
-
-        return $this;
-    }
-
-    /**
-     * Remove NestedContentItem
-     *
-     * @param NestedContentItem $nestedContentItem
-     */
-    public function removeNestedContentItem(NestedContentItem $nestedContentItem)
-    {
-        $this->nestedContentItems->removeElement($nestedContentItem);
-    }
-
-    /**
-     * Get NestedContentItem
-     *
-     * @return \Doctrine\Common\Collections\Collection
-     */
-    public function getNestedContentItems()
-    {
-        return $this->nestedContentItems;
-    }
 
     /**
      * @return int

@@ -181,7 +181,10 @@ class IntegrationTest extends \PHPUnit_Framework_TestCase
 
         $this->em->clear();
         $o = $this->em->find(get_class($o), $o->getId());
-        $this->assertEquals('item 1', $o->getContentItems()->first()->getTitle());
+        $this->assertEquals(0, count($o->getContentItems()));
+
+        $this->vm->loadVersion($o, 2);
+        $this->assertEquals('item 1 was updated', $o->getContentItems()->first()->getTitle());
 
         $this->em->clear();
         $this->vm->setVersionToLoad(get_class($o), $o->getId(), 2);

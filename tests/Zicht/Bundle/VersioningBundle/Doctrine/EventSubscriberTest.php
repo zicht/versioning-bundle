@@ -69,7 +69,13 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $event = $this->createOnFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([]));
-        $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnCallback(function() use($entity) {
+            static $i = 0;
+            if (0 === $i ++) {
+                return [$entity];
+            }
+            return [];
+        }));
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
@@ -87,7 +93,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $event = $this->createOnFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
-        $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
@@ -107,7 +113,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $event = $this->createOnFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
-        $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
@@ -127,7 +133,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $event = $this->createOnFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
-        $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
@@ -148,7 +154,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $event = $this->createOnFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
-        $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
@@ -172,7 +178,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $event = $this->createOnFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
-        $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
