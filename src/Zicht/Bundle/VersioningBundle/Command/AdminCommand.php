@@ -54,8 +54,11 @@ class AdminCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $object = null;
 
-        $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
+        if ($input->getArgument('entityId')) {
+            $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
+        }
 
         if (!$object) {
             $output->writeln("Object not found: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");

@@ -31,7 +31,6 @@ class EntityVersion implements EntityVersionInterface
      * @var \Datetime
      *
      * @ORM\Column(type="datetime", nullable=false)
-     *
      */
     private $dateCreated;
 
@@ -87,6 +86,11 @@ class EntityVersion implements EntityVersionInterface
      * @ORM\Column(type="json_array", nullable=true)
      */
     private $changeset;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $username = null;
 
     /**
      * EntityVersion constructor.
@@ -246,5 +250,21 @@ class EntityVersion implements EntityVersionInterface
     public function setChangeset($changeset)
     {
         $this->changeset = $changeset;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUsername()
+    {
+        return $this->username;
+    }
+
+    /**
+     * @param mixed $username
+     */
+    public function setUsername($username)
+    {
+        $this->username = $username;
     }
 }

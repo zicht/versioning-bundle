@@ -92,4 +92,14 @@ interface EntityVersionInterface
      * @return mixed
      */
     public function getChangeset();
+
+    /**
+     * @return void
+     */
+    public function setUsername($username);
+
+    /**
+     * @return void
+     */
+    public function getUsername();
 }

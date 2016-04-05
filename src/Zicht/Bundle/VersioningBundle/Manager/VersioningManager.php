@@ -7,6 +7,8 @@
 namespace Zicht\Bundle\VersioningBundle\Manager;
 
 use Gedmo\Exception\RuntimeException;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\SecurityContext;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\VersionNotFoundException;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
@@ -46,10 +48,14 @@ class VersioningManager
      */
     private $storage;
 
+    /** @var TokenStorageInterface */
+    private $securityTokenStorage = null;
+
     private $versionsToLoad = [];
     private $versionOperations = [];
     private $affectedVersions = [];
     private $loadedVersions = [];
+
 
     /**
      * VersioningService constructor.
@@ -61,6 +67,12 @@ class VersioningManager
     {
         $this->serializer = $serializer;
         $this->storage = $storage;
+    }
+
+
+    public function setTokenStorage(TokenStorageInterface $tokenStorage)
+    {
+        $this->securityTokenStorage = $tokenStorage;
     }
 
     /**
@@ -120,12 +132,15 @@ class VersioningManager
     {
         $version = new EntityVersion();
 
+        if (null !== $this->securityTokenStorage) {
+            $version->setUsername($this->securityTokenStorage->getToken()->getUsername());
+        }
         $version->setChangeset($changeset);
         $version->setSourceClass(get_class($entity));
         $version->setOriginalId($entity->getId());
         $version->setData($this->serializer->serialize($entity));
         $version->setVersionNumber($this->storage->getNextVersionNumber($entity));
-        if ($baseVersion !== null) {
+        if (null !== $baseVersion) {
             $version->setBasedOnVersion($baseVersion);
         }
 

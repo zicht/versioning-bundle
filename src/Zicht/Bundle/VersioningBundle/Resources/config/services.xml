@@ -8,6 +8,9 @@
         <service id="zicht_versioning.manager" class="Zicht\Bundle\VersioningBundle\Manager\VersioningManager">
             <argument type="service" id="_zicht_versioning.serializer" />
             <argument type="service" id="_zicht_versioning.entity_version_storage" />
+            <call method="setTokenStorage">
+                <argument type="service" id="security.token_storage"/>
+            </call>
         </service>
         <service id="_zicht_versioning.entity_version_storage" factory-service="doctrine" class="Zicht\Bundle\VersioningBundle\Entity\EntityVersionRepository" factory-method="getRepository" public="false">
             <argument type="string">ZichtVersioningBundle:EntityVersion</argument>
