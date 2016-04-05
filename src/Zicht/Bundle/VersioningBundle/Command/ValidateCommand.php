@@ -57,23 +57,40 @@ class ValidateCommand extends Command
         $checked = [];
         foreach ($this->doctrine->getEntityManager()->getMetadataFactory()->getAllMetadata() as $data) {
             $className = $data->name;
+            $changes = [];
             if ($this->vm->isManaged($className)) {
                 $output->getVerbosity() > OutputInterface::VERBOSITY_NORMAL && $output->writeln($className, ': ');
                 foreach ($this->doctrine->getRepository($className)->findAll() as $object) {
+                    if (!isset($checked[$className])) {
+                        $checked[$className] = 0;
+                    }
+                    $checked[$className]++;
                     /** @var VersionableInterface $object */
                     if (!$this->vm->findActiveVersion($object)) {
-                        $output->writeln(
-                            sprintf(
-                                '<comment>* %s@%d does not have an active version</comment>',
-                                get_class($object),
-                                $object->getId()
-                            )
-                        );
-
-                        if ($input->getOption('fix')) {
-                            $this->vm->fix($object);
+                        if ($input->getOption('fix') && ($v = $this->vm->fix($object))) {
+                            $changes[]= $v;
+                            $output->writeln(
+                                sprintf(
+                                    '<comment>* %s@%d changed</comment>',
+                                    get_class($object),
+                                    $object->getId()
+                                )
+                            );
+                        } else {
+                            $output->writeln(
+                                sprintf(
+                                    '<comment>* %s@%d does not have an active version</comment>',
+                                    get_class($object),
+                                    $object->getId()
+                                )
+                            );
                         }
                     }
+                }
+
+                if ($changes) {
+                    $output->writeln("Flushing changes ... ");
+                    $this->vm->flushChanges($changes);
                 }
             }
         }

@@ -16,7 +16,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
  * @package Zicht\Bundle\VersioningBundle\Entity\Test
  *
  * @ORM\Table(name="versioning_test_page")
- * @ORM\Entity(repositoryClass="Zicht\Bundle\VersioningBundle\Entity\Test\PageRepository")
+ * @ORM\Entity
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
 class Page implements VersionableInterface

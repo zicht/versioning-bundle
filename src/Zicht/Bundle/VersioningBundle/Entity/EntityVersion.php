@@ -35,6 +35,11 @@ class EntityVersion implements EntityVersionInterface
     private $dateCreated;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateActiveFrom;
+
+    /**
      * @var string $data
      *
      * @ORM\Column(type="text", nullable=true)
@@ -266,5 +271,21 @@ class EntityVersion implements EntityVersionInterface
     public function setUsername($username)
     {
         $this->username = $username;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDateActiveFrom()
+    {
+        return $this->dateActiveFrom;
+    }
+
+    /**
+     * @param mixed $dateActiveFrom
+     */
+    public function setDateActiveFrom($dateActiveFrom)
+    {
+        $this->dateActiveFrom = $dateActiveFrom;
     }
 }

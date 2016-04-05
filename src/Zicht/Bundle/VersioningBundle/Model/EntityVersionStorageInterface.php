@@ -49,5 +49,5 @@ interface EntityVersionStorageInterface
      * @param EntityVersionInterface $v
      * @return mixed
      */
-    public function save(EntityVersionInterface $v);
+    public function save(EntityVersionInterface $v, $batch = false);
 }

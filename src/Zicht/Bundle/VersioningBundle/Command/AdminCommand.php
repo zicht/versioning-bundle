@@ -42,11 +42,10 @@ class AdminCommand extends Command
             ->setName('zicht:versioning:admin')
             ->setDescription('Administrative utilities related to versioning')
             ->addArgument('entityClass', InputArgument::REQUIRED, 'Entity to work on')
-            ->addArgument('entityId', InputArgument::OPTIONAL, 'Entity id to work on')
+            ->addArgument('entityId', InputArgument::REQUIRED, 'Entity id to work on')
             ->addOption('set-active', '', InputOption::VALUE_REQUIRED, 'Activate a specific version')
             ->addOption('versions', '', InputOption::VALUE_NONE, 'List all versions')
             ->addOption('check', '', InputOption::VALUE_NONE, 'Do a consistency check for all versions')
-//            ->addOption('touch', '', InputOption::VALUE_NONE, 'Touch the active version (i.e. force a new version to be created)')
             ->addOption('column', '', InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED, "Additional fields to be shown");
         ;
     }
@@ -54,11 +53,7 @@ class AdminCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $object = null;
-
-        if ($input->getArgument('entityId')) {
-            $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
-        }
+        $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
 
         if (!$object) {
             $output->writeln("Object not found: '{$input->getArgument('entityClass')}'@'{$input->getArgument('entityId')}'");

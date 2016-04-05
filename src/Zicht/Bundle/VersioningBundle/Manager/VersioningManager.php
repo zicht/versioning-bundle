@@ -132,8 +132,10 @@ class VersioningManager
     {
         $version = new EntityVersion();
 
-        if (null !== $this->securityTokenStorage) {
-            $version->setUsername($this->securityTokenStorage->getToken()->getUsername());
+        if (null !== $this->securityTokenStorage && null !== ($token = $this->securityTokenStorage->getToken())) {
+            $version->setUsername($token->getUsername());
+        } else {
+            $version->setUsername('SYSTEM');
         }
         $version->setChangeset($changeset);
         $version->setSourceClass(get_class($entity));
@@ -280,8 +282,9 @@ class VersioningManager
         if (!$this->findActiveVersion($object)) {
             $v = $this->createEntityVersion($object, [], null);
             $v->setIsActive(true);
-            $this->storage->save($v);
+            return $v;
         }
+        return null;
     }
 
     public function getLoadedVersions()
@@ -292,5 +295,16 @@ class VersioningManager
     public function resetVersionOperation($o)
     {
         $this->setVersionOperation($o, null, null);
+    }
+
+    public function flushChanges($changes)
+    {
+        if ($changes) {
+            foreach ($changes as $c) {
+                $cb = $this->storage->save($c, true);
+            }
+
+            call_user_func($cb);
+        }
     }
 }

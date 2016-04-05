@@ -97,11 +97,18 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
      * Store a version
      *
      * @param EntityVersionInterface $v
-     * @return void
+     * @return callable|null
      */
-    public function save(EntityVersionInterface $v)
+    public function save(EntityVersionInterface $v, $batch = false)
     {
         $this->getEntityManager()->persist($v);
-        $this->getEntityManager()->flush($v);
+        if (!$batch) {
+            $this->getEntityManager()->flush($v);
+            return null;
+        } else {
+            return function() {
+                $this->getEntityManager()->flush();
+            };
+        }
     }
 }
