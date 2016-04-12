@@ -142,11 +142,7 @@ class VersioningManager
     {
         $version = new EntityVersion();
 
-        if (null !== $this->securityTokenStorage && null !== ($token = $this->securityTokenStorage->getToken())) {
-            $version->setUsername($token->getUsername());
-        } else {
-            $version->setUsername('SYSTEM');
-        }
+        $version->setUsername($this->securityTokenStorage->getToken()->getUsername());
         $version->setChangeset($changeset);
         $version->setSourceClass(get_class($entity));
         $version->setOriginalId($entity->getId());
