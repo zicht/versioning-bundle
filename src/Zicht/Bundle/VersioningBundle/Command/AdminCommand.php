@@ -53,6 +53,8 @@ class AdminCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->versioning->setSystemToken();
+
         $object = $this->doctrine->getManager()->find($input->getArgument('entityClass'), $input->getArgument('entityId'));
 
         if (!$object) {

@@ -19,7 +19,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
  * Class ValidateCommand
  * @package Zicht\Bundle\VersioningBundle\Command
  */
-class ValidateCommand extends Command
+class CheckCommand extends Command
 {
     /**
      * Constructor
@@ -54,6 +54,8 @@ class ValidateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->vm->setSystemToken();
+
         $checked = [];
         foreach ($this->doctrine->getEntityManager()->getMetadataFactory()->getAllMetadata() as $data) {
             $className = $data->name;

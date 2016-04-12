@@ -13,7 +13,7 @@
             <argument type="service" id="zicht_versioning.manager" />
             <argument type="service" id="doctrine" />
         </service>
-        <service id="zicht_versioning.command.validate" class="Zicht\Bundle\VersioningBundle\Command\ValidateCommand">
+        <service id="zicht_versioning.command.check" class="Zicht\Bundle\VersioningBundle\Command\CheckCommand">
             <tag name="console.command"/>
             <argument type="service" id="zicht_versioning.manager" />
             <argument type="service" id="doctrine" />

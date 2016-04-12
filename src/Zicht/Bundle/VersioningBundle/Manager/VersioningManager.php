@@ -6,6 +6,7 @@
 
 namespace Zicht\Bundle\VersioningBundle\Manager;
 
+use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -353,5 +354,13 @@ class VersioningManager
             }
         }
         return $ret;
+    }
+
+    public function setSystemToken($roles = ['ROLE_SYSTEM'])
+    {
+        if (null !== $this->securityTokenStorage->getToken()) {
+            throw new \UnexpectedValueException("Refusing to override an existing token");
+        }
+        $this->securityTokenStorage->setToken(new PreAuthenticatedToken('SYSTEM', '', 'SYSTEM', $roles));
     }
 }
