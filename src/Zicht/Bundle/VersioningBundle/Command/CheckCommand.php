@@ -7,7 +7,6 @@
 namespace Zicht\Bundle\VersioningBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,7 +15,8 @@ use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 /**
- * Class ValidateCommand
+ * Class CheckCommand
+ *
  * @package Zicht\Bundle\VersioningBundle\Command
  */
 class CheckCommand extends Command

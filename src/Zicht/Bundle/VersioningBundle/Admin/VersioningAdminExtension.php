@@ -11,8 +11,14 @@ use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Form\FormMapper;
 use Sonata\AdminBundle\Route\RouteCollection;
 
+/**
+ * This extension loads an extra tab with versions and configures an extra route to show versions
+ */
 class VersioningAdminExtension extends AdminExtension
 {
+    /**
+     * @{inheritDoc}
+     */
     public function configureFormFields(FormMapper $form)
     {
         $form
@@ -24,6 +30,9 @@ class VersioningAdminExtension extends AdminExtension
         ;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function configureRoutes(AdminInterface $admin, RouteCollection $collection)
     {
         $collection->add('versions', $admin->getRouterIdParameter().'/versions.{_format}', ['_controller' => 'ZichtVersioningBundle:SonataCRUD:versions']);

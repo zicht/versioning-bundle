@@ -15,9 +15,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyPath;
-use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
-use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 /**
@@ -27,6 +25,12 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
  */
 class AdminCommand extends Command
 {
+    /**
+     * Constructor.
+     *
+     * @param VersioningManager $versioning
+     * @param Registry $doctrine
+     */
     public function __construct(VersioningManager $versioning, Registry $doctrine)
     {
         parent::__construct();
@@ -35,7 +39,9 @@ class AdminCommand extends Command
         $this->doctrine = $doctrine;
     }
 
-
+    /**
+     * @{inheritDoc}
+     */
     protected function configure()
     {
         $this
@@ -50,7 +56,9 @@ class AdminCommand extends Command
         ;
     }
 
-
+    /**
+     * @{inheritDoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->versioning->setSystemToken();

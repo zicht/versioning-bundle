@@ -9,8 +9,18 @@ namespace Zicht\Bundle\VersioningBundle\Admin;
 /**
  * This trait is needed for embedded items
  */
+/**
+ * Class EmbeddedVersionableAdminTrait
+ * @package Zicht\Bundle\VersioningBundle\Admin
+ */
 trait EmbeddedVersionableAdminTrait
 {
+    /**
+     * Uses the index in the collection as an id rather than the id itself.
+     *
+     * @param object $entity
+     * @return mixed
+     */
     public function id($entity)
     {
         if ($this->getParent()) {
@@ -29,6 +39,12 @@ trait EmbeddedVersionableAdminTrait
     }
 
 
+    /**
+     * Overrides getObject() to fetch it from the parent object in stead of from it's own repository.
+     *
+     * @param mixed $id
+     * @return mixed
+     */
     public function getObject($id)
     {
         if ($this->getParent()) {
@@ -42,6 +58,13 @@ trait EmbeddedVersionableAdminTrait
         return parent::getObject(-1);
     }
 
+    /**
+     * Overrides the regular 'update' function to follow the collection of the parent object in stead of the item
+     * and trigger an update of the parent.
+     *
+     * @param mixed $object
+     * @return mixed
+     */
     public function update($object)
     {
         if ($this->getParent()) {
@@ -64,6 +87,15 @@ trait EmbeddedVersionableAdminTrait
     }
 
 
+    /**
+     * Use the index as an id in stead of the real id.
+     *
+     * @param string $name
+     * @param mixed $object
+     * @param array $parameters
+     * @param bool|false $absolute
+     * @return mixed
+     */
     public function generateObjectUrl($name, $object, array $parameters = array(), $absolute = false)
     {
         $idx = $this->id($object);

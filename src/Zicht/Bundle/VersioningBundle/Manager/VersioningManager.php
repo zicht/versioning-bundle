@@ -74,11 +74,23 @@ class VersioningManager
     }
 
 
+    /**
+     * Set the token storage of which the username is used to store in newly created versions
+     *
+     * @param TokenStorageInterface $tokenStorage
+     * @return void
+     */
     public function setTokenStorage(TokenStorageInterface $tokenStorage)
     {
         $this->securityTokenStorage = $tokenStorage;
     }
 
+    /**
+     * Set the authorizationchecker to use for authorization checks
+     *
+     * @param AuthorizationCheckerInterface $authorizationChecker
+     * @return void
+     */
     public function setAuthorizationChecker(AuthorizationCheckerInterface $authorizationChecker)
     {
         $this->authorizationChecker = $authorizationChecker;
@@ -130,11 +142,14 @@ class VersioningManager
         return $this->storage->findVersions($object);
     }
 
+
     /**
      * Create a new entity version based on the specified entity and changeset.
      *
      * @param VersionableInterface $entity
      * @param array $changeset
+     * @param int $baseVersion
+     * @param array $metadata
      * @return EntityVersion
      */
     public function createEntityVersion(VersionableInterface $entity, $changeset, $baseVersion = null, $metadata = null)
@@ -170,6 +185,7 @@ class VersioningManager
      * @param VersionableInterface $entity
      * @param array $changeset
      * @param int $versionNumber
+     * @param array $metadata
      * @return EntityVersionInterface
      */
     public function updateEntityVersion(VersionableInterface $entity, $changeset, $versionNumber, $metadata = null)
@@ -301,12 +317,24 @@ class VersioningManager
     }
 
 
+    /**
+     * Check if the provided class name is managed
+     *
+     * @param string $className
+     * @return bool
+     */
     public function isManaged($className)
     {
         return (new \ReflectionClass($className))->implementsInterface(VersionableInterface::class);
     }
 
-    public function fix($object)
+    /**
+     * Fix a versionable object: if it has no active version, create one and set that active.
+     *
+     * @param VersionableInterface $object
+     * @return null|EntityVersion
+     */
+    public function fix(VersionableInterface $object)
     {
         if (!$this->findActiveVersion($object)) {
             $v = $this->createEntityVersion($object, [], null);
@@ -316,27 +344,55 @@ class VersioningManager
         return null;
     }
 
+    /**
+     * @return array
+     */
     public function getLoadedVersions()
     {
         return $this->loadedVersions;
     }
 
-    public function resetVersionOperation($o)
+    /**
+     * Resets the version operation for the specified object.
+     *
+     * @param VersionableInterface $object
+     * @return void
+     */
+    public function resetVersionOperation(VersionableInterface $object)
     {
-        $this->setVersionOperation($o, null, null, null);
+        $this->setVersionOperation($object, null, null, null);
     }
 
+    /**
+     * Flush all entity versions specified as the argument.
+     *
+     * This method is not for api use; it is used for administrative purposes.
+     *
+     * @param EntityVersionInterface[] $changes
+     * @return void
+     * @internal
+     */
     public function flushChanges($changes)
     {
-        if ($changes) {
-            foreach ($changes as $c) {
-                $cb = $this->storage->save($c, true);
-            }
+        if (!count($changes)) {
+            return;
+        }
 
+        $cb = null;
+        foreach ($changes as $c) {
+            $cb = $this->storage->save($c, true);
+        }
+
+        if (is_callable($cb)) {
             call_user_func($cb);
         }
     }
 
+    /**
+     * @param VersionableInterface $object
+     * @param EntityVersionInterface|null $version
+     * @return array
+     */
     public function getAvailableOperations(VersionableInterface $object, EntityVersionInterface $version = null)
     {
         $ret = [];
@@ -356,6 +412,12 @@ class VersioningManager
         return $ret;
     }
 
+    /**
+     * Set a system token. Use with care; typically only in console commands.
+     *
+     * @param array $roles
+     * @return void
+     */
     public function setSystemToken($roles = ['ROLE_SYSTEM'])
     {
         if (null !== $this->securityTokenStorage->getToken()) {

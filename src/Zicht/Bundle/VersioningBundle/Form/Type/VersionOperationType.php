@@ -10,8 +10,15 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+
+/**
+ * Little wrapper to wrap available version operations in a choice
+ */
 class VersionOperationType extends AbstractType
 {
+    /**
+     * @{inheritDoc}
+     */
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver
@@ -30,12 +37,17 @@ class VersionOperationType extends AbstractType
         ;
     }
 
-
+    /**
+     * @{inheritDoc}
+     */
     public function getParent()
     {
         return 'choice';
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function getName()
     {
         return 'zicht_version_operation_choice';

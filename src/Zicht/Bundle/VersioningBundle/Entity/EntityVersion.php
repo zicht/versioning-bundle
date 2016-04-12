@@ -267,6 +267,7 @@ class EntityVersion implements EntityVersionInterface
 
     /**
      * @param mixed $username
+     * @return void
      */
     public function setUsername($username)
     {
@@ -283,6 +284,7 @@ class EntityVersion implements EntityVersionInterface
 
     /**
      * @param mixed $dateActiveFrom
+     * @return void
      */
     public function setDateActiveFrom(\DateTime $dateActiveFrom = null)
     {

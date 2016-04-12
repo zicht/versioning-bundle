@@ -94,9 +94,10 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
     }
 
     /**
-     * Store a version
+     * Store a version. when 'batch' passed as true, a closure to finish the transaction is returned.
      *
      * @param EntityVersionInterface $v
+     * @param bool $batch
      * @return callable|null
      */
     public function save(EntityVersionInterface $v, $batch = false)

@@ -16,9 +16,21 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
  */
 class DateTimeNormalizer implements NormalizerInterface, DenormalizerInterface
 {
+    /**
+     * Convert the object to an array
+     */
     const STRATEGY_ARRAY = 'array';
+
+    /**
+     * Format the object as string
+     */
     const STRATEGY_STRING = 'string';
 
+    /**
+     * Constructor
+     *
+     * @param string $strategy
+     */
     public function __construct($strategy = self::STRATEGY_ARRAY)
     {
         $this->strategy = $strategy;

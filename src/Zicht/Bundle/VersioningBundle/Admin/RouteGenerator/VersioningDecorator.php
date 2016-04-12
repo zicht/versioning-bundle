@@ -14,8 +14,21 @@ use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
 
+/**
+ * Decorates the RouteGeneratorInterface with extra parameters added to the URL for specific (explicit) versions
+ * to be loaded for objects that were loaded as a specific version in the versioningmanager.
+ *
+ * Only generateUrl() is overridden, the rest is delegated to the wrapped RouteGeneratorInterface
+ */
 class VersioningDecorator implements RouteGeneratorInterface
 {
+    /**
+     * Constructor
+     *
+     * @param RouteGeneratorInterface $generator
+     * @param VersioningManager $versioning
+     * @param UrlHelper $urlHelper
+     */
     public function __construct(RouteGeneratorInterface $generator, VersioningManager $versioning, UrlHelper $urlHelper)
     {
         $this->generator = $generator;
@@ -24,6 +37,9 @@ class VersioningDecorator implements RouteGeneratorInterface
     }
 
 
+    /**
+     * @{inheritDoc}
+     */
     public function generateUrl(AdminInterface $admin, $name, array $parameters = array(), $absolute = false)
     {
         $url = $this->generator->generateUrl($admin, $name, $parameters, $absolute);
@@ -49,16 +65,25 @@ class VersioningDecorator implements RouteGeneratorInterface
         return $url;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function generateMenuUrl(AdminInterface $admin, $name, array $parameters = array(), $absolute = false)
     {
         return $this->generator->generateMenuUrl($admin, $name, $parameters, $absolute);
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function generate($name, array $parameters = array(), $absolute = false)
     {
         return $this->generator->generate($name, $parameters, $absolute);
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function hasAdminRoute(AdminInterface $admin, $name)
     {
         return $this->generator->hasAdminRoute($admin, $name);

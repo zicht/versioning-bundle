@@ -5,6 +5,9 @@
  */
 
 namespace Zicht\Bundle\VersioningBundle\Manager;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
+use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionStorageInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Serializer;
@@ -32,6 +35,11 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $this->storage = $this->getMockBuilder(EntityVersionStorageInterface::class)->getMock();
 
         $this->manager = new VersioningManager($this->serializer, $this->storage);
+        $this->manager->setTokenStorage(new TokenStorage());
+        $this->manager->setSystemToken();
+        $this->auth = $this->getMockBuilder(AuthorizationCheckerInterface::class)->getMock();
+        $this->auth->expects($this->any())->method('isGranted')->will($this->returnValue(true));
+        $this->manager->setAuthorizationChecker($this->auth);
     }
 
 
@@ -185,6 +193,6 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
     {
         $entity = new Entity();
         $this->manager->setVersionOperation($entity, VersioningManager::VERSION_OPERATION_ACTIVATE, 5678);
-        $this->assertEquals([VersioningManager::VERSION_OPERATION_ACTIVATE, 5678], $this->manager->getVersionOperation($entity));
+        $this->assertEquals([VersioningManager::VERSION_OPERATION_ACTIVATE, 5678, []], $this->manager->getVersionOperation($entity));
     }
 }

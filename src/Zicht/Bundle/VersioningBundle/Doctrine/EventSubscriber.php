@@ -11,7 +11,6 @@ use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-use Zicht\Bundle\VersioningBundle\Entity\Test\ContentItem;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
 use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
@@ -32,7 +31,7 @@ class EventSubscriber implements DoctrineEventSubscriber
     /**
      * EventSubscriber constructor.
      *
-     * @param VersioningManager $versioning
+     * @param ContainerInterface $container
      */
     public function __construct(ContainerInterface $container)
     {
@@ -205,6 +204,8 @@ class EventSubscriber implements DoctrineEventSubscriber
 
     /**
      * Get the versioninig service. Needed to get rid of an otherwise circular dependency.
+     *
+     * @return void
      */
     private function fetchVersioningService()
     {

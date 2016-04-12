@@ -45,9 +45,14 @@ interface EntityVersionStorageInterface
     public function getNextVersionNumber(VersionableInterface $entity);
 
     /**
-     * @internal
+     * Saves a version in the versioning repository.
+     *
+     * This method is not for api use; it is used for administrative purposes.
+     *
      * @param EntityVersionInterface $v
+     * @param bool $batch
      * @return mixed
+     * @internal
      */
     public function save(EntityVersionInterface $v, $batch = false);
 }

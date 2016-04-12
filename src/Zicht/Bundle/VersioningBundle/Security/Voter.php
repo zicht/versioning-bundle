@@ -9,23 +9,29 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 
+/**
+ * Implements a voter which handles the checks on EntityVersionInterface objects
+ */
 class Voter implements VoterInterface
 {
+    /**
+     * @{inheritDoc}
+     */
     public function supportsAttribute($attribute)
     {
         return in_array($attribute, ['EDIT', 'VIEW']);
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function supportsClass($class)
     {
         return (new \ReflectionClass($class))->implementsInterface(EntityVersionInterface::class);
     }
 
     /**
-     * @param TokenInterface $token
-     * @param EntityVersionInterface $object
-     * @param array $attributes
-     * @return bool|int
+     * @{inheritDoc}
      */
     public function vote(TokenInterface $token, $object, array $attributes)
     {

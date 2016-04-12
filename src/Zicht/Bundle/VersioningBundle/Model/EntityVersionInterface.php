@@ -94,6 +94,7 @@ interface EntityVersionInterface
     public function getChangeset();
 
     /**
+     * @param string $username
      * @return void
      */
     public function setUsername($username);
@@ -114,6 +115,14 @@ interface EntityVersionInterface
      */
     public function setDateActiveFrom(\DateTime $dateActiveFrom);
 
+    /**
+     * @return mixed
+     */
     public function getNotes();
+
+    /**
+     * @param string $notes
+     * @return void
+     */
     public function setNotes($notes);
 }
