@@ -6,11 +6,9 @@
 
 namespace Zicht\Bundle\VersioningBundle\Manager;
 
-use Gedmo\Exception\RuntimeException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\SecurityContext;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\VersionNotFoundException;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;

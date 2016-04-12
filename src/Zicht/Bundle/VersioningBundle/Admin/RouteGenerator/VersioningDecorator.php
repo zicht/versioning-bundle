@@ -8,11 +8,11 @@ namespace Zicht\Bundle\VersioningBundle\Admin\RouteGenerator;
 
 use Sonata\AdminBundle\Admin\AdminInterface;
 use Sonata\AdminBundle\Route\RouteGeneratorInterface;
-use Zicht\Bundle\RcoSiteBundle\Admin\ContentItem\ContentItemDetailAdmin;
 use Zicht\Bundle\VersioningBundle\Http\UrlHelper;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
+
 
 class VersioningDecorator implements RouteGeneratorInterface
 {
