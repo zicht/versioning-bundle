@@ -284,7 +284,7 @@ class EntityVersion implements EntityVersionInterface
     /**
      * @param mixed $dateActiveFrom
      */
-    public function setDateActiveFrom($dateActiveFrom)
+    public function setDateActiveFrom(\DateTime $dateActiveFrom = null)
     {
         $this->dateActiveFrom = $dateActiveFrom;
     }

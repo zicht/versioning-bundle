@@ -1,0 +1,20 @@
+admin:
+    versioning:
+        table-header:
+            version-number: Versienummer
+            based-on-version: Gebaseerd op
+            date-created: Datum
+            username:  Gebruiker
+            actions: Acties
+            notes: Notities
+            date-active-from: Planned
+        action:
+            edit: Bewerken
+            show: Tonen
+
+        operation:
+            new: Nieuwe versie opslaan
+            update: Bijwerken
+            activate: Activeren
+
+        is-active: Actieve versie

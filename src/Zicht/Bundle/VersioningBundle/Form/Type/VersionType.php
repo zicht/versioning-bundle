@@ -49,17 +49,10 @@ class VersionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add(
-                'operation',
-                'choice', [
-                    'choices' => [
-                        VersioningManager::VERSION_OPERATION_NEW => 'Nieuwe versie opslaan',
-                        VersioningManager::VERSION_OPERATION_ACTIVATE => 'Activeren',
-                        VersioningManager::VERSION_OPERATION_UPDATE => 'Deze versie bewerken',
-                    ]
-                ]
-            )
-            ->add('version', 'hidden');
+            ->add('version', 'hidden')
+            ->add('notes', 'textarea', ['required' => false])
+            ->add('dateActiveFrom', 'datetime', ['required' => false])
+        ;
 
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
@@ -68,16 +61,30 @@ class VersionType extends AbstractType
                 if ($entity === null) {
                     return;
                 }
-//                if (!$entity->getId()) {
-//                    $e->getForm()->remove('operation');
-//                    $e->getForm()->remove('version');
-//                } else {
-                    list($op, $version) = $this->versioning->getVersionOperation($entity);
-                    $e->setData([
-                        'operation' => $op,
-                        'version' => $version
-                    ]);
-//                }
+                list($op, $version) = $this->versioning->getVersionOperation($entity);
+                $data = [
+                    'operation' => $op,
+                    'version' => $version,
+                ];
+
+                $versionInstance = $this->versioning->findVersion($entity, $version);
+                $e->getForm()->add(
+                    'operation',
+                    'zicht_version_operation_choice', [
+                        'operations' => $this->versioning->getAvailableOperations($entity, $versionInstance),
+                        'translation_domain' => 'admin'
+                    ]
+                );
+                if ($versionInstance) {
+                    $data['dateActiveFrom']= $versionInstance->getDateActiveFrom();
+                    $data['notes']= $versionInstance->getNotes();
+                }
+                if (!in_array(VersioningManager::VERSION_OPERATION_ACTIVATE, $this->versioning->getAvailableOperations($entity, $versionInstance))) {
+                    unset($data['dateActiveFrom']);
+                    $e->getForm()->remove('dateActiveFrom');
+                }
+
+                $e->setData($data);
             }
         );
         $builder->addEventListener(
@@ -86,7 +93,8 @@ class VersionType extends AbstractType
                 $this->versioning->setVersionOperation(
                     $e->getForm()->getParent()->getData(),
                     $e->getData()['operation'],
-                    $e->getData()['version']
+                    $e->getData()['version'],
+                    $e->getData()
                 );
             }
         );

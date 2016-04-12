@@ -11,6 +11,9 @@
             <call method="setTokenStorage">
                 <argument type="service" id="security.token_storage"/>
             </call>
+            <call method="setAuthorizationChecker">
+                <argument type="service" id="security.authorization_checker"/>
+            </call>
         </service>
         <service id="_zicht_versioning.entity_version_storage" factory-service="doctrine" class="Zicht\Bundle\VersioningBundle\Entity\EntityVersionRepository" factory-method="getRepository" public="false">
             <argument type="string">ZichtVersioningBundle:EntityVersion</argument>

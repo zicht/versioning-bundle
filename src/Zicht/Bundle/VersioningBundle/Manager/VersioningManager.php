@@ -8,6 +8,8 @@ namespace Zicht\Bundle\VersioningBundle\Manager;
 
 use Gedmo\Exception\RuntimeException;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\SecurityContext;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\VersionNotFoundException;
@@ -51,6 +53,9 @@ class VersioningManager
     /** @var TokenStorageInterface */
     private $securityTokenStorage = null;
 
+    /** @var AuthorizationCheckerInterface */
+    private $authorizationChecker = null;
+
     private $versionsToLoad = [];
     private $versionOperations = [];
     private $affectedVersions = [];
@@ -73,6 +78,11 @@ class VersioningManager
     public function setTokenStorage(TokenStorageInterface $tokenStorage)
     {
         $this->securityTokenStorage = $tokenStorage;
+    }
+
+    public function setAuthorizationChecker(AuthorizationCheckerInterface $authorizationChecker)
+    {
+        $this->authorizationChecker = $authorizationChecker;
     }
 
     /**
@@ -128,7 +138,7 @@ class VersioningManager
      * @param array $changeset
      * @return EntityVersion
      */
-    public function createEntityVersion(VersionableInterface $entity, $changeset, $baseVersion = null)
+    public function createEntityVersion(VersionableInterface $entity, $changeset, $baseVersion = null, $metadata = null)
     {
         $version = new EntityVersion();
 
@@ -145,6 +155,14 @@ class VersioningManager
         if (null !== $baseVersion) {
             $version->setBasedOnVersion($baseVersion);
         }
+        if (null !== $metadata) {
+            if (isset($metadata['dateActiveFrom'])) {
+                $version->setDateActiveFrom($metadata['dateActiveFrom']);
+            }
+            if (isset($metadata['notes'])) {
+                $version->setNotes($metadata['notes']);
+            }
+        }
 
         $this->affectedVersions[]= [$entity, $version];
         return $version;
@@ -159,7 +177,7 @@ class VersioningManager
      * @param int $versionNumber
      * @return EntityVersionInterface
      */
-    public function updateEntityVersion(VersionableInterface $entity, $changeset, $versionNumber)
+    public function updateEntityVersion(VersionableInterface $entity, $changeset, $versionNumber, $metadata = null)
     {
         $version = $this->findVersion($entity, $versionNumber);
         if (!$version) {
@@ -167,6 +185,14 @@ class VersioningManager
         }
         $version->setData($this->serializer->serialize($entity));
         $version->setChangeSet(json_encode($changeset));
+        if (null !== $metadata) {
+            if (isset($metadata['dateActiveFrom'])) {
+                $version->setDateActiveFrom($metadata['dateActiveFrom']);
+            }
+            if (isset($metadata['notes'])) {
+                $version->setNotes($metadata['notes']);
+            }
+        }
 
         $this->affectedVersions[]= [$entity, $version];
         return $version;
@@ -212,8 +238,12 @@ class VersioningManager
     {
         if (null !== $versionNumber || ($versionNumber = $this->getVersionToLoad($entity))) {
             $version = $this->findVersion($entity, $versionNumber);
-            $this->loadedVersions[]= $version;
 
+            if (!$this->authorizationChecker->isGranted(['VIEW'], $version)) {
+                throw new AccessDeniedException();
+            }
+
+            $this->loadedVersions[]= $version;
             $this->serializer->deserialize($version, $entity);
         }
     }
@@ -247,16 +277,20 @@ class VersioningManager
      * @param VersionableInterface $entity
      * @param string $versionOperation
      * @param int $baseVersionNumber
+     * @param array $metaData
      * @return void
      */
-    public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersionNumber)
+    public function setVersionOperation(VersionableInterface $entity, $versionOperation, $baseVersionNumber, $metaData = [])
     {
+        if (!$this->authorizationChecker->isGranted(['EDIT'], $entity)) {
+            throw new AccessDeniedException;
+        }
         $className = get_class($entity);
         $id = $entity->getId();
         if (null === $versionOperation) {
             unset($this->versionOperations[$className][$id]);
         } else {
-            $this->versionOperations[$className][$id] = [$versionOperation, $baseVersionNumber];
+            $this->versionOperations[$className][$id] = [$versionOperation, $baseVersionNumber, $metaData];
         }
     }
 
@@ -294,7 +328,7 @@ class VersioningManager
 
     public function resetVersionOperation($o)
     {
-        $this->setVersionOperation($o, null, null);
+        $this->setVersionOperation($o, null, null, null);
     }
 
     public function flushChanges($changes)
@@ -306,5 +340,24 @@ class VersioningManager
 
             call_user_func($cb);
         }
+    }
+
+    public function getAvailableOperations(VersionableInterface $object, EntityVersionInterface $version = null)
+    {
+        $ret = [];
+
+        if ($this->authorizationChecker->isGranted(['EDIT'], $object)) {
+            $ret = [VersioningManager::VERSION_OPERATION_NEW];
+
+            if ($version) {
+                if ($this->authorizationChecker->isGranted(['EDIT'], $version)) {
+                    $ret []= VersioningManager::VERSION_OPERATION_UPDATE;
+                }
+                if (!$version->isActive() && $this->authorizationChecker->isGranted(['PUBLISH'], $object)) {
+                    $ret []= VersioningManager::VERSION_OPERATION_ACTIVATE;
+                }
+            }
+        }
+        return $ret;
     }
 }

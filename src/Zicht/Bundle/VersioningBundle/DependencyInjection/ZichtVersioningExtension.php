@@ -27,6 +27,7 @@ class ZichtVersioningExtension extends DIExtension
         $loader->load('admin.xml');
         $loader->load('form.xml');
         $loader->load('twig.xml');
+        $loader->load('security.xml');
 
         $formResources = $container->getParameter('twig.form.resources');
         $formResources[]= 'ZichtVersioningBundle::form_theme.html.twig';

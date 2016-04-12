@@ -10,5 +10,8 @@
             <argument type="service" id="sonata.admin.pool" />
             <tag name="form.type" alias="zicht_version" />
         </service>
+        <service id="zicht_versioning.form.type.version_operation" class="Zicht\Bundle\VersioningBundle\Form\Type\VersionOperationType">
+            <tag name="form.type" alias="zicht_version_operation_choice" />
+        </service>
     </services>
 </container>

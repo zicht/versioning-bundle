@@ -1,17 +1,47 @@
-{% block zicht_version_row %}
-    {{ form_row(form.operation) }}
-    {{ form_widget(form.version) }}
+{% trans_default_domain 'admin' %}
 
-    <table class="table-bordered table-condensed">
+{% block zicht_version_row %}
+
+    {{ form_widget(form) }}
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th> </th>
+                <th>{{ 'admin.versioning.table-header.version-number'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.based-on-version'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.date-created'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.date-active-from'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.username'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.notes'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.actions'|trans }}</th>
+            </tr>
+        </thead>
+        <tbody>
         {% for v in versions %}
-            <tr {% if v.versionNumber == form.version.vars.value %} style="background-color: green"{% endif %}>
-                <td>{% if v.isActive %}*{% endif %}</td>
+            <tr class="{% if v.versionNumber == form.version.vars.value %}active{% endif %}">
+                <td>{% if v.isActive %}<span title="{{ 'admin.versioning.is-active'|trans }}" class="glyphicon  glyphicon-ok-circle"></span>{% endif %}</td>
                 <th>{{ v.versionNumber }}</th>
                 <th>{{ v.basedOnVersion }}</th>
+                <th>{{ v.dateCreated|date }}</th>
+                <th>{% if v.dateActiveFrom %}{{ v.dateActiveFrom|date }}{% endif %}</th>
                 <td>{{ v.username }}</td>
-                <td><a href="{{ version_url(admin.generateObjectUrl('edit', object), v) }}">EDIT</a></td>
-                <td><a href="{{ version_url(object_url(object), v) }}">SHOW</a></td>
+                <td>{{ v.notes }}</td>
+                <td>
+                    <div class="btn-group">
+                        <a href="{{ version_url(object_url(object), v) }}" class="btn btn-sm btn-default view_link" title="Show">
+                            <i class="glyphicon glyphicon-zoom-in"></i>
+                            {{ 'admin.versioning.action.show'|trans }}
+                        </a>
+
+                        <a href="{{ version_url(admin.generateObjectUrl('edit', object), v) }}" class="btn btn-sm btn-default edit_link" title="Edit">
+                            <i class="glyphicon glyphicon-edit"></i>
+                            {{ 'admin.versioning.action.edit'|trans }}
+                        </a>
+                    </div>
+                </td>
             </tr>
         {% endfor %}
+        </tbody>
     </table>
 {% endblock %}

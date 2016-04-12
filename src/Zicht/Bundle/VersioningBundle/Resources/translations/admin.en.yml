@@ -1,0 +1,20 @@
+admin:
+    versioning:
+        table-header:
+            version-number: Version
+            based-on-version: Based on
+            date-created: Date
+            username:  User
+            actions: Actions
+            notes: Notes
+            date-active-from: Gepland
+        action:
+            edit: Edit
+            show: Show
+
+        operation:
+            new: New version
+            update: Update this version
+            activate: Activate
+
+        is-active: Active version

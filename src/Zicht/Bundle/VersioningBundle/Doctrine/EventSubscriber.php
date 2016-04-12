@@ -109,10 +109,10 @@ class EventSubscriber implements DoctrineEventSubscriber
         foreach ($objectMap as $type => $entities) {
             foreach ($entities as $entity) {
                 if ('update' === $type) {
-                    list($versionOperation, $baseVersion) = $this->versioning->getVersionOperation($entity);
+                    list($versionOperation, $baseVersion, $meta) = $this->versioning->getVersionOperation($entity);
                     switch ($versionOperation) {
                         case VersioningManager::VERSION_OPERATION_NEW:
-                            $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                            $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
 
                             $uow->scheduleForInsert($version);
                             $uow->clearEntityChangeSet(spl_object_hash($entity));
@@ -120,7 +120,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                             break;
 
                         case VersioningManager::VERSION_OPERATION_UPDATE:
-                            $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                            $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
 
                             $uow->scheduleForUpdate($version);
                             $uow->scheduleForDirtyCheck($version);
@@ -129,7 +129,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                             break;
 
                         case VersioningManager::VERSION_OPERATION_ACTIVATE:
-                            $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion);
+                            $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
                             $version->setIsActive(true);
 
                             $uow->scheduleForUpdate($version);

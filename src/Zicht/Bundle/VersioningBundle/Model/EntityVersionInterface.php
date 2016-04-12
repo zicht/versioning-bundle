@@ -102,4 +102,18 @@ interface EntityVersionInterface
      * @return void
      */
     public function getUsername();
+
+    /**
+     * @return \DateTime
+     */
+    public function getDateActiveFrom();
+
+    /**
+     * @param \DateTime $dateActiveFrom
+     * @return mixed
+     */
+    public function setDateActiveFrom(\DateTime $dateActiveFrom);
+
+    public function getNotes();
+    public function setNotes($notes);
 }
