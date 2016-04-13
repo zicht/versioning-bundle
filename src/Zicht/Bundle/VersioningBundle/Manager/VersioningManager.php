@@ -274,12 +274,12 @@ class VersioningManager
             return $this->versionOperations[$className][$id];
         }
         if (null !== $this->getVersionToLoad($entity)) {
-            return [self::VERSION_OPERATION_NEW, $this->getVersionToLoad($entity)];
+            return [self::VERSION_OPERATION_NEW, $this->getVersionToLoad($entity), []];
         }
         if ($activeVersion = $this->findActiveVersion($entity)) {
-            return [self::VERSION_OPERATION_NEW, $activeVersion->getVersionNumber()];
+            return [self::VERSION_OPERATION_NEW, $activeVersion->getVersionNumber(), []];
         }
-        return [self::VERSION_OPERATION_NEW, null];
+        return [self::VERSION_OPERATION_NEW, null, []];
     }
 
     /**

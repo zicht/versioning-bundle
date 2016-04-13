@@ -27,7 +27,7 @@ class SonataCRUDController extends CRUDController
      */
     public function versionsAction()
     {
-        if (!$this->isGranted(['ADMIN'])) {
+        if (!$this->isGranted(['EDIT'], $this->admin->getSubject())) {
             throw new AccessDeniedException;
         }
 
