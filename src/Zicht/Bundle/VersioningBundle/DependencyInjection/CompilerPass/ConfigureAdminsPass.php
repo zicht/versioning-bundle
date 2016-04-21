@@ -24,6 +24,10 @@ class ConfigureAdminsPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
+        if (!$container->hasDefinition('zicht_versioning.admin.versioning_extension')) {
+            return;
+        }
+
         /** @var Definition[] $childDefs */
         $childDefs = [];
 

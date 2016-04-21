@@ -19,9 +19,17 @@ class ZichtVersioningExtension extends DIExtension
     /**
      * @{inheritDoc}
      */
-    public function load(array $config, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container)
     {
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+
+        if (!$config['enabled']) {
+            return;
+        }
+
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+
         $loader->load('services.xml');
         $loader->load('commands.xml');
         $loader->load('admin.xml');
