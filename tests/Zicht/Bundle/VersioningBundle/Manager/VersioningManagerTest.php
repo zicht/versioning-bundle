@@ -5,6 +5,7 @@
  */
 
 namespace Zicht\Bundle\VersioningBundle\Manager;
+
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorage;
 use Symfony\Component\Security\Core\Authorization\AuthorizationChecker;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -166,7 +167,11 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
     {
         $entity = new Entity();
         $this->storage->expects($this->once())->method('findActiveVersion')->with($entity)->will($this->returnValue(null));
-        $this->assertEquals([VersioningManager::VERSION_OPERATION_NEW, null], $this->manager->getVersionOperation($entity));
+
+        list($op, $basedOn) = $this->manager->getVersionOperation($entity);
+        
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_NEW, $op);
+        $this->assertEquals(null, $basedOn);
     }
 
     public function testGetVersionOperationWillBeNewWithBaseVersionIfActive()
@@ -175,7 +180,11 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $version = new EntityVersion();
         $version->setVersionNumber(rand(1000, 9999));
         $this->storage->expects($this->once())->method('findActiveVersion')->with($entity)->will($this->returnValue($version));
-        $this->assertEquals([VersioningManager::VERSION_OPERATION_NEW, $version->getVersionNumber()], $this->manager->getVersionOperation($entity));
+
+        list($op, $basedOn) = $this->manager->getVersionOperation($entity);
+        
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_NEW, $op);
+        $this->assertEquals($version->getVersionNumber(), $basedOn);
     }
 
     public function testGetVersionOperationWillBeBasedOnVersionToLoadIfAvailable()
@@ -185,7 +194,10 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $version->setVersionNumber(rand(1000, 9999));
         $this->manager->setVersionToLoad(Entity::class, $entity->getId(), $version->getVersionNumber());
         $this->storage->expects($this->never())->method('findActiveVersion')->with($entity)->will($this->returnValue($version));
-        $this->assertEquals([VersioningManager::VERSION_OPERATION_NEW, $version->getVersionNumber()], $this->manager->getVersionOperation($entity));
+        list($op, $basedOn) = $this->manager->getVersionOperation($entity);
+        
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_NEW, $op);
+        $this->assertEquals($version->getVersionNumber(), $basedOn);
     }
 
 
@@ -193,6 +205,9 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
     {
         $entity = new Entity();
         $this->manager->setVersionOperation($entity, VersioningManager::VERSION_OPERATION_ACTIVATE, 5678);
-        $this->assertEquals([VersioningManager::VERSION_OPERATION_ACTIVATE, 5678, []], $this->manager->getVersionOperation($entity));
+        list($op, $basedOn) = $this->manager->getVersionOperation($entity);
+        
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_ACTIVATE, $op);
+        $this->assertEquals(5678, $basedOn);
     }
 }

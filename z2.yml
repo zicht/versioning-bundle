@@ -2,3 +2,8 @@ plugins: ['svn']
 
 vcs:
     url: svn://zon/projecten/zicht-libraries/ZichtVersioningBundle
+
+tasks:
+    ci.phpunit:
+        pre: composer install --dev
+        do: phpunit --exclude-group=integration
