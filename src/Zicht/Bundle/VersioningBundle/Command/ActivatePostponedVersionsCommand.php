@@ -96,6 +96,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
                 $makeActiveStmt = $connection->prepare($makeRecordActive);
                 $makeActiveStmt->bindValue(':id', $first['id']);
                 $makeActiveStmt->execute();
+                $output->writeln(sprintf('<comment>Version Id: %d is set to active (OriginalId: %d)</comment>', $first['id'], $first['original_id']));
 
                 $dispatcher->dispatch('zicht_versioning.activated', new VersioningEvent($first['id'], $first['original_id']));
             }
