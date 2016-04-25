@@ -256,6 +256,9 @@ class VersioningManager
 
             $this->loadedVersions[]= $version;
             $this->serializer->deserialize($version, $entity);
+        } elseif (null === $versionNumber) {
+            $version = $this->findActiveVersion($entity);
+            $this->serializer->deserialize($version, $entity);
         }
     }
 
