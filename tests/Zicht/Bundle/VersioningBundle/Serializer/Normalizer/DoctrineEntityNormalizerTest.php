@@ -301,7 +301,8 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $meta = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
         $meta->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['others']));
         $meta->associationMappings['others'] = [
-            'type' => ClassMetadataInfo::MANY_TO_MANY
+            'type' => ClassMetadataInfo::MANY_TO_MANY,
+            'cascade' => ['persist']
         ];
 
         $this->expectMetadataFor(Entity::class, $meta);
@@ -355,8 +356,10 @@ class DoctrineEntityNormalizerTest extends SerializerTest
     {
         $meta1 = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
         $meta1->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['others']));
+
         $meta1->associationMappings['others'] = [
-            'type' => ClassMetadataInfo::ONE_TO_MANY
+            'type' => ClassMetadataInfo::ONE_TO_MANY,
+            'cascade' => ['persist']
         ];
 
         $this->expectMetadataFor(Entity::class, $meta1);
@@ -473,7 +476,8 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $meta1 = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
         $meta1->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['others']));
         $meta1->associationMappings['others'] = [
-            'type' => ClassMetadataInfo::ONE_TO_MANY
+            'type' => ClassMetadataInfo::ONE_TO_MANY,
+            'cascade' => ['persist']
         ];
 
         $this->expectMetadataFor(Entity::class, $meta1);
