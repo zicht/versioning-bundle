@@ -19,7 +19,6 @@ use Zicht\Itertools as iter;
 /**
  * This command will look up versions that are supposed to be activated according to the setDateActiveFrom field.
  *
- *
  * @package Zicht\Bundle\VersioningBundle\Command
  */
 class ActivatePostponedVersionsCommand extends ContainerAwareCommand
@@ -48,7 +47,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
     }
 
     /**
-     * {@inheritdoc}
+     * @{inheritDoc}
      */
     protected function configure()
     {
@@ -58,7 +57,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
     }
 
     /**
-     * {@inheritdoc}
+     * @{inheritDoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
