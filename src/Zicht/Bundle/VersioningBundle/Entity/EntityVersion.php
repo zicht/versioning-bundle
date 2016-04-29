@@ -290,4 +290,33 @@ class EntityVersion implements EntityVersionInterface
     {
         $this->dateActiveFrom = $dateActiveFrom;
     }
+
+    /**
+     * Creates a volatile instance of the object. This is used for security checks.
+     *
+     * @return object
+     */
+    public function createVolatileInstance()
+    {
+        $refl = new \ReflectionClass($this->sourceClass);
+        $object = $refl->newInstanceWithoutConstructor();
+
+        $propIsSet = false;
+        do {
+            try {
+                $prop = $refl->getProperty('id');
+                $prop->setAccessible(true);
+                $prop->setValue($object, $this->getOriginalId());
+                $propIsSet = true;
+            } catch (\ReflectionException $e) {
+                $refl = $refl->getParentClass();
+            }
+        } while (!$propIsSet && $refl);
+
+        if (!$propIsSet) {
+            throw new \UnexpectedValueException("Could not figure out how to set the id property");
+        }
+
+        return $object;
+    }
 }

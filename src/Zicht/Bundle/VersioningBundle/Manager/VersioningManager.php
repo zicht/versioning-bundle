@@ -250,7 +250,7 @@ class VersioningManager
         if (null !== $versionNumber || ($versionNumber = $this->getVersionToLoad($entity))) {
             $version = $this->findVersion($entity, $versionNumber);
 
-            if (!$this->authorizationChecker->isGranted(['VIEW'], $version)) {
+            if (!$this->authorizationChecker->isGranted(['EDIT'], $entity) && !$this->authorizationChecker->isGranted(['VIEW'], $version)) {
                 throw new AccessDeniedException();
             }
 

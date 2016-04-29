@@ -25,6 +25,8 @@ class VersioningEvent extends Event
     private $original_id;
 
     /**
+     * Constructor
+     *
      * @param integer $id
      * @param integer $original_id
      */
