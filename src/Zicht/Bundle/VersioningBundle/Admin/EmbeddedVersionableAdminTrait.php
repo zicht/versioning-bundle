@@ -9,6 +9,8 @@ namespace Zicht\Bundle\VersioningBundle\Admin;
 /**
  * This trait is needed for embedded items
  */
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 /**
  * Class EmbeddedVersionableAdminTrait
  * @package Zicht\Bundle\VersioningBundle\Admin
@@ -33,9 +35,9 @@ trait EmbeddedVersionableAdminTrait
                 $idx = null;
             }
             return $idx;
+        } else {
+            return parent::id($entity);
         }
-
-        return parent::id($entity);
     }
 
 
@@ -54,8 +56,11 @@ trait EmbeddedVersionableAdminTrait
                     return $item;
                 }
             }
+
+            throw new NotFoundHttpException(sprintf('unable to find the object with _index_ : %s', $id));
+        } else {
+            return parent::getObject($id);
         }
-        return parent::getObject(-1);
     }
 
     /**
