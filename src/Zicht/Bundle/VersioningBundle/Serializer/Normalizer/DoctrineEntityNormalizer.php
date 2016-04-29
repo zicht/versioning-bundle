@@ -165,12 +165,14 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
 
             switch ($associationMetadata['type']) {
                 case ClassMetadataInfo::ONE_TO_MANY:
-                    $values = [];
-                    foreach ($data[$associationName] as $association) {
-                        $values[] = $this->denormalize($association, $association['__class__'], $format, $context);
-                    }
+                    if (isset($associationMetadata['cascade']) && in_array('persist', $associationMetadata['cascade'])) {
+                        $values = [];
+                        foreach ($data[$associationName] as $association) {
+                            $values[] = $this->denormalize($association, $association['__class__'], $format, $context);
+                        }
 
-                    $this->propertyAccessor->setValue($object, $associationName, $values);
+                        $this->propertyAccessor->setValue($object, $associationName, $values);
+                    }
                     break;
                 case ClassMetadataInfo::MANY_TO_ONE:
                     if (null !== $data[$associationName]) {
