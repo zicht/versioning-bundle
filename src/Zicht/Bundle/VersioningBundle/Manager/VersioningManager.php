@@ -423,11 +423,11 @@ class VersioningManager
      * @param array $roles
      * @return void
      */
-    public function setSystemToken($roles = ['ROLE_SYSTEM'])
+    public function setSystemToken($username = 'SYSTEM', $roles = ['ROLE_SYSTEM'])
     {
         if (null !== $this->securityTokenStorage->getToken()) {
             throw new \UnexpectedValueException("Refusing to override an existing token");
         }
-        $this->securityTokenStorage->setToken(new PreAuthenticatedToken('SYSTEM', '', 'SYSTEM', $roles));
+        $this->securityTokenStorage->setToken(new PreAuthenticatedToken($username, '', 'SYSTEM', $roles));
     }
 }
