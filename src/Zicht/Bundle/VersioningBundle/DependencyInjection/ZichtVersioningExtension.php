@@ -24,11 +24,17 @@ class ZichtVersioningExtension extends DIExtension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+
+        /*
+         * This is loaded, even when the versioning isn't enabled.
+         * This is needed to support parsing the one-to-many in the HelperController
+         */
+        $loader->load('sonata_helper.xml');
+
         if (!$config['enabled']) {
             return;
         }
-
-        $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
 
         $loader->load('services.xml');
         $loader->load('commands.xml');

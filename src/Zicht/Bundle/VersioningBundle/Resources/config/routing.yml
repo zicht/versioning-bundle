@@ -1,0 +1,3 @@
+zicht_versioning_sonata_helper:
+    path:     /admin/core/append-form-field-element--override
+    defaults: { _controller: zicht_versioning.admin.controller.admin:appendFormFieldElementAction }

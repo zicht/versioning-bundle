@@ -23,9 +23,9 @@ trait EmbeddedVersionableAdminTrait
      * @param object $entity
      * @return mixed
      */
-    public function id($entity)
+    public function id($entity, $force = false)
     {
-        if ($this->getParent()) {
+        if ($this->getParent() || $force) {
             $idx = null;
             // TODO remove hardcoded relation
             foreach (array_values($entity->getPage()->getContentItems()->toArray()) as $idx => $item) {
@@ -84,7 +84,19 @@ trait EmbeddedVersionableAdminTrait
                     $coll[$localKey]= $object;
                 }
             }
+
+            $this->preUpdate($object);
+            foreach ($this->extensions as $extension) {
+                $extension->preUpdate($this, $object);
+            }
+
             $this->getParent()->update($parent);
+
+            $this->postUpdate($object);
+            foreach ($this->extensions as $extension) {
+                $extension->postUpdate($this, $object);
+            }
+
             return $object;
         } else {
             return parent::update($object);
