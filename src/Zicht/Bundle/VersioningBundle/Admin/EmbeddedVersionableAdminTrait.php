@@ -29,7 +29,9 @@ trait EmbeddedVersionableAdminTrait
             $idx = null;
             // TODO remove hardcoded relation
             foreach (array_values($entity->getPage()->getContentItems()->toArray()) as $idx => $item) {
-                if ($item->getId() === $entity->getId()) {
+                if (($item->getId() && $item->getId() === $entity->getId())
+                    || spl_object_hash($item) === spl_object_hash($entity)) {
+                    // found it!
                     break;
                 }
                 $idx = null;
@@ -73,15 +75,15 @@ trait EmbeddedVersionableAdminTrait
     public function update($object)
     {
         if ($this->getParent()) {
-            $this->id($object);
             /** @var PersistentCollection $coll */
             $parent = $this->getParent()->getSubject();
 
-            // TODO remove hardcoded relation
+            $id = $this->id($object);
+            // TODO remove hardcoded relation 'content items'
             $coll = $parent->getContentItems();
             foreach (array_keys($coll->toArray()) as $idx => $localKey) {
-                if ($coll[$localKey]->getId() === $object->getId()) {
-                    $coll[$localKey]= $object;
+                if ($idx === $id) {
+                    $coll[$localKey] = $object;
                 }
             }
 
