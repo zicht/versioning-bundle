@@ -247,20 +247,24 @@ class VersioningManager
      */
     public function loadVersion(VersionableInterface $entity, $versionNumber = null)
     {
-        if (null !== $versionNumber || ($versionNumber = $this->getVersionToLoad($entity))) {
+        if (null === $versionNumber) {
+            $versionNumber = $this->getVersionToLoad($entity);
+        }
+
+        if (null !== $versionNumber) {
             $version = $this->findVersion($entity, $versionNumber);
 
+            if (!$version) {
+                throw new VersionNotFoundException();
+            }
             if (!$this->authorizationChecker->isGranted(['EDIT'], $entity) && !$this->authorizationChecker->isGranted(['VIEW'], $version)) {
                 throw new AccessDeniedException();
             }
 
             $this->loadedVersions[]= $version;
             $this->serializer->deserialize($version, $entity);
-        } elseif (null === $versionNumber) {
-            $version = $this->findActiveVersion($entity);
-            if ($version !== null) {
-                $this->serializer->deserialize($version, $entity);
-            }
+        } elseif ($version = $this->findActiveVersion($entity)) {
+            $this->serializer->deserialize($version, $entity);
         }
     }
 
