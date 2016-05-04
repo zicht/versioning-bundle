@@ -224,6 +224,9 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
      */
     protected function resolveReferencedAssociation($reference)
     {
+        if ($reference['id'] === null) {
+            return null;
+        }
         return $this->em->find($reference['__class__'], $reference['id']);
     }
 
