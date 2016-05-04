@@ -27,10 +27,11 @@ class VersionType extends AbstractType
      * @param VersioningManager $v
      * @param Pool $sonata
      */
-    public function __construct(VersioningManager $v, Pool $sonata)
+    public function __construct(VersioningManager $v, Pool $sonata, $defaultDateTimeType = 'sonata_type_datetime_picker')
     {
         $this->versioning = $v;
         $this->sonata = $sonata;
+        $this->dateTimeType = $defaultDateTimeType;
     }
 
     /**
@@ -39,7 +40,8 @@ class VersionType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'mapped' => false
+            'mapped' => false,
+            'datetime_type' => $this->dateTimeType
         ]);
     }
 
@@ -51,7 +53,7 @@ class VersionType extends AbstractType
         $builder
             ->add('version', 'hidden')
             ->add('notes', 'textarea', ['required' => false])
-            ->add('dateActiveFrom', 'datetime', ['required' => false])
+            ->add('dateActiveFrom', $options['datetime_type'], ['required' => false, 'format' => 'dd-MM-yyyy HH:mm'])
         ;
 
         $builder->addEventListener(
