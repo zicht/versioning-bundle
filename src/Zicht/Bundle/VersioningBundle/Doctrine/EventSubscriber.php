@@ -74,6 +74,12 @@ class EventSubscriber implements DoctrineEventSubscriber
     }
 
 
+    /**
+     * Hook into the onClear event to remove referenced entity's from the VersioningManager
+     *
+     * @param Event\OnClearEventArgs $e
+     * @return void
+     */
     public function onClear(Event\OnClearEventArgs $e)
     {
         $this->fetchVersioningService();

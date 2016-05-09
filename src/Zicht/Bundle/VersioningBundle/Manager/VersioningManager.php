@@ -424,6 +424,7 @@ class VersioningManager
     /**
      * Set a system token. Use with care; typically only in console commands.
      *
+     * @param string $username
      * @param array $roles
      * @return void
      */

@@ -26,6 +26,7 @@ class VersionType extends AbstractType
      *
      * @param VersioningManager $v
      * @param Pool $sonata
+     * @param string $defaultDateTimeType
      */
     public function __construct(VersioningManager $v, Pool $sonata, $defaultDateTimeType = 'sonata_type_datetime_picker')
     {
