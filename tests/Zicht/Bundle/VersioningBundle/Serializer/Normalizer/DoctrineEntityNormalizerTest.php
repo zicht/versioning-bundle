@@ -398,6 +398,23 @@ class DoctrineEntityNormalizerTest extends SerializerTest
     /**
      * @covers Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer::denormalize
      */
+    public function testPropertyDenormalizationForOneToManyAssociationWillSetInverseSideOfRelation()
+    {
+        $this->setupOneToMany();
+
+        $o = $this->normalizer->denormalize(
+            ['__class__' => Entity::class, 'others' => [['__class__' => OtherEntity::class, 'name' => 'I am nr 1'], ['__class__' => OtherEntity::class, 'name' => 'Who does number two work for!']]],
+            Entity::class
+        );
+
+        foreach ($o->getOthers() as $other) {
+            $this->assertSame($o, $other->getTheEntity());
+        }
+    }
+
+    /**
+     * @covers Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer::denormalize
+     */
     public function testPropertyDenormalizationForOneToManyAssociationWillClearExistingAssociations()
     {
         $this->setupOneToMany();
@@ -477,13 +494,20 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $meta1->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['others']));
         $meta1->associationMappings['others'] = [
             'type' => ClassMetadataInfo::ONE_TO_MANY,
-            'cascade' => ['persist']
+            'cascade' => ['persist'],
+            'mappedBy' => 'the_inverse_side'
         ];
 
         $this->expectMetadataFor(Entity::class, $meta1);
 
-        $meta2 = $this->getMock(ClassMetadataInfo::class, ['getFieldNames'], [OtherEntity::class]);
+        $meta2 = $this->getMock(ClassMetadataInfo::class, ['getFieldNames', 'getAssociationNames'], [OtherEntity::class]);
+        $meta2->associationMappings['the_inverse_side'] = [
+            'type' => ClassMetadataInfo::MANY_TO_ONE,
+            'fieldName' => 'theEntity'
+        ];
+        $meta2->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['the_inverse_side']));
         $meta2->expects($this->any())->method('getFieldNames')->will($this->returnValue(['name']));
+
         $this->expectMetadataFor(OtherEntity::class, $meta2);
     }
 }

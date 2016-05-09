@@ -40,4 +40,14 @@ class OtherEntity
     {
         $this->name = $name;
     }
+
+    public function setTheEntity($owner)
+    {
+        $this->rel = $owner;
+    }
+
+    public function getTheEntity()
+    {
+        return $this->rel;
+    }
 }

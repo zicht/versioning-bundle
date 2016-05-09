@@ -74,7 +74,11 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
 
                             $orderBy = $associationMetadata['orderBy'];
                             if (count($orderBy) > 1) {
-                                trigger_error("Only the first field in the orderBy for OneToMany associations is considered when using versioning", E_USER_WARNING);
+                                trigger_error(
+                                    "Only the first field in the orderBy for OneToMany associations is"
+                                    . " considered when using versioning",
+                                    E_USER_WARNING
+                                );
                             }
 
                             list($column) = array_keys($orderBy);
@@ -175,6 +179,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                 }
             }
         }
+
         foreach ($classMetadata->getAssociationNames() as $associationName) {
             if (!array_key_exists($associationName, $data)) {
                 continue;
@@ -187,7 +192,15 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                     if (isset($associationMetadata['cascade']) && in_array('persist', $associationMetadata['cascade'])) {
                         $values = [];
                         foreach ($data[$associationName] as $association) {
-                            $values[] = $this->denormalize($association, $association['__class__'], $format, $context);
+                            $child = $this->denormalize($association, $association['__class__'], $format, $context);
+
+                            list(, $childClassMetadata) = $this->getClassMetaData($child);
+                            $this->propertyAccessor->setValue(
+                                $child,
+                                $childClassMetadata->associationMappings[$associationMetadata['mappedBy']]['fieldName'],
+                                $object
+                            );
+                            $values[] = $child;
                         }
 
                         $this->propertyAccessor->setValue($object, $associationName, $values);
