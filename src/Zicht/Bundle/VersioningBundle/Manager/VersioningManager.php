@@ -434,4 +434,25 @@ class VersioningManager
         }
         $this->securityTokenStorage->setToken(new PreAuthenticatedToken($username, '', 'SYSTEM', $roles));
     }
+
+    /**
+     * Clears affected versions. Typically only used by the EventSubscribe to listen to Doctrine's onClear event.
+     *
+     * @param null $entityClass
+     * @return void
+     */
+    public function clear($entityClass = null)
+    {
+        if (null === $entityClass) {
+            $this->affectedVersions = [];
+        } else {
+            $this->affectedVersions = array_filter(
+                $this->affectedVersions,
+                function($affectedVersion) use($entityClass) {
+                    list($entity, $id) = $affectedVersion;
+                    return ! ($entity instanceof $entityClass);
+                }
+            );
+        }
+    }
 }

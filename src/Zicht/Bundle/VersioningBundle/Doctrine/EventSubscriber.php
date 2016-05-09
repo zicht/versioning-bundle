@@ -48,7 +48,8 @@ class EventSubscriber implements DoctrineEventSubscriber
         return [
             Events::postLoad,
             Events::onFlush,
-            Events::postFlush
+            Events::postFlush,
+            Events::onClear
         ];
     }
 
@@ -70,6 +71,14 @@ class EventSubscriber implements DoctrineEventSubscriber
         $this->fetchVersioningService();
 
         $this->versioning->loadVersion($entity);
+    }
+
+
+    public function onClear(Event\OnClearEventArgs $e)
+    {
+        $this->fetchVersioningService();
+
+        $this->versioning->clear($e->getEntityClass());
     }
 
     /**

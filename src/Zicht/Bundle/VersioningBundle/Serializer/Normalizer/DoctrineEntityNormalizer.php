@@ -6,6 +6,7 @@
 
 namespace Zicht\Bundle\VersioningBundle\Serializer\Normalizer;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
@@ -13,6 +14,7 @@ use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
+use Zicht\Itertools as iter;
 
 /**
  * Normalizer handling the serialization of doctrine entities based on doctrine meta data
@@ -66,7 +68,25 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                 case ClassMetadataInfo::ONE_TO_MANY:
                     $ret[$associationName] = [];
                     if ($this->propertyAccessor->getValue($object, $associationName)) {
-                        foreach ($this->propertyAccessor->getValue($object, $associationName) as $association) {
+                        $collection = $this->propertyAccessor->getValue($object, $associationName);
+
+                        if (isset($associationMetadata['orderBy'])) {
+
+                            $orderBy = $associationMetadata['orderBy'];
+                            if (count($orderBy) > 1) {
+                                trigger_error("Only the first field in the orderBy for OneToMany associations is considered when using versioning", E_USER_WARNING);
+                            }
+
+                            list($column) = array_keys($orderBy);
+                            list($direction) = array_values($orderBy);
+
+                            $collection = iter\sorted(function($o) use($column) {
+                                dump($this->propertyAccessor->getValue($o, $column));
+                                return $this->propertyAccessor->getValue($o, $column);
+                            }, $collection, 0 === strcasecmp('desc', $direction));
+                        }
+
+                        foreach ($collection as $association) {
                             $child = $this->normalize($association, $format, $context);
                             unset($child['id']);
                             $ret[$associationName][]= $child;
