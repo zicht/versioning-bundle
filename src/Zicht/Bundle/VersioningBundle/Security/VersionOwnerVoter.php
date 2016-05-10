@@ -17,11 +17,11 @@ class VersionOwnerVoter extends AbstractVersionVoter
      * Construct the voter with the specified attributes to grant access for when
      * the current user is owner of the version.
      *
-     * @param string[] $attributes
+     * @param string[] $grantedOwnerAttributes
      */
-    public function __construct($attributes)
+    public function __construct($grantedOwnerAttributes)
     {
-        $this->attributes = $attributes;
+        $this->attributes = $grantedOwnerAttributes;
     }
 
 
@@ -43,10 +43,8 @@ class VersionOwnerVoter extends AbstractVersionVoter
         }
 
         foreach ($attributes as $attribute) {
-            if ($this->supportsAttribute($attribute)) {
-                if ($token->getUsername() === $object->getUsername()) {
-                    return self::ACCESS_GRANTED;
-                }
+            if ($this->supportsAttribute($attribute) && $token->getUsername() === $object->getUsername()) {
+                return self::ACCESS_GRANTED;
             }
         }
 
