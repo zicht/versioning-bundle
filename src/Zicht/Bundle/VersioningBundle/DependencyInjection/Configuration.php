@@ -23,7 +23,9 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('zicht_versioning');
 
-        $rootNode->canBeDisabled();
+        $rootNode
+            ->canBeDisabled()
+        ;
 
         return $treeBuilder;
     }

@@ -13,6 +13,7 @@ admin:
         action:
             edit: Bewerken
             show: Tonen
+            delete: Verwijderen
 
         operation:
             new: Nieuwe versie opslaan

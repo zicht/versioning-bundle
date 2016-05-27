@@ -13,6 +13,7 @@ admin:
         action:
             edit: Edit
             show: Show
+            delete: Delete
 
         operation:
             new: New version
