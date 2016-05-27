@@ -25,6 +25,9 @@ admin:
         flash:
             version-delete-success: "Version deleted"
 
+        confirmation:
+            delete: Are you sure you wish to delete this version?
+
 form_label:
     operation: "Operation"
     date_active_from: "Activate this version at"

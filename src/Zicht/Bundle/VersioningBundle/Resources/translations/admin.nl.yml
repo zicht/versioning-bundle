@@ -24,6 +24,8 @@ admin:
         new-object: "Dit is een nieuw object, je kunt nieuwe versies maken na opslaan"
         flash:
             version-delete-success: "Versie verwijderd"
+        confirmation:
+            delete: Weet u zeker dat u deze versie wilt verwijderen?
 
 form_label:
     operation: "Deze versie"
