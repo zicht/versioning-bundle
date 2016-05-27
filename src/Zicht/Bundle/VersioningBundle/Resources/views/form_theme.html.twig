@@ -1,41 +1,45 @@
 {% trans_default_domain 'admin' %}
 
 {% block zicht_version_row %}
-    {% import 'ZichtVersioningBundle::macros/buttons.html.twig' as buttons %}
+    {% if not form.children %}
+        <p>{{ 'admin.versioning.new-object'|trans }}</p>
+    {% else %}
+        {% import 'ZichtVersioningBundle::macros/buttons.html.twig' as buttons %}
 
-    {{ form_widget(form) }}
+        {{ form_widget(form) }}
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th> </th>
-                <th>{{ 'admin.versioning.table-header.version-number'|trans }}</th>
-                <th>{{ 'admin.versioning.table-header.based-on-version'|trans }}</th>
-                <th>{{ 'admin.versioning.table-header.date-created'|trans }}</th>
-                <th>{{ 'admin.versioning.table-header.date-active-from'|trans }}</th>
-                <th>{{ 'admin.versioning.table-header.username'|trans }}</th>
-                <th>{{ 'admin.versioning.table-header.notes'|trans }}</th>
-                <th>{{ 'admin.versioning.table-header.actions'|trans }}</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for v in versions %}
-            <tr class="{% if v.versionNumber == form.version.vars.value %}active{% endif %}">
-                <td>{% if v.isActive %}<span title="{{ 'admin.versioning.is-active'|trans }}" class="glyphicon  glyphicon-ok-circle"></span>{% endif %}</td>
-                <th>{{ v.versionNumber }}</th>
-                <th>{{ v.basedOnVersion }}</th>
-                <th>{{ v.dateCreated|date }}</th>
-                <th>{% if v.dateActiveFrom %}{{ v.dateActiveFrom|date }}{% endif %}</th>
-                <td>{{ v.username }}</td>
-                <td>{{ v.notes }}</td>
-                <td>
-                    <div class="btn-group">
-                        {{ buttons.edit(admin, object, v) }}
-                        {{ buttons.view(object, v) }}
-                    </div>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th> </th>
+                    <th>{{ 'admin.versioning.table-header.version-number'|trans }}</th>
+                    <th>{{ 'admin.versioning.table-header.based-on-version'|trans }}</th>
+                    <th>{{ 'admin.versioning.table-header.date-created'|trans }}</th>
+                    <th>{{ 'admin.versioning.table-header.date-active-from'|trans }}</th>
+                    <th>{{ 'admin.versioning.table-header.username'|trans }}</th>
+                    <th>{{ 'admin.versioning.table-header.notes'|trans }}</th>
+                    <th>{{ 'admin.versioning.table-header.actions'|trans }}</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for v in versions %}
+                <tr class="{% if v.versionNumber == form.version.vars.value %}active{% endif %}">
+                    <td>{% if v.isActive %}<span title="{{ 'admin.versioning.is-active'|trans }}" class="glyphicon  glyphicon-ok-circle"></span>{% endif %}</td>
+                    <th>{{ v.versionNumber }}</th>
+                    <th>{{ v.basedOnVersion }}</th>
+                    <th>{{ v.dateCreated|date }}</th>
+                    <th>{% if v.dateActiveFrom %}{{ v.dateActiveFrom|date }}{% endif %}</th>
+                    <td>{{ v.username }}</td>
+                    <td>{{ v.notes }}</td>
+                    <td>
+                        <div class="btn-group">
+                            {{ buttons.edit(admin, object, v) }}
+                            {{ buttons.view(object, v) }}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock %}

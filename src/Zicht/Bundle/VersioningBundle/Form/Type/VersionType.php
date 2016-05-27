@@ -64,6 +64,13 @@ class VersionType extends AbstractType
                 if ($entity === null) {
                     return;
                 }
+                if (!$entity->getId()) {
+                    $e->getForm()->remove('version');
+                    $e->getForm()->remove('notes');
+                    $e->getForm()->remove('dateActiveFrom');
+                    return;
+                }
+
                 list($op, $version) = $this->versioning->getVersionOperation($entity);
 
                 $data = [
@@ -94,6 +101,10 @@ class VersionType extends AbstractType
         $builder->addEventListener(
             FormEvents::SUBMIT,
             function(FormEvent $e) {
+                if (!$e->getData()) {
+                    return;
+                }
+
                 $this->versioning->setVersionOperation(
                     $e->getForm()->getParent()->getData(),
                     $e->getData()['operation'],

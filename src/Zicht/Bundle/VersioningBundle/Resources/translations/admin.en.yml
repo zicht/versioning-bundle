@@ -20,6 +20,7 @@ admin:
             activate: Activate
 
         is-active: Active version
+        new-object: "This is a new object, you can create new versions of it after saving"
 
 form_label:
     operation: "Operation"
