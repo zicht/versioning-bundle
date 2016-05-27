@@ -9,6 +9,30 @@
     {% endif %}
 {% endmacro %}
 
+{% macro delete(admin, object, version) %}
+    <script type="text/javascript">
+        if (typeof delete_version === 'undefined') {
+            function delete_version(link) {
+                if (confirm({{ 'admin.versioning.confirm-delete'|trans|json_encode }})) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open(link.getAttribute('href'));
+                    xhr.onreadystatechange = function() {
+                        console.log(arguments);
+                    };
+                    xhr.send();
+                }
+            }
+        }
+    </script>
+
+    {% if is_granted('DELETE', version) %}
+        <a onclick="delete_version(this)" href="{{ version_url(admin.generateObjectUrl('deleteversion', object, {version_number: version.getVersionNumber()}), version) }}" class="btn btn-sm btn-default delete_link" title="{{ 'admin.versioning.action.edit'|trans }}">
+            <i class="glyphicon glyphicon-cross"></i>
+            {{ 'admin.versioning.action.delete'|trans }}
+        </a>
+    {% endif %}
+{% endmacro %}
+
 {% macro view(object, version) %}
     {% if is_granted('VIEW', version) %}
         <a href="{{ version_url(object_url(object), version) }}" class="btn btn-sm btn-default view_link" title="{{ 'admin.versioning.action.show'|trans }}">

@@ -6,7 +6,6 @@
 namespace Zicht\Bundle\VersioningBundle\Security;
 
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 
 /**
  * Implements a voter which handles the checks on EntityVersionInterface objects

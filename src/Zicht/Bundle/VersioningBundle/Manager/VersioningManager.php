@@ -76,6 +76,10 @@ class VersioningManager
     private $versionsToLoad = [];
     private $versionOperations = [];
     private $affectedVersions = [];
+
+    /**
+     * @var EntityVersionInterface[]
+     */
     private $loadedVersions = [];
 
 
@@ -521,5 +525,26 @@ class VersioningManager
                 }
             );
         }
+    }
+
+
+    public function deleteVersion($object, $versionNumber)
+    {
+        // only delete loaded versions.
+        foreach ($this->loadedVersions as $i => $version) {
+            if ($version->getSourceClass() === get_class($object) && $version->getOriginalId() === $object->getId() && $version->getVersionNumber() === (int)$versionNumber) {
+                if (!$this->authorizationChecker->isGranted(['DELETE'], $version)) {
+                    throw new AccessDeniedException;
+                }
+
+                $this->storage->remove($version);
+                $this->clear(get_class($object));
+                unset($this->loadedVersions[$i]);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 }

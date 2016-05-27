@@ -33,8 +33,9 @@
                     <td>{{ v.notes }}</td>
                     <td>
                         <div class="btn-group">
-                            {{ buttons.edit(admin, object, v) }}
                             {{ buttons.view(object, v) }}
+                            {{ buttons.edit(admin, object, v) }}
+                            {{ buttons.delete(admin, object, v) }}
                         </div>
                     </td>
                 </tr>

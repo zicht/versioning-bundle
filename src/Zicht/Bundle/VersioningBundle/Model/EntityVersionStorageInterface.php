@@ -80,4 +80,12 @@ interface EntityVersionStorageInterface
      * @return mixed
      */
     public function findUnactivatedVersions();
+
+    /**
+     * Remove a version
+     *
+     * @param EntityVersionInterface $version
+     * @return mixed
+     */
+    public function remove($version);
 }

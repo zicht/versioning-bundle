@@ -6,7 +6,6 @@
 
 namespace Zicht\Bundle\VersioningBundle\Security;
 
-
 use Symfony\Component\Security\Core\Authorization\Voter\VoterInterface;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 

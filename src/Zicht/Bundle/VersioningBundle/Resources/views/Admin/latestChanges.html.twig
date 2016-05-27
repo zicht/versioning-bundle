@@ -21,8 +21,9 @@
                     <td>{{ object.title|default(object) }}</td>
                     <td>
                         <div class="btn-group">
-                            {{ buttons.edit(pool.getAdminByClass(v.sourceClass), object, v) }}
                             {{ buttons.view(object, v) }}
+                            {{ buttons.edit(pool.getAdminByClass(v.sourceClass), object, v) }}
+                            {{ buttons.edit(pool.getAdminByClass(v.sourceClass), object, v) }}
                         </div>
                     </td>
                 </tr>

@@ -208,4 +208,10 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
 
         return $q->getQuery()->execute();
     }
+
+    public function remove($version)
+    {
+        $this->_em->remove($version);
+        $this->_em->flush($version);
+    }
 }
