@@ -12,7 +12,10 @@ use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 /**
  * Class EntityVersion
  *
- * @ORM\Table(name="_entity_version")
+ * @ORM\Table(name="_entity_version", indexes= {
+ *      @ORM\Index(name="version_index", columns={"source_class", "original_id", "version_number"}),
+ *      @ORM\Index(name="active_version", columns={"source_class", "original_id", "is_active"})
+ * })
  * @ORM\Entity(repositoryClass="EntityVersionRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
  */
@@ -23,7 +26,7 @@ class EntityVersion implements EntityVersionInterface
      *
      * @ORM\Id()
      * @ORM\GeneratedValue(strategy="AUTO")
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="bigint")
      */
     private $id;
 

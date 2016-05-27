@@ -1,0 +1,19 @@
+{% trans_default_domain 'admin' %}
+
+{% macro edit(admin, object, version) %}
+    {% if is_granted('EDIT', version) %}
+        <a href="{{ version_url(admin.generateObjectUrl('edit', object), version) }}" class="btn btn-sm btn-default edit_link" title="{{ 'admin.versioning.action.edit'|trans }}">
+            <i class="glyphicon glyphicon-edit"></i>
+            {{ 'admin.versioning.action.edit'|trans }}
+        </a>
+    {% endif %}
+{% endmacro %}
+
+{% macro view(object, version) %}
+    {% if is_granted('VIEW', version) %}
+        <a href="{{ version_url(object_url(object), version) }}" class="btn btn-sm btn-default view_link" title="{{ 'admin.versioning.action.show'|trans }}">
+            <i class="glyphicon glyphicon-zoom-in"></i>
+            {{ 'admin.versioning.action.show'|trans }}
+        </a>
+    {% endif %}
+{% endmacro %}

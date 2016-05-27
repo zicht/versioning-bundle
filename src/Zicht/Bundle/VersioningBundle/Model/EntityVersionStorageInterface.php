@@ -55,4 +55,29 @@ interface EntityVersionStorageInterface
      * @internal
      */
     public function save(EntityVersionInterface $v, $batch = false);
+
+    /**
+     * Returns the latest changes, as seen from the versioning perspective.
+     *
+     * @param bool $active
+     * @return mixed[]
+     */
+    public function findLatestVersionChanges($active = null);
+
+    /**
+     * Returns the objects that the versions specified apply to.
+     *
+     * TODO Consider finding a better place for this...
+     *
+     * @param EntityVersionInterface[] $versions
+     * @return mixed
+     */
+    public function getObjects($versions);
+
+    /**
+     * Find all versions that have higher version numbers than the currently active version
+     *
+     * @return mixed
+     */
+    public function findUnactivatedVersions();
 }

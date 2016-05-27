@@ -112,4 +112,100 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
             };
         }
     }
+
+    /**
+     * Finds latest changes and match the objects.
+     *
+     * @param bool $active
+     * @param int $limit
+     * @return EntityVersionInterface[]
+     */
+    public function findLatestVersionChanges($active = null, $limit = 10)
+    {
+        $em = $this->getEntityManager();
+        $q = $em->createQueryBuilder()
+            ->select('v')
+            ->from('ZichtVersioningBundle:EntityVersion', 'v')
+            ->orderBy('v.dateCreated', 'DESC')
+            ->setMaxResults($limit)
+        ;
+
+        if (null !== $active) {
+            $q
+                ->andWhere('v.isActive=:active')
+                ->setParameter(':active', (bool)$active)
+            ;
+        }
+
+        return $q->getQuery()->execute();
+    }
+
+    /**
+     * Returns the list of Versionable objects that the versions are part of.
+     *
+     * @param Model\EntityVersionInterface[] $versions
+     * @return Model\VersionableInterface[]
+     */
+    public function getObjects($versions)
+    {
+        $objects = [];
+        $objectIds = [];
+        foreach ($versions as $version) {
+            $objectIds[$version->getSourceClass()][]= $version->getOriginalId();
+        }
+
+        foreach ($objectIds as $entityClass => $ids) {
+            foreach ($this->getEntityManager()->getRepository($entityClass)->findBy(['id' => $ids]) as $entity) {
+                $objects[$entityClass][$entity->getId()]= $entity;
+            }
+        }
+
+        return $objects;
+    }
+
+    /**
+     * Returns a list of versions that have not yet been activated, but have an active version that is older.
+     *
+     * @param int $limit
+     * @return EntityVersionInterface[]
+     */
+    public function findUnactivatedVersions($limit = 10)
+    {
+        $ids = array_map(
+            function ($row) {
+                return $row['id'];
+            },
+            $this->getEntityManager()->getConnection()->fetchAll(
+                sprintf('
+                    SELECT
+                        DISTINCT new_version.id
+                    FROM
+                        _entity_version new_version
+                            INNER JOIN _entity_version active_version ON(
+                                new_version.source_class=active_version.source_class
+                                AND new_version.original_id=active_version.original_id
+                                AND new_version.version_number > active_version.version_number
+                            )
+                    ORDER BY
+                        new_version.date_created DESC
+                    LIMIT
+                        %d
+                    ',
+                    $limit
+                )
+            )
+        );
+        $em = $this->getEntityManager();
+        $q = $em->createQueryBuilder();
+
+        $q
+            ->select('v')
+            ->from('ZichtVersioningBundle:EntityVersion', 'v')
+            ->orderBy('v.dateCreated', 'DESC')
+            ->andWhere('v.id IN(:ids)')
+            ->setParameter(':ids', $ids)
+        ;
+
+        return $q->getQuery()->execute();
+    }
 }

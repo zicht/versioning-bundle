@@ -38,6 +38,7 @@ class ZichtVersioningExtension extends DIExtension
 
         $loader->load('services.xml');
         $loader->load('commands.xml');
+        $loader->load('controllers.xml');
         $loader->load('admin.xml');
         $loader->load('form.xml');
         $loader->load('twig.xml');

@@ -75,6 +75,22 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($ret, $this->manager->findVersions($entity));
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testSetDefaultVersionOperationWillFailIfInvalidState()
+    {
+        $this->manager->setDefaultVersionOperation('foo', VersioningManager::VERSION_OPERATION_NEW);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testSetDefaultVersionOperationWillFailIfInvalidOperation()
+    {
+        $this->manager->setDefaultVersionOperation(VersioningManager::VERSION_STATE_ACTIVE, 'foo');
+    }
+
 
     public function testCreateEntityVersion()
     {
@@ -174,7 +190,7 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(null, $basedOn);
     }
 
-    public function testGetVersionOperationWillBeNewWithBaseVersionIfActive()
+    public function testGetVersionOperationWillBeUpdateWithBaseVersionIfActive()
     {
         $entity = new Entity();
         $version = new EntityVersion();
@@ -183,7 +199,7 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
 
         list($op, $basedOn) = $this->manager->getVersionOperation($entity);
         
-        $this->assertEquals(VersioningManager::VERSION_OPERATION_NEW, $op);
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_UPDATE, $op);
         $this->assertEquals($version->getVersionNumber(), $basedOn);
     }
 
@@ -196,7 +212,37 @@ class VersioningManagerTest extends \PHPUnit_Framework_TestCase
         $this->storage->expects($this->never())->method('findActiveVersion')->with($entity)->will($this->returnValue($version));
         list($op, $basedOn) = $this->manager->getVersionOperation($entity);
         
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_UPDATE, $op);
+        $this->assertEquals($version->getVersionNumber(), $basedOn);
+    }
+
+    public function testGetVersionOperationWillBeNewWithBaseVersionIfActive()
+    {
+        $this->manager->setDefaultVersionOperation(VersioningManager::VERSION_STATE_ACTIVE, VersioningManager::VERSION_OPERATION_NEW);
+
+        $entity = new Entity();
+        $version = new EntityVersion();
+        $version->setVersionNumber(rand(1000, 9999));
+        $this->storage->expects($this->once())->method('findActiveVersion')->with($entity)->will($this->returnValue($version));
+
+        list($op, $basedOn) = $this->manager->getVersionOperation($entity);
+
         $this->assertEquals(VersioningManager::VERSION_OPERATION_NEW, $op);
+        $this->assertEquals($version->getVersionNumber(), $basedOn);
+    }
+
+    public function testGetVersionOperationWillBeSetToNewWhenDefaultOperationSetToNew()
+    {
+        $this->manager->setDefaultVersionOperation(VersioningManager::VERSION_STATE_ACTIVE, VersioningManager::VERSION_OPERATION_NEW);
+
+        $entity = new Entity();
+        $version = new EntityVersion();
+        $version->setVersionNumber(rand(1000, 9999));
+        $this->manager->setVersionToLoad(Entity::class, $entity->getId(), $version->getVersionNumber());
+        $this->storage->expects($this->never())->method('findActiveVersion')->with($entity)->will($this->returnValue($version));
+        list($op, $basedOn) = $this->manager->getVersionOperation($entity);
+
+        $this->assertEquals(VersioningManager::VERSION_OPERATION_UPDATE, $op);
         $this->assertEquals($version->getVersionNumber(), $basedOn);
     }
 

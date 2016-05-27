@@ -53,8 +53,8 @@ class VersionType extends AbstractType
     {
         $builder
             ->add('version', 'hidden')
-            ->add('notes', 'textarea', ['required' => false])
-            ->add('dateActiveFrom', $options['datetime_type'], ['required' => false, 'format' => 'dd-MM-yyyy HH:mm'])
+            ->add('notes', 'textarea', ['required' => false, 'label' => 'form_label.notes', 'translation_domain' => 'admin'])
+            ->add('dateActiveFrom', 'datetime', ['required' => false, 'label' => 'form_label.date_active_from', 'translation_domain' => 'admin', 'format' => 'dd-MM-yyyy HH:mm'])
         ;
 
         $builder->addEventListener(
@@ -65,6 +65,7 @@ class VersionType extends AbstractType
                     return;
                 }
                 list($op, $version) = $this->versioning->getVersionOperation($entity);
+
                 $data = [
                     'operation' => $op,
                     'version' => $version,

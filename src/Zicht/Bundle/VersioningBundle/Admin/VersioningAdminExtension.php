@@ -22,8 +22,8 @@ class VersioningAdminExtension extends AdminExtension
     public function configureFormFields(FormMapper $form)
     {
         $form
-            ->tab('versions')
-                ->with('versions')
+            ->tab('admin.tab.general')
+                ->with('admin.versioning.section', ['collapsed' => true])
                     ->add('versions', 'zicht_version')
                 ->end()
             ->end()

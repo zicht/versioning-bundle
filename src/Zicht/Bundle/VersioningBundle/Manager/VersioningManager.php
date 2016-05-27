@@ -40,6 +40,24 @@ class VersioningManager
     const VERSION_OPERATION_UPDATE = 'update';
 
     /**
+     * Used to configure what version operation to do when a version is loaded explicitly
+     */
+    const VERSION_STATE_EXPLICIT = 'explicit';
+
+    /**
+     * Used to configure what version operation to do when a version is loaded based on it's active state
+     */
+    const VERSION_STATE_ACTIVE = 'active';
+
+    /**
+     * @var array
+     */
+    protected $defaultVersionOperation = [
+        self::VERSION_STATE_EXPLICIT => self::VERSION_OPERATION_UPDATE,
+        self::VERSION_STATE_ACTIVE => self::VERSION_OPERATION_UPDATE
+    ];
+
+    /**
      * @var Serializer
      */
     private $serializer;
@@ -174,7 +192,7 @@ class VersioningManager
             }
         }
 
-        $this->affectedVersions[]= [$entity, $version];
+        $this->affectedVersions[] = [$entity, $version];
         return $version;
     }
 
@@ -205,7 +223,7 @@ class VersioningManager
             }
         }
 
-        $this->affectedVersions[]= [$entity, $version];
+        $this->affectedVersions[] = [$entity, $version];
         return $version;
     }
 
@@ -219,7 +237,7 @@ class VersioningManager
      */
     public function setVersionToLoad($entityName, $id, $version)
     {
-        $this->versionsToLoad[$entityName][$id]= $version;
+        $this->versionsToLoad[$entityName][$id] = $version;
     }
 
     /**
@@ -261,7 +279,7 @@ class VersioningManager
                 throw new AccessDeniedException();
             }
 
-            $this->loadedVersions[]= $version;
+            $this->loadedVersions[] = $version;
             $this->serializer->deserialize($version, $entity);
         } elseif ($version = $this->findActiveVersion($entity)) {
             $this->serializer->deserialize($version, $entity);
@@ -283,10 +301,10 @@ class VersioningManager
             return $this->versionOperations[$className][$id];
         }
         if (null !== $this->getVersionToLoad($entity)) {
-            return [self::VERSION_OPERATION_NEW, $this->getVersionToLoad($entity), []];
+            return [$this->defaultVersionOperation[self::VERSION_STATE_EXPLICIT], $this->getVersionToLoad($entity), []];
         }
         if ($activeVersion = $this->findActiveVersion($entity)) {
-            return [self::VERSION_OPERATION_NEW, $activeVersion->getVersionNumber(), []];
+            return [$this->defaultVersionOperation[self::VERSION_STATE_ACTIVE], $activeVersion->getVersionNumber(), []];
         }
         return [self::VERSION_OPERATION_NEW, null, []];
     }
@@ -362,6 +380,25 @@ class VersioningManager
     }
 
     /**
+     * Set a default version operation for a specific version state
+     *
+     * @param string $state
+     * @param string $operation
+     * @return void
+     */
+    public function setDefaultVersionOperation($state, $operation)
+    {
+        if (!in_array($state, [self::VERSION_STATE_ACTIVE, self::VERSION_STATE_EXPLICIT])) {
+            throw new \InvalidArgumentException("{$state} is not a valid version state");
+        }
+        if (!in_array($operation, [self::VERSION_OPERATION_NEW, self::VERSION_OPERATION_UPDATE])) {
+            throw new \InvalidArgumentException("{$operation} is not a valid version operation");
+        }
+
+        $this->defaultVersionOperation[$state]= $operation;
+    }
+
+    /**
      * Resets the version operation for the specified object.
      *
      * @param VersionableInterface $object
@@ -411,10 +448,10 @@ class VersioningManager
 
             if ($version) {
                 if ($this->authorizationChecker->isGranted(['EDIT'], $version)) {
-                    $ret []= VersioningManager::VERSION_OPERATION_UPDATE;
+                    $ret [] = VersioningManager::VERSION_OPERATION_UPDATE;
                 }
                 if (!$version->isActive() && $this->authorizationChecker->isGranted(['PUBLISH'], $object)) {
-                    $ret []= VersioningManager::VERSION_OPERATION_ACTIVATE;
+                    $ret [] = VersioningManager::VERSION_OPERATION_ACTIVATE;
                 }
             }
         }
@@ -434,6 +471,35 @@ class VersioningManager
             throw new \UnexpectedValueException("Refusing to override an existing token");
         }
         $this->securityTokenStorage->setToken(new PreAuthenticatedToken($username, '', 'SYSTEM', $roles));
+    }
+
+
+    /**
+     * Get the latest version changes, returns a tuple containing a list of EntityVersions and a map containing the
+     * objects mapped by class name and object id.
+     *
+     * @param bool $active
+     * @return mixed[]
+     */
+    public function getLatestChanges($active)
+    {
+        /** @var EntityVersionInterface[] $versions */
+        $versions = $this->storage->findLatestVersionChanges($active);
+        $objects = $this->storage->getObjects($versions);
+        return ['versions' => $versions, 'objects' => $objects];
+    }
+
+
+    /**
+     * List all versions that have an active version that is older; i.e. all non-activated versions that are "pending"
+     *
+     * @return array
+     */
+    public function getUnactivatedVersions()
+    {
+        $versions = $this->storage->findUnactivatedVersions();
+        $objects = $this->storage->getObjects($versions);
+        return ['versions' => $versions, 'objects' => $objects];
     }
 
     /**

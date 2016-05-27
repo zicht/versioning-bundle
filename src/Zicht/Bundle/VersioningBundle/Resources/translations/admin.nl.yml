@@ -1,10 +1,12 @@
 admin:
     versioning:
+        section: "Versies"
         table-header:
             version-number: Versienummer
             based-on-version: Gebaseerd op
             date-created: Datum
             username:  Gebruiker
+            object-title:  Item
             actions: Acties
             notes: Notities
             date-active-from: Planned
@@ -18,3 +20,8 @@ admin:
             activate: Activeren
 
         is-active: Actieve versie
+
+form_label:
+    operation: "Deze versie"
+    date_active_from: "Inplannen op datum"
+    notes: "Opmerkingen bij deze versie"

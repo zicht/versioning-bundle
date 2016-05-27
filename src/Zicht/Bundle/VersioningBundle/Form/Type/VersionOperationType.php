@@ -24,6 +24,7 @@ class VersionOperationType extends AbstractType
         $resolver
             ->setRequired('operations')
             ->setDefaults([
+                'label' => 'form_label.operation',
                 'choices' =>
                     function(Options $options) {
                         $ret = [];

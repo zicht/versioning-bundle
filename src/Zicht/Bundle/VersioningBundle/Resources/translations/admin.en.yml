@@ -1,10 +1,12 @@
 admin:
     versioning:
+        section: "Versions"
         table-header:
             version-number: Version
             based-on-version: Based on
             date-created: Date
             username:  User
+            object-title:  Item
             actions: Actions
             notes: Notes
             date-active-from: Gepland
@@ -18,3 +20,8 @@ admin:
             activate: Activate
 
         is-active: Active version
+
+form_label:
+    operation: "Operation"
+    date_active_from: "Activate this version at"
+    notes: "Notes for this version"

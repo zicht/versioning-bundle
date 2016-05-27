@@ -1,0 +1,32 @@
+{% trans_default_domain 'admin' %}
+{% import 'ZichtVersioningBundle::macros/buttons.html.twig' as buttons %}
+
+<div class="box">
+    <div class="box-header"><h3 class="box-title">{{ 'admin.versioning.latest-changes'|trans }}</h3></div>
+    <div class="box-body">
+        <table class="table table-bordered table-collapsed">
+            <tr>
+                <th>{{ 'admin.versioning.table-header.version-number'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.date-created'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.username'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.object-title'|trans }}</th>
+                <th>{{ 'admin.versioning.table-header.actions'|trans }}</th>
+            </tr>
+            {% for v in versions %}
+                {% set object = objects[v.sourceClass][v.originalId] %}
+                <tr>
+                    <td>{{ v.versionNumber }}</td>
+                    <td>{{ v.dateCreated|localizeddate }}</td>
+                    <td>{{ v.username }}</td>
+                    <td>{{ object.title|default(object) }}</td>
+                    <td>
+                        <div class="btn-group">
+                            {{ buttons.edit(pool.getAdminByClass(v.sourceClass), object, v) }}
+                            {{ buttons.view(object, v) }}
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
