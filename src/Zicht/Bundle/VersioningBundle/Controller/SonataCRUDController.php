@@ -69,6 +69,15 @@ class SonataCRUDController extends CRUDController
             return new Response('OK');
         }
 
+        $this->addFlash(
+            'sonata_flash_success',
+            $this->admin->trans(
+                'admin.versioning.flash.version-delete-success',
+                [],
+                'admin'
+            )
+        );
+
         return $this->redirectTo($object);
     }
 }

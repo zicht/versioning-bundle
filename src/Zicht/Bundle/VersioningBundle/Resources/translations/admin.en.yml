@@ -22,6 +22,8 @@ admin:
 
         is-active: Active version
         new-object: "This is a new object, you can create new versions of it after saving"
+        flash:
+            version-delete-success: "Version deleted"
 
 form_label:
     operation: "Operation"

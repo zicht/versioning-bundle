@@ -22,6 +22,8 @@ admin:
 
         is-active: Actieve versie
         new-object: "Dit is een nieuw object, je kunt nieuwe versies maken na opslaan"
+        flash:
+            version-delete-success: "Versie verwijderd"
 
 form_label:
     operation: "Deze versie"
