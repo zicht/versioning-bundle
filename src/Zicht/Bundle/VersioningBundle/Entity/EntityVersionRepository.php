@@ -5,6 +5,7 @@
  */
 namespace Zicht\Bundle\VersioningBundle\Entity;
 
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Driver\PDOStatement;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\ORM\EntityRepository;
@@ -90,7 +91,7 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
      */
     private function queryParams(Model\VersionableInterface $entity)
     {
-        return ['sourceClass' => get_class($entity), 'originalId' => $entity->getId()];
+        return ['sourceClass' => ClassUtils::getRealClass(get_class($entity)), 'originalId' => $entity->getId()];
     }
 
     /**

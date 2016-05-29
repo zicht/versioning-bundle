@@ -203,7 +203,12 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                             $values[] = $child;
                         }
 
-                        $this->propertyAccessor->setValue($object, $associationName, $values);
+                        $refl = new \ReflectionProperty(
+                            isset($associationMetadata['declared']) ? $associationMetadata['declared'] : $associationMetadata['sourceEntity'],
+                            $associationMetadata['fieldName']
+                        );
+                        $refl->setAccessible(true);
+                        $refl->setValue($object, new ArrayCollection($values));
                     }
                     break;
                 case ClassMetadataInfo::MANY_TO_ONE:
