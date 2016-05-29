@@ -52,7 +52,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('zicht:versioning:activate_postponed')
+            ->setName('zicht:versioning:schedule')
             ->setDescription('Search for versions that are supposed to be activated');
     }
 
@@ -74,7 +74,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
         $nowDate = new \DateTime('now');
         $now = $nowDate->format('Y-m-d H:i:s');
 
-        $stmt = $connection->prepare('SELECT id, date_active_from, original_id, is_active FROM _entity_version WHERE date_active_from <= :date_active_from  ORDER BY date_active_from DESC');
+        $stmt = $connection->prepare('SELECT id, version_number, date_active_from, source_class, original_id, is_active FROM _entity_version WHERE date_active_from <= :date_active_from ORDER BY date_active_from DESC LIMIT 1');
         $stmt->execute([':date_active_from' => $now]);
 
         $result = $stmt->fetchAll();
@@ -84,21 +84,32 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
 
         foreach ($result as $originalId => $records) {
             // First record is the one that should be published, we are not interested in the rest
-            $first = $records[0];
+            $scheduledVersion = $records[0];
 
-            if ((bool)$first['is_active'] === false) {
-                $unpublishRecordsStmt = $connection->prepare($unpublishRecords);
-                $unpublishRecordsStmt->bindValue(':original_id', $first['original_id']);
-                $unpublishRecordsStmt->execute();
-
-                // Set this record to active
-                $makeActiveStmt = $connection->prepare($makeRecordActive);
-                $makeActiveStmt->bindValue(':id', $first['id']);
-                $makeActiveStmt->execute();
-                $output->writeln(sprintf('<comment>Version Id: %d is set to active (OriginalId: %d)</comment>', $first['id'], $first['original_id']));
-
-                $dispatcher->dispatch('zicht_versioning.activated', new VersioningEvent($first['id'], $first['original_id']));
+            if ($scheduledVersion['is_active']) {
+                // The latest scheduled entity is the one that should be active already so skip.
+                continue;
             }
+
+            $unpublishRecordsStmt = $connection->prepare($unpublishRecords);
+            $unpublishRecordsStmt->bindValue(':original_id', $scheduledVersion['original_id']);
+            $unpublishRecordsStmt->execute();
+
+            // Set this record to active
+            $makeActiveStmt = $connection->prepare($makeRecordActive);
+            $makeActiveStmt->bindValue(':id', $scheduledVersion['id']);
+            $makeActiveStmt->execute();
+            $output->writeln(sprintf('<comment>Version Id: %d is set to active (OriginalId: %d)</comment>', $scheduledVersion['id'], $scheduledVersion['original_id']));
+            $this->getContainer()->get('logger')->info(
+                sprintf(
+                    'Activated version %d of entity %s@%d (scheduled time)',
+                    $scheduledVersion['version_number'],
+                    $scheduledVersion['source_class'],
+                    $scheduledVersion['original_id']
+                )
+            );
+
+            $dispatcher->dispatch('zicht_versioning.activated', new VersioningEvent($scheduledVersion['id'], $scheduledVersion['original_id']));
         }
 
         $connection->commit();

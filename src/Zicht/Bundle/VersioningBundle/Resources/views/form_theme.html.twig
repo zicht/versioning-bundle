@@ -11,7 +11,7 @@
         <table class="table table-bordered">
             <thead>
                 <tr>
-                    <th> </th>
+                    <th rowspan="2"> </th>
                     <th>{{ 'admin.versioning.table-header.version-number'|trans }}</th>
                     <th>{{ 'admin.versioning.table-header.based-on-version'|trans }}</th>
                     <th>{{ 'admin.versioning.table-header.date-created'|trans }}</th>
@@ -23,7 +23,8 @@
             </thead>
             <tbody>
             {% for v in versions %}
-                <tr class="{% if v.versionNumber == form.version.vars.value %}active{% endif %}">
+                {% set is_current_edit = (v.versionNumber == form.version.vars.value) %}
+                <tr class="{% if is_current_edit %}bg-info{% endif %}">
                     <td>{% if v.isActive %}<span title="{{ 'admin.versioning.is-active'|trans }}" class="glyphicon  glyphicon-ok-circle"></span>{% endif %}</td>
                     <th>{{ v.versionNumber }}</th>
                     <th>{{ v.basedOnVersion }}</th>
@@ -34,7 +35,9 @@
                     <td>
                         <div class="btn-group">
                             {{ buttons.view(object, v) }}
-                            {{ buttons.edit(admin, object, v) }}
+                            {% if not is_current_edit %}
+                                {{ buttons.edit(admin, object, v) }}
+                            {% endif %}
                             {{ buttons.delete(admin, object, v) }}
                         </div>
                     </td>

@@ -11,7 +11,7 @@
 
 {% macro delete(admin, object, version) %}
     {% if is_granted('DELETE', version) %}
-        <a onclick="return confirm({{ 'admin.versioning.confirmation.delete'|trans }});" href="{{ version_url(admin.generateObjectUrl('deleteversion', object, {version_number: version.getVersionNumber()}), version) }}" class="btn btn-sm btn-default delete_link" title="{{ 'admin.versioning.action.delete'|trans }}">
+        <a onclick="return confirm({{ 'admin.versioning.confirmation.delete'|trans }});" href="{{ version_url(admin.generateObjectUrl('deleteversion', object, {version_number: version.getVersionNumber()}), version) }}" class="btn btn-sm text-danger btn-default delete_link" title="{{ 'admin.versioning.action.delete'|trans }}">
             <i class="glyphicon glyphicon-trash"></i>
             {{ 'admin.versioning.action.delete'|trans }}
         </a>
