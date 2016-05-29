@@ -6,6 +6,7 @@
 
 namespace Zicht\Bundle\VersioningBundle\Entity;
 
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\Mapping as ORM;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
 
@@ -223,7 +224,7 @@ class EntityVersion implements EntityVersionInterface
      */
     public function setSourceClass($sourceClass)
     {
-        $this->sourceClass = $sourceClass;
+        $this->sourceClass = ClassUtils::getRealClass($sourceClass);
     }
 
     /**
