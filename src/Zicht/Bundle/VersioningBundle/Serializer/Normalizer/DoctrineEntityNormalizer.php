@@ -66,33 +66,35 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
 
             switch ($associationMetadata['type']) {
                 case ClassMetadataInfo::ONE_TO_MANY:
-                    $ret[$associationName] = [];
-                    if ($this->propertyAccessor->getValue($object, $associationName)) {
-                        $collection = $this->propertyAccessor->getValue($object, $associationName);
+                    if (isset($associationMetadata['cascade']) && in_array('persist', $associationMetadata['cascade'])) {
+                        $ret[$associationName] = [];
+                        if ($this->propertyAccessor->getValue($object, $associationName)) {
+                            $collection = $this->propertyAccessor->getValue($object, $associationName);
 
-                        if (isset($associationMetadata['orderBy'])) {
+                            if (isset($associationMetadata['orderBy'])) {
 
-                            $orderBy = $associationMetadata['orderBy'];
-                            if (count($orderBy) > 1) {
-                                trigger_error(
-                                    "Only the first field in the orderBy for OneToMany associations is"
-                                    . " considered when using versioning",
-                                    E_USER_WARNING
-                                );
+                                $orderBy = $associationMetadata['orderBy'];
+                                if (count($orderBy) > 1) {
+                                    trigger_error(
+                                        "Only the first field in the orderBy for OneToMany associations is"
+                                        . " considered when using versioning",
+                                        E_USER_WARNING
+                                    );
+                                }
+
+                                list($column) = array_keys($orderBy);
+                                list($direction) = array_values($orderBy);
+
+                                $collection = iter\sorted(function($o) use($column) {
+                                    return $this->propertyAccessor->getValue($o, $column);
+                                }, $collection, 0 === strcasecmp('desc', $direction));
                             }
 
-                            list($column) = array_keys($orderBy);
-                            list($direction) = array_values($orderBy);
-
-                            $collection = iter\sorted(function($o) use($column) {
-                                return $this->propertyAccessor->getValue($o, $column);
-                            }, $collection, 0 === strcasecmp('desc', $direction));
-                        }
-
-                        foreach ($collection as $association) {
-                            $child = $this->normalize($association, $format, $context);
-                            unset($child['id']);
-                            $ret[$associationName][]= $child;
+                            foreach ($collection as $association) {
+                                $child = $this->normalize($association, $format, $context);
+                                unset($child['id']);
+                                $ret[$associationName][]= $child;
+                            }
                         }
                     }
                     break;
@@ -265,6 +267,12 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
             return null;
         }
 
+        // if the object is already known in the unit of work, get that.
+        if ($object = $this->em->getUnitOfWork()->tryGetById($reference['id'], $reference['__class__'])) {
+            return $object;
+        }
+
+        // otherwise create a proxy object.
         return $this->em->getProxyFactory()->getProxy($reference['__class__'], ['id' => $reference['id']]);
     }
 

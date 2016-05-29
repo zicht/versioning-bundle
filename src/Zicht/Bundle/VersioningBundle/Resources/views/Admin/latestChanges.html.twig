@@ -13,20 +13,22 @@
                 <th>{{ 'admin.versioning.table-header.actions'|trans }}</th>
             </tr>
             {% for v in versions %}
-                {% set object = objects[v.sourceClass][v.originalId] %}
-                <tr>
-                    <td>{{ v.versionNumber }}</td>
-                    <td>{{ v.dateCreated|localizeddate }}</td>
-                    <td>{{ v.username }}</td>
-                    <td>{{ object.title|default(object) }}</td>
-                    <td>
-                        <div class="btn-group">
-                            {{ buttons.view(object, v) }}
-                            {{ buttons.edit(pool.getAdminByClass(v.sourceClass), object, v) }}
-                            {{ buttons.delete(pool.getAdminByClass(v.sourceClass), object, v) }}
-                        </div>
-                    </td>
-                </tr>
+                {% set object = objects[v.sourceClass][v.originalId]|default %}
+                {% if object %}
+                    <tr>
+                        <td>{{ v.versionNumber }}</td>
+                        <td>{{ v.dateCreated|localizeddate }}</td>
+                        <td>{{ v.username }}</td>
+                        <td>{{ object.title|default(object) }}</td>
+                        <td>
+                            <div class="btn-group">
+                                {{ buttons.view(object, v) }}
+                                {{ buttons.edit(pool.getAdminByClass(v.sourceClass), object, v) }}
+                                {{ buttons.delete(pool.getAdminByClass(v.sourceClass), object, v) }}
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
             {% endfor %}
         </table>
     </div>

@@ -151,6 +151,7 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
     {
         $objects = [];
         $objectIds = [];
+
         foreach ($versions as $version) {
             $objectIds[$version->getSourceClass()][]= $version->getOriginalId();
         }
