@@ -136,7 +136,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                         case VersioningManager::VERSION_OPERATION_UPDATE:
                             $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
 
-                            $uow->scheduleForUpdate($version);
+//                            $uow->scheduleForUpdate($version);
                             $uow->scheduleForDirtyCheck($version);
                             $uow->clearEntityChangeSet(spl_object_hash($entity));
 
