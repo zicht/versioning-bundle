@@ -267,13 +267,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
             return null;
         }
 
-        // if the object is already known in the unit of work, get that.
-        if ($object = $this->em->getUnitOfWork()->tryGetById($reference['id'], $reference['__class__'])) {
-            return $object;
-        }
-
-        // otherwise create a proxy object.
-        return $this->em->getProxyFactory()->getProxy($reference['__class__'], ['id' => $reference['id']]);
+        return $this->em->getReference($reference['__class__'],  ['id' => $reference['id']]);
     }
 
     /**
