@@ -35,9 +35,7 @@
                     <td>
                         <div class="btn-group">
                             {{ buttons.view(object, v) }}
-                            {% if not is_current_edit %}
-                                {{ buttons.edit(admin, object, v) }}
-                            {% endif %}
+                            {{ buttons.edit(admin, object, v, is_current_edit) }}
                             {{ buttons.delete(admin, object, v) }}
                         </div>
                     </td>

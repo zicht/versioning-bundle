@@ -1,8 +1,8 @@
 {% trans_default_domain 'admin' %}
 
-{% macro edit(admin, object, version) %}
+{% macro edit(admin, object, version, disable) %}
     {% if is_granted('EDIT', version) %}
-        <a href="{{ version_url(admin.generateObjectUrl('edit', object), version) }}" class="btn btn-sm btn-default edit_link" title="{{ 'admin.versioning.action.edit'|trans }}">
+        <a href="{{ version_url(admin.generateObjectUrl('edit', object), version) }}" class="btn btn-sm btn-default edit_link {{ disable|default(false) ? "disabled" }} " title="{{ 'admin.versioning.action.edit'|trans }}">
             <i class="glyphicon glyphicon-edit"></i>
             {{ 'admin.versioning.action.edit'|trans }}
         </a>
