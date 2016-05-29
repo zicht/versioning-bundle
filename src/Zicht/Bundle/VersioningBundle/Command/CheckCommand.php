@@ -7,10 +7,14 @@
 namespace Zicht\Bundle\VersioningBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
+use Doctrine\Common\EventManager;
+use Doctrine\DBAL\Logging\EchoSQLLogger;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Zicht\Bundle\VersioningBundle\Doctrine\EventSubscriber;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
@@ -44,7 +48,10 @@ class CheckCommand extends Command
         $this
             ->setName('zicht:versioning:check')
             ->setDescription('Do some helpful integrity checks of the versioned data')
+            ->addArgument('class', InputArgument::OPTIONAL, 'Class')
+            ->addArgument('id', InputArgument::OPTIONAL, 'ID')
             ->addOption('fix', null, InputOption::VALUE_NONE, 'Try to fix reported problems')
+            ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
         ;
     }
 
@@ -56,20 +63,56 @@ class CheckCommand extends Command
     {
         $this->vm->setSystemToken();
 
-        $checked = [];
-        foreach ($this->doctrine->getEntityManager()->getMetadataFactory()->getAllMetadata() as $data) {
+        /** @var EventManager $evm */
+        $evm = $this->doctrine->getManager()->getEventManager();
+
+        foreach ($evm->getListeners('postLoad') as $listener) {
+            if ($listener instanceof EventSubscriber) {
+                $evm->removeEventListener('postLoad', $listener);
+            }
+        }
+
+        if ($input->getOption('debug')) {
+            $this->doctrine
+                ->getConnection()
+                ->getConfiguration()
+                ->setSQLLogger(new EchoSQLLogger())
+            ;
+        }
+
+        $numChanges = [];
+        $em = $this->doctrine->getEntityManager();
+        foreach ($em->getMetadataFactory()->getAllMetadata() as $data) {
             $className = $data->name;
             $changes = [];
-            if ($this->vm->isManaged($className)) {
+            if ($input->getArgument('class') && $className !== $input->getArgument('class')) {
+                continue;
+            }
+
+            if (!$this->vm->isManaged($className)) {
+                $output->writeln(sprintf('%s is not managed, skipping', $className));
+                continue;
+            } else {
                 $output->getVerbosity() > OutputInterface::VERBOSITY_NORMAL && $output->writeln($className, ': ');
+
                 foreach ($this->doctrine->getRepository($className)->findAll() as $object) {
-                    if (!isset($checked[$className])) {
-                        $checked[$className] = 0;
+                    if (get_class($object) !== $className) {
+                        // don't do this on inheritance models
+                        continue;
                     }
-                    $checked[$className]++;
+                    if ($input->getArgument('id') && $object->getId() != $input->getArgument('id')) {
+                        continue;
+                    }
+
+                    if (!isset($numChanges[$className])) {
+                        $numChanges[$className] = [0, 0];
+                    }
+                    $numChanges[$className][0]++;
                     /** @var VersionableInterface $object */
                     if (!$this->vm->findActiveVersion($object)) {
                         if ($input->getOption('fix') && ($v = $this->vm->fix($object))) {
+                            $numChanges[$className][1] ++;
+
                             $changes[]= $v;
                             $output->writeln(
                                 sprintf(
@@ -93,12 +136,19 @@ class CheckCommand extends Command
                 if ($changes) {
                     $output->writeln("Flushing changes ... ");
                     $this->vm->flushChanges($changes);
+                    $this->vm->clear();
                 }
+                $em->clear();
             }
         }
 
-        foreach ($checked as $className => $numChecked) {
-            $output->writeln(sprintf(' * %s: %d', $className, $numChecked));
+        $output->writeln("Number of entities changed / checked");
+        if (empty($numChanges)) {
+            $output->writeln('None');
+        } else {
+            foreach ($numChanges as $className => list($numChecked, $numChanged)) {
+                $output->writeln(sprintf(' * %s: %d / %d', $className, $numChanged, $numChecked));
+            }
         }
     }
 }
