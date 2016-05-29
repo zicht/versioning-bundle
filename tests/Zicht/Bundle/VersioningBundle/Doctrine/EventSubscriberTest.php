@@ -137,7 +137,6 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
-        $this->uow->expects($this->once())->method('scheduleForUpdate')->with($version);
         $this->uow->expects($this->once())->method('scheduleForDirtyCheck')->with($version);
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_UPDATE, 1234, []]));
