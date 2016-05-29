@@ -259,7 +259,8 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
         if ($reference['id'] === null) {
             return null;
         }
-        return $this->em->find($reference['__class__'], $reference['id']);
+
+        return $this->em->getProxyFactory()->getProxy($reference['__class__'], ['id' => $reference['id']]);
     }
 
     /**
