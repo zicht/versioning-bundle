@@ -19,11 +19,10 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
         $this->entities = [];
 
         $this->meta = $this->getMockBuilder('Doctrine\Bundle\DoctrineBundle\Mapping\MetadataFactory')->disableOriginalConstructor()->setMethods(['hasMetadataFor', 'getMetadataFor'])->getMock();
-        $this->proxy = $this->getMockBuilder('Doctrine\ORM\Proxy\ProxyFactory')->disableOriginalConstructor()->setMethods(['getProxy'])->getMock();
         $this->em = $this->getMockBuilder('Doctrine\ORM\EntityManager')->disableOriginalConstructor()->getMock();
         $this->em->expects($this->any())->method('getMetadataFactory')->will($this->returnValue($this->meta));
-        $this->em->expects($this->any())->method('getProxyFactory')->will($this->returnValue($this->proxy));
     }
+
 
     public function testSerializer()
     {
@@ -102,11 +101,11 @@ class SerializerTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    protected function expectToBeProxied($class, $int, $entity)
+    protected function expectToBeReferenced($class, $int, $entity)
     {
         $this->proxyEntities[$class][$int] = $entity;
 
-        $this->proxy->expects($this->any())->method('getProxy')->will($this->returnCallback(function($class, $idArray) {
+        $this->em->expects($this->any())->method('getReference')->will($this->returnCallback(function($class, $idArray) {
             list($id) = array_values($idArray);
             return isset($this->proxyEntities[$class][$id]) ? $this->proxyEntities[$class][$id] : null;
         }));

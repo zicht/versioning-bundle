@@ -214,7 +214,8 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $meta = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
         $meta->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['other']));
         $meta->associationMappings['other'] = [
-            'type' => ClassMetadataInfo::MANY_TO_ONE
+            'type' => ClassMetadataInfo::MANY_TO_ONE,
+            'declared' => OtherEntity::class
         ];
 
         $this->expectMetadataFor(Entity::class, $meta);
@@ -236,10 +237,10 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $meta = $this->getMock(ClassMetadataInfo::class, ['getAssociationNames'], [Entity::class]);
         $meta->expects($this->any())->method('getAssociationNames')->will($this->returnValue(['other']));
         $meta->associationMappings['other'] = [
-            'type' => ClassMetadataInfo::MANY_TO_ONE
+            'type' => ClassMetadataInfo::MANY_TO_ONE,
         ];
 
-        $this->expectToBeProxied(OtherEntity::class, 1234, new OtherEntity(1234, 'from em'));
+        $this->expectToBeReferenced(OtherEntity::class, 1234, new OtherEntity(1234, 'from em'));
 
         $this->expectMetadataFor(Entity::class, $meta);
         $this->expectMetadataFor(OtherEntity::class, new ClassMetadataInfo(OtherEntity::class));
@@ -333,8 +334,8 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $this->expectMetadataFor(Entity::class, $meta);
         $this->expectMetadataFor(OtherEntity::class, new ClassMetadataInfo(OtherEntity::class));
 
-        $this->expectToBeProxied(OtherEntity::class, 1234, new OtherEntity(1234, 'from em'));
-        $this->expectToBeProxied(OtherEntity::class, 5678, new OtherEntity(5678, 'from em'));
+        $this->expectToBeReferenced(OtherEntity::class, 1234, new OtherEntity(1234, 'from em'));
+        $this->expectToBeReferenced(OtherEntity::class, 5678, new OtherEntity(5678, 'from em'));
 
         $o = $this->normalizer->denormalize([
             '__class__' => Entity::class,
@@ -496,7 +497,9 @@ class DoctrineEntityNormalizerTest extends SerializerTest
         $meta1->associationMappings['others'] = [
             'type' => ClassMetadataInfo::ONE_TO_MANY,
             'cascade' => ['persist'],
-            'mappedBy' => 'the_inverse_side'
+            'mappedBy' => 'the_inverse_side',
+            'fieldName' => 'others',
+            'declared' => Entity::class
         ];
 
         $this->expectMetadataFor(Entity::class, $meta1);
