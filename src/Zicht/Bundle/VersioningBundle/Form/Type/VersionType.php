@@ -54,7 +54,7 @@ class VersionType extends AbstractType
         $builder
             ->add('version', 'hidden')
             ->add('notes', 'textarea', ['required' => false, 'label' => 'form_label.notes', 'translation_domain' => 'admin'])
-            ->add('dateActiveFrom', 'datetime', ['required' => false, 'label' => 'form_label.date_active_from', 'translation_domain' => 'admin', 'format' => 'dd-MM-yyyy HH:mm'])
+            ->add('dateActiveFrom', 'sonata_type_datetime_picker', ['required' => false, 'label' => 'form_label.date_active_from', 'translation_domain' => 'admin', 'format' => 'dd-MM-yyyy HH:mm'])
         ;
 
         $builder->addEventListener(

@@ -9,7 +9,7 @@ admin:
             object-title:  Item
             actions: Actions
             notes: Notes
-            date-active-from: Gepland
+            date-active-from: Embargo
         action:
             edit: Edit
             show: Show

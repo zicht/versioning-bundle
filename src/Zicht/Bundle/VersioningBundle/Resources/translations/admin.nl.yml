@@ -9,7 +9,7 @@ admin:
             object-title:  Item
             actions: Acties
             notes: Notities
-            date-active-from: Planned
+            date-active-from: Embargo
         action:
             edit: Bewerken
             show: Tonen
