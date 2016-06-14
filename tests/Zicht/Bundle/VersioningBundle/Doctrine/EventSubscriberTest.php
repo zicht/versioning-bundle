@@ -37,7 +37,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
 
     public function testSubscription()
     {
-        $this->assertContains('onFlush', $this->subscriber->getSubscribedEvents());
+        $this->assertContains('preFlush', $this->subscriber->getSubscribedEvents());
         $this->assertContains('postFlush', $this->subscriber->getSubscribedEvents());
         $this->assertContains('postLoad', $this->subscriber->getSubscribedEvents());
     }
@@ -61,14 +61,14 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->subscriber->postLoad($event);
     }
 
-    public function testOnFlushWillCreateVersionForInsert()
+    public function testPreFlushWillCreateVersionForInsert()
     {
         $entity = new Entity();
         $version = new EntityVersion();
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
-        $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([]));
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([]));
         $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnCallback(function() use($entity) {
             static $i = 0;
             if (0 === $i ++) {
@@ -82,17 +82,17 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
         $this->manager->expects($this->never())->method('getVersionOperation');
         $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $changeset)->will($this->returnValue($version));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
     }
 
-    public function testOnFlushWillCreateVersionForUpdateAndClearChanges()
+    public function testPreFlushWillCreateVersionForUpdateAndClearChanges()
     {
         $entity = new Entity();
         $version = new EntityVersion();
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
-        $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
         $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
@@ -101,18 +101,18 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, null, []]));
         $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $changeset)->will($this->returnValue($version));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
     }
 
 
-    public function testOnFlushWillCreateVersionWithBasedOnVersion()
+    public function testPreFlushWillCreateVersionWithBasedOnVersion()
     {
         $entity = new Entity();
         $version = new EntityVersion();
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
-        $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
         $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
@@ -121,18 +121,18 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, []]));
         $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $changeset, 1234)->will($this->returnValue($version));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
     }
 
 
-    public function testOnFlushWillUpdateCurrentVersionIfSpecified()
+    public function testPreFlushWillUpdateCurrentVersionIfSpecified()
     {
         $entity = new Entity();
         $version = new EntityVersion();
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
-        $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
         $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
@@ -141,18 +141,18 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_UPDATE, 1234, []]));
         $this->manager->expects($this->once())->method('updateEntityVersion')->with($entity, $changeset, 1234)->will($this->returnValue($version));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
     }
 
 
-    public function testOnFlushWillActivateCurrentVersion()
+    public function testPreFlushWillActivateCurrentVersion()
     {
         $entity = new Entity();
         $version = new EntityVersion();
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
-        $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
         $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
@@ -162,10 +162,10 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->never())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234, []]));
         $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
     }
 
-    public function testOnFlushWillDectivateCurrentlyActiveVersion()
+    public function testPreFlushWillDectivateCurrentlyActiveVersion()
     {
         $entity = new Entity();
         $version = new EntityVersion();
@@ -174,9 +174,9 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $currentActive->setIsActive(true);
         $currentActive->setVersionNumber(1);
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
-        $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
         $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
 
         $changeset = ['some'=>'changeset'];
@@ -185,7 +185,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234, []]));
         $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
         $this->manager->expects($this->once())->method('findActiveVersion')->will($this->returnValue($currentActive));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
 
         $this->assertFalse($currentActive->isActive());
     }
@@ -193,24 +193,24 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException
      */
-    public function testOnFlushWillThrowErrorOnUnsupportedVersionOperation()
+    public function testPreFlushWillThrowErrorOnUnsupportedVersionOperation()
     {
         $entity = new Entity();
 
-        $event = $this->createOnFlushEventArgs();
+        $event = $this->createPreFlushEventArgs();
 
         $this->uow->expects($this->once())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
         $this->uow->expects($this->once())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue(['foo', 1234, []]));
-        $this->subscriber->onFlush($event);
+        $this->subscriber->preFlush($event);
     }
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject
+     * @return Event\PreFlushEventArgs
      */
-    protected function createOnFlushEventArgs()
+    protected function createPreFlushEventArgs()
     {
-        $event = $this->getMockBuilder(Event\OnFlushEventArgs::class)->disableOriginalConstructor()->setMethods(['getEntityManager'])->getMock();
+        $event = $this->getMockBuilder(Event\PreFlushEventArgs::class)->disableOriginalConstructor()->setMethods(['getEntityManager'])->getMock();
         $event->expects($this->once())->method('getEntityManager')->will($this->returnValue($this->em));
         return $event;
     }

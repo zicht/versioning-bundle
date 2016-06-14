@@ -42,7 +42,7 @@ class VersioningManager
     /**
      * Used to configure what version operation to do when a version is loaded explicitly
      */
-    const VERSION_STATE_EXPLICIT = 'explicit';
+    const VERSION_STATE_EXPLICITLY_LOADED = 'explicit';
 
     /**
      * Used to configure what version operation to do when a version is loaded based on it's active state
@@ -53,7 +53,7 @@ class VersioningManager
      * @var array
      */
     protected $defaultVersionOperation = [
-        self::VERSION_STATE_EXPLICIT => self::VERSION_OPERATION_UPDATE,
+        self::VERSION_STATE_EXPLICITLY_LOADED => self::VERSION_OPERATION_UPDATE,
         self::VERSION_STATE_ACTIVE => self::VERSION_OPERATION_UPDATE
     ];
 
@@ -241,7 +241,11 @@ class VersioningManager
      */
     public function setVersionToLoad($entityName, $id, $version)
     {
-        $this->versionsToLoad[$entityName][$id] = $version;
+        if (null === $version) {
+            unset($this->versionsToLoad[$entityName][$id]);
+        } else {
+            $this->versionsToLoad[$entityName][$id] = $version;
+        }
     }
 
     /**
@@ -285,8 +289,6 @@ class VersioningManager
 
             $this->loadedVersions[] = $version;
             $this->serializer->deserialize($version, $entity);
-        } elseif ($version = $this->findActiveVersion($entity)) {
-            $this->serializer->deserialize($version, $entity);
         }
     }
 
@@ -295,6 +297,7 @@ class VersioningManager
      * avaiable, defaults to a new version based on the currently active version
      *
      * @param VersionableInterface $entity
+     * @param bool $noDefaults
      * @return string
      */
     public function getVersionOperation(VersionableInterface $entity)
@@ -305,13 +308,34 @@ class VersioningManager
             return $this->versionOperations[$className][$id];
         }
         if (null !== $this->getVersionToLoad($entity)) {
-            return [$this->defaultVersionOperation[self::VERSION_STATE_EXPLICIT], $this->getVersionToLoad($entity), []];
+            return [$this->defaultVersionOperation[self::VERSION_STATE_EXPLICITLY_LOADED], $this->getVersionToLoad($entity), []];
         }
         if ($activeVersion = $this->findActiveVersion($entity)) {
             return [$this->defaultVersionOperation[self::VERSION_STATE_ACTIVE], $activeVersion->getVersionNumber(), []];
         }
         return [self::VERSION_OPERATION_NEW, null, []];
     }
+
+
+    /**
+     * Gets all version operations that were explicitly set.
+     *
+     * @return array
+     */
+    public function getExplicitVersionOperations()
+    {
+        $ret = [];
+        foreach ($this->versionOperations as $className => $instances) {
+            foreach ($instances as $id => $operationDetails) {
+                $ret[]= array_merge(
+                    [$className, $id], $operationDetails
+                );
+            }
+        }
+
+        return $ret;
+    }
+
 
     /**
      * Schedule any operation on the entity to be the specified version operation based on the specified version number
@@ -392,7 +416,7 @@ class VersioningManager
      */
     public function setDefaultVersionOperation($state, $operation)
     {
-        if (!in_array($state, [self::VERSION_STATE_ACTIVE, self::VERSION_STATE_EXPLICIT])) {
+        if (!in_array($state, [self::VERSION_STATE_ACTIVE, self::VERSION_STATE_EXPLICITLY_LOADED])) {
             throw new \InvalidArgumentException("{$state} is not a valid version state");
         }
         if (!in_array($operation, [self::VERSION_OPERATION_NEW, self::VERSION_OPERATION_UPDATE])) {

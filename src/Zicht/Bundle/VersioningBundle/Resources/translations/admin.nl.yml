@@ -29,5 +29,5 @@ admin:
 
 form_label:
     operation: "Deze versie"
-    date_active_from: "Inplannen op datum"
+    date_active_from: "Embargo tot"
     notes: "Opmerkingen bij deze versie"
