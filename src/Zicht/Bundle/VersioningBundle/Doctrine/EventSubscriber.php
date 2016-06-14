@@ -104,9 +104,8 @@ class EventSubscriber implements DoctrineEventSubscriber
         foreach (['insert' => $uow->getScheduledEntityInsertions(), 'update' => $uow->getScheduledEntityUpdates(), 'delete' => $uow->getScheduledEntityDeletions()] as $type => $entities) {
             foreach ($entities as $entity) {
                 if ($entity instanceof EmbeddedVersionableInterface && $parent = $entity->getVersionableParent()) {
-                    $uow->detach($entity);
-
-                    // mimic an update for this entity
+                    // mimic an update for the parent. Any creation or update or delete should affect the parent,
+                    // not the 'embedded' entity
                     $type = 'update';
                     $entity = $parent;
                 }
