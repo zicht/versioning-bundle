@@ -33,7 +33,7 @@
         </service>
 
 
-        <service id="zicht_versioning.solr.listener" class="Zicht\Bundle\VersioningBundle\Bridge\Solr\SolrFilterChangesListener">
+        <service id="zicht_versioning.solr.listener" class="Zicht\Bundle\VersioningBundle\Bridge\Solr\FilterInactiveVersionsChangesListener">
             <argument type="service" id="zicht_versioning.manager"/>
             <tag name="kernel.event_listener" event="zicht.solr.filter.changes" method="onSolrFilterChanges"/>
         </service>
