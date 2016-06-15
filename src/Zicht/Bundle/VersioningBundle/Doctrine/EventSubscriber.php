@@ -113,6 +113,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         $this->fetchVersioningService();
 
         $em  = $args->getEntityManager();
+
         $uow = $em->getUnitOfWork();
 
         $objectMap = [];
@@ -222,7 +223,6 @@ class EventSubscriber implements DoctrineEventSubscriber
     public function onFlush(Event\OnFlushEventArgs $e)
     {
         $uow = $e->getEntityManager()->getUnitOfWork();
-        $uow->computeChangeSets();
 
         // See if any of the remaining entities would be inserted after recompute of the change sets.
         $allScheduled = [
@@ -267,7 +267,7 @@ class EventSubscriber implements DoctrineEventSubscriber
     {
         $this->fetchVersioningService();
 
-        $em  = $args->getEntityManager();
+        $em = $args->getEntityManager();
 
         //temporary remove the eventSubscriber - to prevent infinite loop ^^
         $em->getEventManager()->removeEventSubscriber($this);

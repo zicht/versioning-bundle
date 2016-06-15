@@ -373,6 +373,28 @@ class VersioningManager
 
 
     /**
+     * Returns all currently affected versions for the specified entity.
+     *
+     * @param $entity
+     * @return EntityVersion[]
+     */
+    public function getAffectedEntityVersions($entity)
+    {
+        $ret = [];
+
+        if ($this->isManaged(get_class($entity))) {
+            foreach ($this->affectedVersions as list($affectedEntity, $version)) {
+                if (get_class($entity) === get_class($affectedEntity)) {
+                    $ret[]= $version;
+                }
+            }
+        }
+
+        return $ret;
+    }
+
+
+    /**
      * Check if the provided class name is managed
      *
      * @param string $className
