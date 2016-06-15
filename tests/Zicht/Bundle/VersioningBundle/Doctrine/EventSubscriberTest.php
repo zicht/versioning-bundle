@@ -24,7 +24,10 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $container = new Container();
-        $this->manager = $this->getMockBuilder(VersioningManager::class)->disableOriginalConstructor()->setMethods(['loadVersion', 'getAffectedVersions', 'findActiveVersion', 'getVersionOperation', 'createEntityVersion', 'updateEntityVersion'])->getMock();
+        $this->manager = $this->getMockBuilder(VersioningManager::class)->disableOriginalConstructor()->setMethods([
+            'loadVersion', 'getAffectedVersions', 'findActiveVersion', 'getVersionOperation', 'createEntityVersion', 'updateEntityVersion',
+            'clear'
+        ])->getMock();
 
         $container->set('zicht_versioning.manager', $this->manager);
 
@@ -238,5 +241,25 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->subscriber->postFlush($event);
 
         $this->assertEquals($versions[0][0]->getId(), $versions[0][1]->getOriginalId());
+    }
+
+    /**
+     * @dataProvider clearArgs
+     */
+
+    public function testOnClearWillClearVersioning($entityClass)
+    {
+        $event = $this->getMockBuilder(Event\OnClearEventArgs::class)->disableOriginalConstructor()->getMock();
+        $event->expects($this->once())->method('getEntityClass')->will($this->returnValue($entityClass));
+        $this->manager->expects($this->once())->method('clear')->with($entityClass);
+
+        $this->subscriber->onClear($event);
+    }
+    public function clearArgs()
+    {
+        return [
+            [null],
+            ['someclassname']
+        ];
     }
 }
