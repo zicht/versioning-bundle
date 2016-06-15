@@ -31,5 +31,11 @@
             <argument type="service" id="zicht_versioning.http.url_helper"/>
             <tag name="kernel.event_listener" event="kernel.request" />
         </service>
+
+
+        <service id="zicht_versioning.solr.listener" class="Zicht\Bundle\VersioningBundle\Bridge\Solr\SolrFilterChangesListener">
+            <argument type="service" id="zicht_versioning.manager"/>
+            <tag name="kernel.event_listener" event="zicht.solr.filter.changes" method="onSolrFilterChanges"/>
+        </service>
     </services>
 </container>
