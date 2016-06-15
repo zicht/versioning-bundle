@@ -13,6 +13,7 @@ use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Zicht\Bundle\RcoSiteBundle\Test\Logger;
+use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\InvalidStateException;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
 use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
@@ -30,6 +31,13 @@ class EventSubscriber implements DoctrineEventSubscriber
      * @var VersioningManager
      */
     private $versioning = null;
+
+    /**
+     * Keeps a map of versions that are being affected during a persist loop.
+     *
+     * @var array
+     */
+    private $versionMap = [];
 
     /**
      * EventSubscriber constructor.
@@ -91,6 +99,15 @@ class EventSubscriber implements DoctrineEventSubscriber
     }
 
 
+    /**
+     * Hook into the preFlush to see if versions need to be created, updated or activated and
+     * adds all related operations to the UnitOfWork.
+     *
+     * @param Event\PreFlushEventArgs $args
+     * @throws \Doctrine\ORM\ORMException
+     * @throws \Doctrine\ORM\OptimisticLockException
+     * @throws \Doctrine\ORM\TransactionRequiredException
+     */
     public function preFlush(Event\PreFlushEventArgs $args)
     {
         $this->fetchVersioningService();
@@ -257,6 +274,8 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         $num = 0;
         foreach ($this->versioning->getAffectedVersions() as $affectedVersion) {
+            /** @var VersionableInterface $entity */
+            /** @var EntityVersion $version */
             list($entity, $version) = $affectedVersion;
 
             if (!$version->getOriginalId()) {

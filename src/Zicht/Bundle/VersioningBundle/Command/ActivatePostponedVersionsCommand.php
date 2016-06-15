@@ -82,7 +82,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
 
         $connection->beginTransaction();
 
-        foreach ($result as $originalId => $records) {
+        foreach ($result as $entityId => $records) {
             // First record is the one that should be published, we are not interested in the rest
             $scheduledVersion = $records[0];
 

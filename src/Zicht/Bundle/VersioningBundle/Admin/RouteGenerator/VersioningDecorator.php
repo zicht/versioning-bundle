@@ -44,23 +44,22 @@ class VersioningDecorator implements RouteGeneratorInterface
     {
         $url = $this->generator->generateUrl($admin, $name, $parameters, $absolute);
 
+        $refl = (new \ReflectionClass($admin->getClass()));
         if (
-            ((new \ReflectionClass($admin->getClass()))->implementsInterface(EmbeddedVersionableInterface::class) && in_array($name, ['edit', 'list', 'create']))
-            || ((new \ReflectionClass($admin->getClass()))->implementsInterface(VersionableInterface::class) && in_array($name, ['show', 'edit']))
+            ($refl->implementsInterface(EmbeddedVersionableInterface::class) && in_array($name, ['edit', 'list', 'create']))
+            || ($refl->implementsInterface(VersionableInterface::class) && in_array($name, ['show', 'edit']))
         ) {
-            if ($this->versioning->getAffectedVersions()) {
+            if ($versions = $this->versioning->getAffectedVersions()) {
                 $url = $this->urlHelper->decorateVersionsUrl(
                     $url,
-                    array_column($this->versioning->getAffectedVersions(), 1)
+                    array_column($versions, 1)
                 );
-            } else {
+            } elseif ($versions = $this->versioning->getLoadedVersions()) {
                 $url = $this->urlHelper->decorateVersionsUrl(
                     $url,
-                    $this->versioning->getLoadedVersions()
+                    $versions
                 );
             }
-
-            return $url;
         }
         return $url;
     }
