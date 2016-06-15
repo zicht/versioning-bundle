@@ -9,6 +9,7 @@ namespace Zicht\Bundle\VersioningBundle\Doctrine;
 use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
 use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 use Zicht\Bundle\RcoSiteBundle\Test\Logger;
@@ -120,7 +121,7 @@ class EventSubscriber implements DoctrineEventSubscriber
         foreach ($this->versioning->getExplicitVersionOperations() as list($className, $id, $operation, $version, $meta)) {
             $entity = $em->find($className, $id);
 
-            if (!array_key_exists(spl_object_hash($entity), $objectMap)) {
+            if (!in_array(spl_object_hash($entity), array_map('array_keys', $objectMap))) {
                 // minic a change for the versions that are not part of the unit of work, but do require an explicit change:
                 $objectMap['update'][spl_object_hash($entity)]= $entity;
             }
@@ -172,6 +173,19 @@ class EventSubscriber implements DoctrineEventSubscriber
                                 $uow->scheduleForDirtyCheck($currentActive);
                             }
 
+                            // If the object has persistentCollections stashed, use those to
+                            // have doctrine synchronize the collections with the database for the loaded
+                            // version. 
+                            // See the Serializer for the implementation
+                            if (isset($entity->__persistentCollections__)) {
+                                foreach ($entity->__persistentCollections__ as list($reflection, $collection)) {
+                                    $collection->clear();
+                                    foreach ($reflection->getValue($entity) as $value) {
+                                        $collection->add($value);
+                                    }
+                                }
+                            }
+
                             $this->versionMap[spl_object_hash($entity)]= $version;
                             break;
 
@@ -185,33 +199,40 @@ class EventSubscriber implements DoctrineEventSubscriber
                 }
             }
         }
-
-        $uow->computeChangeSets();
     }
 
 
     public function onFlush(Event\OnFlushEventArgs $e)
     {
         $uow = $e->getEntityManager()->getUnitOfWork();
+        $uow->computeChangeSets();
 
         // See if any of the remaining entities would be inserted after recompute of the change sets.
-        $allScheduled = array_merge($uow->getScheduledEntityInsertions(), $uow->getScheduledEntityDeletions(), $uow->getScheduledEntityUpdates());
-        foreach ($allScheduled as $entity) {
-            if ($entity instanceof EmbeddedVersionableInterface) {
-                if (!isset($this->versionMap[spl_object_hash($entity->getVersionableParent())])) {
-                    // This is an error state that should never occur. The entity pointed to in this case
-                    // should have been scheduled for dirty check in the switch case above and therefore
-                    // should be part of the change set, and thus it's version should be known to the current
-                    // scope.
-                    throw new InvalidStateException(
-                        "The versionable parent of this object was not persisted as a version, "
-                        . "but this entity would be inserted by the unit of work." // and in case you didn't get any
-                    // of that, that is bad. Because that breaks the entire concept.
-                    );
-                }
+        $allScheduled = [
+            'insert' => $uow->getScheduledEntityInsertions(),
+            'delete' => $uow->getScheduledEntityDeletions(),
+            'update' => $uow->getScheduledEntityUpdates()
+        ];
 
-                if (!$this->versionMap[spl_object_hash($entity->getVersionableParent())]->isActive()) {
-                    $uow->detach($entity);
+        foreach ($allScheduled as $operation => $entities) {
+            foreach ($entities as $entity) {
+                if ($entity instanceof EmbeddedVersionableInterface) {
+                    if (!isset($this->versionMap[spl_object_hash($entity->getVersionableParent())])) {
+                        // This is an error state that should never occur. The entity pointed to in this case
+                        // should have been scheduled for dirty check in the switch case above and therefore
+                        // should be part of the change set, and thus it's version should be known to the current
+                        // scope.
+                        $conjugated = rtrim($operation, 'e') . 'ed';
+                        throw new InvalidStateException(
+                            "The versionable parent of this object was not persisted as a version, "
+                            . "but this entity would be {$conjugated} by the unit of work." // and in case you didn't get any
+                           // of that, that is bad. Because that breaks the entire concept.
+                        );
+                    }
+
+                    if (!$this->versionMap[spl_object_hash($entity->getVersionableParent())]->isActive()) {
+                        $uow->detach($entity);
+                    }
                 }
             }
         }

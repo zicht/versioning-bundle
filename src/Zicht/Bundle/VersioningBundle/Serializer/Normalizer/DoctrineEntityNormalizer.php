@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\PropertyAccess\Exception\NoSuchPropertyException;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
@@ -132,6 +133,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
         return isset($data['__class__']) && $this->em->getMetadataFactory()->hasMetadataFor($data['__class__']);
     }
 
+
     /**
      * {@inheritDoc}
      */
@@ -210,6 +212,7 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                             $associationMetadata['fieldName']
                         );
                         $refl->setAccessible(true);
+                        $object->__persistentCollections__[] = [$refl, $refl->getValue($object)];
                         $refl->setValue($object, new ArrayCollection($values));
                     }
                     break;
