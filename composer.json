@@ -15,7 +15,8 @@
     "require-dev": {
         "behat/behat": "~3.0",
         "behat/mink": "~1.6",
-        "behat/mink-extension": "~2.1"
+        "behat/mink-extension": "~2.1",
+        "phpunit/phpunit": "4.*@stable"
     },
     "autoload": {
         "psr-0": { "": ["src/", "tests/"] }

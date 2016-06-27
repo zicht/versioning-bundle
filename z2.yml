@@ -6,4 +6,4 @@ vcs:
 tasks:
     ci.phpunit:
         pre: composer install --dev
-        do: phpunit --exclude-group=integration
+        do: ./vendor/bin/phpunit --exclude-group=integration
