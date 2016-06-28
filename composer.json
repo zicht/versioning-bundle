@@ -7,10 +7,12 @@
         "doctrine/common": "*@stable",
         "doctrine/orm": "*@stable",
         "zicht/util": "1.*@stable",
-        "symfony/http-foundation": "2.*,>=2.6",
-        "symfony/security": "2.*,>=2.6",
-        "symfony/serializer": "2.*,>=2.6",
-        "symfony/property-access": "2.*,>=2.6"
+        "symfony/http-foundation": "2.*",
+        "symfony/security": "2.*",
+        "symfony/serializer": "2.*",
+        "symfony/property-access": "2.*",
+        "sonata-project/admin-bundle": "*",
+        "symfony/console": "2.*"
     },
     "require-dev": {
         "behat/behat": "~3.0",
