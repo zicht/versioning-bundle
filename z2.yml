@@ -1,7 +1,4 @@
-plugins: ['svn']
-
-vcs:
-    url: svn://zon/projecten/zicht-libraries/ZichtVersioningBundle
+plugins: ['git']
 
 tasks:
     ci.phpunit:
