@@ -2,5 +2,5 @@ plugins: ['git']
 
 tasks:
     ci.phpunit:
-        pre: composer install --dev
+        pre: rm -f composer.lock && composer install --dev
         do: ./vendor/bin/phpunit --exclude-group=integration
