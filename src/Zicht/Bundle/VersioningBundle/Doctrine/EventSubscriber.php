@@ -9,10 +9,8 @@ namespace Zicht\Bundle\VersioningBundle\Doctrine;
 use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
 use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
-use Doctrine\ORM\PersistentCollection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-use Zicht\Bundle\RcoSiteBundle\Test\Logger;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\InvalidStateException;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
