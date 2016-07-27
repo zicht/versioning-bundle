@@ -6,6 +6,7 @@ plan future versions.
 
 ## Implementation notes ##
 
+### Marking versionable behaviour ###
 To make an entity versionable, the entity should implement the interface 
 `VersionableInterface`. For all OneToMany relations, the relation must be marked
 `cascade={...,"persist"}` and the contained entity must implement the
@@ -20,6 +21,18 @@ entity is versioned, and can simply query the database directly, since the
 
 There is a command to introspect these versions, which can be useful for
 debugging. 
+
+### cloning objects ###
+If you want to be able to clone objects, you *need to reset the object's id*:
+
+```
+public function __clone()
+{
+    $this->id = null;
+}
+```
+
+Otherwise, the versioning will mix up the record id references. 
 
 ## Sonata integration ##
 Because the versioned embedded entities do not exist in the database, sonata's

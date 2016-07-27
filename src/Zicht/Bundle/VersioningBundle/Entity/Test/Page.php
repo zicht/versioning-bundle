@@ -225,4 +225,9 @@ class Page implements VersionableInterface
     {
         $this->testingId = $testingId;
     }
+
+    public function __clone()
+    {
+        $this->id = null;
+    }
 }

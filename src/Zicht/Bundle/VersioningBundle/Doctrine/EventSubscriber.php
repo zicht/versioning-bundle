@@ -123,8 +123,10 @@ class EventSubscriber implements DoctrineEventSubscriber
                 if ($entity instanceof EmbeddedVersionableInterface && $parent = $entity->getVersionableParent()) {
                     // mimic an update for the parent. Any creation or update or delete should affect the parent,
                     // not the 'embedded' entity
-                    $type = 'update';
-                    $entity = $parent;
+                    if ($parent->getId()) {
+                        $type = 'update';
+                        $entity = $parent;
+                    }
                 }
 
                 if ($entity instanceof VersionableInterface) {
@@ -212,6 +214,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                     $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
                     $version->setIsActive(true);
                     $uow->scheduleForInsert($version);
+                    $this->versionMap[spl_object_hash($entity)]= $version;
                 }
             }
         }

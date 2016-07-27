@@ -17,4 +17,10 @@ interface VersionableInterface
      * @return mixed
      */
     public function getId();
+
+
+    /**
+     * The clone method MUST be implemented to reset the ID of the object.
+     */
+    public function __clone();
 }
