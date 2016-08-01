@@ -160,6 +160,12 @@ class EventSubscriber implements DoctrineEventSubscriber
                             $uow->clearEntityChangeSet(spl_object_hash($entity));
 
                             $this->versionMap[spl_object_hash($entity)]= $version;
+
+                            // this makes sure that, if the 'NEW' operation was triggered by an explicit version
+                            // operation, we mark it as handled here, so any subsequent flush won't keep creating new
+                            // versions. Fixes RCO-882
+                            $this->versioning->markExplicitVersionOperationHandled($entity);
+
                             break;
 
                         case VersioningManager::VERSION_OPERATION_UPDATE:

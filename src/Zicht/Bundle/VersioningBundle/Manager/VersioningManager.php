@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\Authentication\Token\PreAuthenticatedToken;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Util\ClassUtils;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\VersionNotFoundException;
 use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
@@ -328,12 +329,23 @@ class VersioningManager
         foreach ($this->versionOperations as $className => $instances) {
             foreach ($instances as $id => $operationDetails) {
                 $ret[]= array_merge(
-                    [$className, $id], $operationDetails
+                    [$className, $id],
+                    $operationDetails
                 );
             }
         }
 
         return $ret;
+    }
+
+
+    /**
+     * @param $className
+     * @param $id
+     */
+    public function markExplicitVersionOperationHandled(VersionableInterface $entity)
+    {
+        unset($this->versionOperations[ClassUtils::getRealClass($entity)][$entity->getId()]);
     }
 
 
