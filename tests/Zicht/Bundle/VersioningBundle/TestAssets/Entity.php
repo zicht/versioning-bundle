@@ -82,5 +82,10 @@ class Entity implements VersionableInterface
     {
         return $this->priv;
     }
+
+    public function __clone()
+    {
+    }
 }
+
 
