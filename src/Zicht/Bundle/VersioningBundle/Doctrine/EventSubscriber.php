@@ -211,6 +211,8 @@ class EventSubscriber implements DoctrineEventSubscriber
                             }
 
                             $this->versionMap[spl_object_hash($entity)]= $version;
+
+                            $this->versioning->markExplicitVersionOperationHandled($entity);
                             break;
 
                         default:
