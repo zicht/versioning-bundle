@@ -13,7 +13,6 @@ use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 
-
 /**
  * Decorates the RouteGeneratorInterface with extra parameters added to the URL for specific (explicit) versions
  * to be loaded for objects that were loaded as a specific version in the versioningmanager.

@@ -108,7 +108,7 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
             $this->getEntityManager()->flush($v);
             return null;
         } else {
-            return function() {
+            return function () {
                 $this->getEntityManager()->flush();
             };
         }
@@ -128,14 +128,12 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
             ->select('v')
             ->from('ZichtVersioningBundle:EntityVersion', 'v')
             ->orderBy('v.dateCreated', 'DESC')
-            ->setMaxResults($limit)
-        ;
+            ->setMaxResults($limit);
 
         if (null !== $active) {
             $q
                 ->andWhere('v.isActive=:active')
-                ->setParameter(':active', (bool)$active)
-            ;
+                ->setParameter(':active', (bool)$active);
         }
 
         return $q->getQuery()->execute();
@@ -178,20 +176,21 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
                 return $row['id'];
             },
             $this->getEntityManager()->getConnection()->fetchAll(
-                sprintf('
-                    SELECT
-                        DISTINCT new_version.id
-                    FROM
-                        _entity_version new_version
-                            INNER JOIN _entity_version active_version ON(
-                                new_version.source_class=active_version.source_class
-                                AND new_version.original_id=active_version.original_id
-                                AND new_version.version_number > active_version.version_number
-                            )
-                    ORDER BY
-                        new_version.date_created DESC
-                    LIMIT
-                        %d
+                sprintf(
+                    '
+                        SELECT
+                            DISTINCT new_version.id
+                        FROM
+                            _entity_version new_version
+                                INNER JOIN _entity_version active_version ON(
+                                    new_version.source_class=active_version.source_class
+                                    AND new_version.original_id=active_version.original_id
+                                    AND new_version.version_number > active_version.version_number
+                                )
+                        ORDER BY
+                            new_version.date_created DESC
+                        LIMIT
+                            %d
                     ',
                     $limit
                 )
@@ -205,12 +204,18 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
             ->from('ZichtVersioningBundle:EntityVersion', 'v')
             ->orderBy('v.dateCreated', 'DESC')
             ->andWhere('v.id IN(:ids)')
-            ->setParameter(':ids', $ids)
-        ;
+            ->setParameter(':ids', $ids);
 
         return $q->getQuery()->execute();
     }
 
+
+    /**
+     * Remove version
+     *
+     * @param EntityVersionInterface $version
+     * @return void
+     */
     public function remove($version)
     {
         $this->_em->remove($version);

@@ -226,6 +226,10 @@ class Page implements VersionableInterface
         $this->testingId = $testingId;
     }
 
+
+    /**
+     * Implements the clone to clear the ID.
+     */
     public function __clone()
     {
         $this->id = null;

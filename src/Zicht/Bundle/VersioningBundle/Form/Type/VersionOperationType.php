@@ -10,7 +10,6 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-
 /**
  * Little wrapper to wrap available version operations in a choice
  */
@@ -23,19 +22,19 @@ class VersionOperationType extends AbstractType
     {
         $resolver
             ->setRequired('operations')
-            ->setDefaults([
-                'label' => 'form_label.operation',
-                'choices' =>
-                    function(Options $options) {
+            ->setDefaults(
+                [
+                    'label' => 'form_label.operation',
+                    'choices' => function (Options $options) {
                         $ret = [];
                         foreach ($options['operations'] as $op) {
                             $ret[$op]= 'admin.versioning.operation.' . $op;
                         }
                         return $ret;
                     },
-                'translation_domain' => 'admin'
-            ])
-        ;
+                    'translation_domain' => 'admin'
+                ]
+            );
     }
 
     /**

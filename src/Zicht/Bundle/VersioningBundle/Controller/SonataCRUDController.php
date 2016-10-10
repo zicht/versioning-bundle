@@ -39,21 +39,27 @@ class SonataCRUDController extends CRUDController
 
         // todo this probably should be implemented using a serializer in stead.
         $on = new ObjectNormalizer();
-        $on->setCallbacks([
-            'data' =>
-                function($var) {
+        $on->setCallbacks(
+            [
+                'data' => function ($var) {
                     return json_decode($var, true);
                 }
-        ]);
-        $ser = new Serializer([
-            $on,
-            new DateTimeNormalizer(DateTimeNormalizer::STRATEGY_STRING)
-        ]);
+            ]
+        );
+        $ser = new Serializer(
+            [
+                $on,
+                new DateTimeNormalizer(DateTimeNormalizer::STRATEGY_STRING)
+            ]
+        );
         return new JsonResponse($ser->normalize($versions));
     }
 
     /**
+     * Delete a single version
      *
+     * @param Request $request
+     * @return mixed
      */
     public function deleteVersionAction(Request $request)
     {

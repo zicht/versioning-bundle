@@ -45,11 +45,10 @@ class ZichtVersioningExtension extends DIExtension
         $loader->load('security.xml');
 
         $container->getDefinition('zicht_versioning.security.version_owner_voter')
-            ->replaceArgument(0, ['EDIT', 'VIEW', 'DELETE'])
-        ;
+            ->replaceArgument(0, ['EDIT', 'VIEW', 'DELETE']);
+
         $container->getDefinition('zicht_versioning.security.version_entity_delegate_voter')
-            ->replaceArgument(1, ['EDIT' => ['ADMIN'], 'VIEW' => ['ADMIN'], 'DELETE' => ['ADMIN']])
-        ;
+            ->replaceArgument(1, ['EDIT' => ['ADMIN'], 'VIEW' => ['ADMIN'], 'DELETE' => ['ADMIN']]);
 
         $formResources = $container->getParameter('twig.form.resources');
         $formResources[]= 'ZichtVersioningBundle::form_theme.html.twig';

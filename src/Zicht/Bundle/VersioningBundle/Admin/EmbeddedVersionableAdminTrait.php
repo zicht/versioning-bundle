@@ -21,6 +21,7 @@ trait EmbeddedVersionableAdminTrait
      * Uses the index in the collection as an id rather than the id itself.
      *
      * @param object $entity
+     * @param bool $force
      * @return mixed
      */
     public function id($entity, $force = false)

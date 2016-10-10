@@ -37,19 +37,21 @@ class FilterInactiveVersionsChangesListener
      */
     public function onSolrFilterChanges(SolrFilterChangesEvent $event)
     {
-        $event->getChangeSet()->filter(function($change) {
-            list(, $entity) = $change;
-            if ($entity instanceof VersionableInterface) {
-                $affectedVersions = $this->versioningManager->getAffectedEntityVersions($entity);
-                if (count($affectedVersions)) {
-                    $affectedVersion = array_pop($affectedVersions);
-                    if (!$affectedVersion->isActive()) {
-                        return false;
+        $event->getChangeSet()->filter(
+            function ($change) {
+                list(, $entity) = $change;
+                if ($entity instanceof VersionableInterface) {
+                    $affectedVersions = $this->versioningManager->getAffectedEntityVersions($entity);
+                    if (count($affectedVersions)) {
+                        $affectedVersion = array_pop($affectedVersions);
+                        if (!$affectedVersion->isActive()) {
+                            return false;
+                        }
                     }
                 }
-            }
 
-            return true;
-        });
+                return true;
+            }
+        );
     }
 }

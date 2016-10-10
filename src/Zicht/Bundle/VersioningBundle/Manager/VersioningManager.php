@@ -298,7 +298,6 @@ class VersioningManager
      * avaiable, defaults to a new version based on the currently active version
      *
      * @param VersionableInterface $entity
-     * @param bool $noDefaults
      * @return string
      */
     public function getVersionOperation(VersionableInterface $entity)
@@ -340,8 +339,10 @@ class VersioningManager
 
 
     /**
-     * @param $className
-     * @param $id
+     * Mark a version operation as handled.
+     *
+     * @param VersionableInterface $entity
+     * @return void
      */
     public function markExplicitVersionOperationHandled(VersionableInterface $entity)
     {
@@ -387,7 +388,7 @@ class VersioningManager
     /**
      * Returns all currently affected versions for the specified entity.
      *
-     * @param $entity
+     * @param VersionableInterface $entity
      * @return EntityVersion[]
      */
     public function getAffectedEntityVersions($entity)
@@ -577,7 +578,7 @@ class VersioningManager
         } else {
             $this->affectedVersions = array_filter(
                 $this->affectedVersions,
-                function($affectedVersion) use($entityClass) {
+                function ($affectedVersion) use ($entityClass) {
                     list($entity, $id) = $affectedVersion;
                     return ! ($entity instanceof $entityClass);
                 }
@@ -585,7 +586,13 @@ class VersioningManager
         }
     }
 
-
+    /**
+     * Delete a single version
+     *
+     * @param VersionableInterface $object
+     * @param int $versionNumber
+     * @return bool
+     */
     public function deleteVersion($object, $versionNumber)
     {
         // only delete loaded versions.

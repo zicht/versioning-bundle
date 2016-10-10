@@ -51,8 +51,7 @@ class CheckCommand extends Command
             ->addArgument('class', InputArgument::OPTIONAL, 'Class')
             ->addArgument('id', InputArgument::OPTIONAL, 'ID')
             ->addOption('fix', null, InputOption::VALUE_NONE, 'Try to fix reported problems')
-            ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug')
-        ;
+            ->addOption('debug', null, InputOption::VALUE_NONE, 'Debug');
     }
 
 
@@ -76,8 +75,7 @@ class CheckCommand extends Command
             $this->doctrine
                 ->getConnection()
                 ->getConfiguration()
-                ->setSQLLogger(new EchoSQLLogger())
-            ;
+                ->setSQLLogger(new EchoSQLLogger());
         }
 
         $numChanges = [];

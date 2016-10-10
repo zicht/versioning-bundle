@@ -12,8 +12,6 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher;
-use Zicht\Bundle\VersioningBundle\Event\VersioningEvent;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Itertools as iter;
@@ -56,8 +54,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
         $this
             ->setName('zicht:versioning:schedule')
             ->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do a dry run (don\'t commit changes)')
-            ->setDescription('Search for versions that are supposed to be activated')
-        ;
+            ->setDescription('Search for versions that are supposed to be activated');
     }
 
     /**

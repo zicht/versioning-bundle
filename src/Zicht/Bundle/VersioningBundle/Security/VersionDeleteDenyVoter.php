@@ -14,16 +14,16 @@ use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
  */
 class VersionDeleteDenyVoter extends AbstractVersionVoter
 {
+    /**
+     * @{inheritDoc}
+     */
     public function supportsAttribute($attribute)
     {
         return $attribute === 'DELETE';
     }
 
     /**
-     * @param TokenInterface $token
-     * @param EntityVersionInterface $object
-     * @param array $attributes
-     * @return int
+     * @{inheritDoc}
      */
     public function vote(TokenInterface $token, $object, array $attributes)
     {

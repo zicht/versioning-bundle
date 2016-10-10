@@ -199,8 +199,7 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                             // If the object has persistentCollections stashed, use those to
                             // have doctrine synchronize the collections with the database for the loaded
-                            // version. 
-                            // See the Serializer for the implementation
+                            // version. See the Serializer for the implementation
                             if (isset($entity->__persistentCollections__)) {
                                 foreach ($entity->__persistentCollections__ as list($reflection, $collection)) {
                                     $collection->clear();
@@ -228,7 +227,12 @@ class EventSubscriber implements DoctrineEventSubscriber
         }
     }
 
-
+    /**
+     * Handle version operations.
+     *
+     * @param Event\OnFlushEventArgs $e
+     * @return vod
+     */
     public function onFlush(Event\OnFlushEventArgs $e)
     {
         $uow = $e->getEntityManager()->getUnitOfWork();
@@ -251,8 +255,9 @@ class EventSubscriber implements DoctrineEventSubscriber
                         $conjugated = rtrim($operation, 'e') . 'ed';
                         throw new InvalidStateException(
                             "The versionable parent of this object was not persisted as a version, "
-                            . "but this entity would be {$conjugated} by the unit of work." // and in case you didn't get any
-                           // of that, that is bad. Because that breaks the entire concept.
+                            . "but this entity would be {$conjugated} by the unit of work."
+                            // and in case you didn't get any
+                            // of that, that is bad. Because that breaks the entire concept.
                         );
                     }
 

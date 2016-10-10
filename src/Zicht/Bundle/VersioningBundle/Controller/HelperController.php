@@ -41,6 +41,8 @@ class HelperController
     protected $validator;
 
     /**
+     * Constructor
+     *
      * @param \Twig_Environment                               $twig
      * @param \Sonata\AdminBundle\Admin\Pool                  $pool
      * @param \Sonata\AdminBundle\Admin\AdminHelper           $helper

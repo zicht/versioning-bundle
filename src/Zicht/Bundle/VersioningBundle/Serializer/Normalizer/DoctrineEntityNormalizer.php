@@ -86,9 +86,13 @@ class DoctrineEntityNormalizer extends AbstractNormalizer
                                 list($column) = array_keys($orderBy);
                                 list($direction) = array_values($orderBy);
 
-                                $collection = iter\sorted(function($o) use($column) {
-                                    return $this->propertyAccessor->getValue($o, $column);
-                                }, $collection, 0 === strcasecmp('desc', $direction));
+                                $collection = iter\sorted(
+                                    function ($o) use ($column) {
+                                        return $this->propertyAccessor->getValue($o, $column);
+                                    },
+                                    $collection,
+                                    0 === strcasecmp('desc', $direction)
+                                );
                             }
 
                             foreach ($collection as $association) {

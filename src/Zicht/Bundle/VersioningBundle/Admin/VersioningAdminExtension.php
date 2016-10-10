@@ -26,8 +26,7 @@ class VersioningAdminExtension extends AdminExtension
                 ->with('admin.versioning.section', ['collapsed' => true])
                     ->add('versions', 'zicht_version')
                 ->end()
-            ->end()
-        ;
+            ->end();
     }
 
     /**

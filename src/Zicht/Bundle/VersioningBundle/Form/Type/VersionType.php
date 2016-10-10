@@ -40,10 +40,12 @@ class VersionType extends AbstractType
      */
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults([
-            'mapped' => false,
-            'datetime_type' => $this->dateTimeType
-        ]);
+        $resolver->setDefaults(
+            [
+                'mapped' => false,
+                'datetime_type' => $this->dateTimeType
+            ]
+        );
     }
 
     /**
@@ -54,12 +56,20 @@ class VersionType extends AbstractType
         $builder
             ->add('version', 'hidden')
             ->add('notes', 'textarea', ['required' => false, 'label' => 'form_label.notes', 'translation_domain' => 'admin'])
-            ->add('dateActiveFrom', 'sonata_type_datetime_picker', ['required' => false, 'label' => 'form_label.date_active_from', 'translation_domain' => 'admin', 'format' => 'dd-MM-yyyy HH:mm'])
-        ;
+            ->add(
+                'dateActiveFrom',
+                'sonata_type_datetime_picker',
+                [
+                    'required' => false,
+                    'label' => 'form_label.date_active_from',
+                    'translation_domain' => 'admin',
+                    'format' => 'dd-MM-yyyy HH:mm'
+                ]
+            );
 
         $builder->addEventListener(
             FormEvents::PRE_SET_DATA,
-            function(FormEvent $e) {
+            function (FormEvent $e) {
                 $entity = $e->getForm()->getParent()->getData();
                 if ($entity === null) {
                     return;
@@ -81,7 +91,8 @@ class VersionType extends AbstractType
                 $versionInstance = $this->versioning->findVersion($entity, $version);
                 $e->getForm()->add(
                     'operation',
-                    'zicht_version_operation_choice', [
+                    'zicht_version_operation_choice',
+                    [
                         'operations' => $this->versioning->getAvailableOperations($entity, $versionInstance),
                         'translation_domain' => 'admin'
                     ]
@@ -100,7 +111,7 @@ class VersionType extends AbstractType
         );
         $builder->addEventListener(
             FormEvents::SUBMIT,
-            function(FormEvent $e) {
+            function (FormEvent $e) {
                 if (!$e->getData()) {
                     return;
                 }
