@@ -123,7 +123,9 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
                     )
                 );
 
-                $output->writeln(sprintf('<comment>Version Id: %d is set to active (OriginalId: %d) %s</comment>', $scheduledVersion['id'], $scheduledVersion['original_id'], $isDryRun ? ' [DRY RUN]' : ''));
+                if ($output->getVerbosity() > OutputInterface::VERBOSITY_NORMAL) {
+                    $output->writeln(sprintf('<comment>Version Id: %d is set to active (OriginalId: %d) %s</comment>', $scheduledVersion['id'], $scheduledVersion['original_id'], $isDryRun ? ' [DRY RUN]' : ''));
+                }
             } catch (\Exception $e) {
                 $message = sprintf('"%s" while trying to activate version %d', $e->getMessage(), $scheduledVersion['id']);
                 $output->writeln(sprintf('<error>%s</error>', $message));
