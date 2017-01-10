@@ -10,7 +10,6 @@ use Doctrine\Common\EventSubscriber as DoctrineEventSubscriber;
 use Doctrine\ORM\Event;
 use Doctrine\ORM\Events;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\InvalidStateException;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
@@ -185,6 +184,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                         case VersioningManager::VERSION_OPERATION_ACTIVATE:
                             $version = $this->versioning->updateEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
                             $version->setIsActive(true);
+                            $version->setDateActiveFrom(new \DateTime());
 
                             $uow->scheduleForUpdate($version);
                             $uow->scheduleForDirtyCheck($version);
