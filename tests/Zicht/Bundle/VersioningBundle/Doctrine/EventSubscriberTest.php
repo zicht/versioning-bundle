@@ -12,6 +12,7 @@ use Doctrine\ORM\UnitOfWork;
 use Symfony\Component\DependencyInjection\Container;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
+use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\TestAssets\Entity;
 use Doctrine\ORM\Event;
 use Zicht\Bundle\VersioningBundle\TestAssets\OtherEntity;
@@ -100,7 +101,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
 
         $changeset = ['some'=>'changeset'];
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
-        $this->uow->expects($this->once())->method('scheduleForINsert')->with($version);
+        $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, null, []]));
         $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $changeset)->will($this->returnValue($version));
@@ -165,6 +166,81 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->never())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234, []]));
         $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
+        $this->subscriber->preFlush($event);
+    }
+
+    public function testPreFlushWillSetDateActiveFromOnActivatedVersionWhereVersionAlreadyHasADate()
+    {
+        $entity = new Entity();
+        $version = new EntityVersion();
+        $version->setDateActiveFrom(new \DateTime('1980-11-17'));
+
+        $event = $this->createPreFlushEventArgs();
+
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+
+        $changeset = ['some'=>'changeset'];
+        $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
+        $this->uow->expects($this->once())->method('scheduleForUpdate')->with($version);
+        $this->uow->expects($this->once())->method('scheduleForDirtyCheck')->with($version);
+        $this->uow->expects($this->never())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
+        $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234, []]));
+        $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
+        $this->subscriber->preFlush($event);
+
+        $this->assertNotEquals('1980-11-17', $version->getDateActiveFrom()->format('Y-m-d'));
+        $this->assertNotNull($version->getDateActiveFrom());
+    }
+
+    public function testPreFlushWillSetDateActiveFromOnActivatedVersion()
+    {
+        $entity = new Entity();
+        $version = new EntityVersion();
+
+        $event = $this->createPreFlushEventArgs();
+
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+
+        $changeset = ['some'=>'changeset'];
+        $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
+        $this->uow->expects($this->once())->method('scheduleForUpdate')->with($version);
+        $this->uow->expects($this->once())->method('scheduleForDirtyCheck')->with($version);
+        $this->uow->expects($this->never())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
+        $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_ACTIVATE, 1234, []]));
+        $this->manager->expects($this->once())->method('updateEntityVersion')->will($this->returnValue($version));
+        $this->subscriber->preFlush($event);
+
+        $this->assertNotEquals('', $version->getDateActiveFrom()->format('Y-m-d'));
+        $this->assertNotNull($version->getDateActiveFrom());
+    }
+
+    public function testPreFlushWillClearDateActiveFromWhenCreatingNewVersion()
+    {
+        // arrange
+        $entity = new Entity();
+        $version = new EntityVersion();
+        $meta = ['dateActiveFrom' => new \DateTime(), 'other_data' => rand()];
+
+        $event = $this->createPreFlushEventArgs();
+
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+
+        $changeset = ['some'=>'changeset'];
+        $this->uow->expects($this->once())->method('getEntityChangeSet')->will($this->returnValue($changeset));
+        $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, $meta]));
+
+        // assert
+        $this->manager->expects($this->once())->method('createEntityVersion')->will(
+            $this->returnCallback(
+                function (VersionableInterface $entity, $changeset, $baseVersion = null, $metadata = null) {
+                    $this->assertNotEmpty($metadata['other_data']);
+                    $this->assertEmpty($metadata['dateActiveFrom']);
+                }));
+
+        // act
         $this->subscriber->preFlush($event);
     }
 
