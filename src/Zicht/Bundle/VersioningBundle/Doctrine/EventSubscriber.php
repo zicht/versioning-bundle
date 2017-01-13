@@ -265,7 +265,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                         );
                     }
 
-                    if (!$this->versionMap[spl_object_hash($entity->getVersionableParent())]->isActive()) {
+                    if (!$this->versionMap[spl_object_hash($parent)]->isActive()) {
                         $uow->detach($entity);
                     }
                 }
