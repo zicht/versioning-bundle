@@ -50,3 +50,7 @@ class ContentItemDetailAdmin extends Admin
 {
     use EmbeddedVersionableAdminTrait;
 }
+```
+
+# Maintainer(s)
+* Gerard van Helden <gerard@zicht.nl>

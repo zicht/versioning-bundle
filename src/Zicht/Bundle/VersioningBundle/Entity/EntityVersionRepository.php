@@ -74,7 +74,7 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
         $q = $connection->createQueryBuilder()
             ->select('MAX(version_number)')
             ->from('_entity_version', 'v')
-            ->andWhere('original_id=:originalId AND source_class=:sourceClass')
+            ->where('original_id=:originalId AND source_class=:sourceClass')
             ->setParameters($this->queryParams($entity));
         /** @var PDOStatement $stmt */
         $stmt = $q->execute();
