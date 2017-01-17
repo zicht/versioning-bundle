@@ -250,8 +250,8 @@ class EventSubscriber implements DoctrineEventSubscriber
 
         foreach ($allScheduled as $operation => $entities) {
             foreach ($entities as $entity) {
-                if ($entity instanceof EmbeddedVersionableInterface) {
-                    if (!isset($this->versionMap[spl_object_hash($entity->getVersionableParent())])) {
+                if ($entity instanceof EmbeddedVersionableInterface && $parent = $entity->getVersionableParent()) {
+                    if (!isset($this->versionMap[spl_object_hash($parent)])) {
                         // This is an error state that should never occur. The entity pointed to in this case
                         // should have been scheduled for dirty check in the switch case above and therefore
                         // should be part of the change set, and thus it's version should be known to the current
@@ -265,7 +265,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                         );
                     }
 
-                    if (!$this->versionMap[spl_object_hash($entity->getVersionableParent())]->isActive()) {
+                    if (!$this->versionMap[spl_object_hash($parent)]->isActive()) {
                         $uow->detach($entity);
                     }
                 }
