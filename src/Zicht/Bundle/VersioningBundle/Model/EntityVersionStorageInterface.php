@@ -15,9 +15,10 @@ interface EntityVersionStorageInterface
      * Find all versions for the specified object.
      *
      * @param VersionableInterface $object
+     * @param null $limit
      * @return EntityVersionInterface[]
      */
-    public function findVersions(VersionableInterface $object);
+    public function findVersions(VersionableInterface $object, $limit = null);
 
     /**
      * Find the specified version of the specified object
@@ -60,9 +61,10 @@ interface EntityVersionStorageInterface
      * Returns the latest changes, as seen from the versioning perspective.
      *
      * @param bool $active
-     * @return mixed[]
+     * @param int $limit
+     * @return \mixed[]
      */
-    public function findLatestVersionChanges($active = null);
+    public function findLatestVersionChanges($active = null, $limit = 10);
 
     /**
      * Returns the objects that the versions specified apply to.
