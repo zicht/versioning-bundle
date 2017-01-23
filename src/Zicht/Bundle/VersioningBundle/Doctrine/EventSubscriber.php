@@ -17,6 +17,8 @@ use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 
+use Zicht\Itertools as iter;
+
 /**
  * Class EventSubscriber
  *
@@ -153,22 +155,25 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                     switch ($versionOperation) {
                         case VersioningManager::VERSION_OPERATION_NEW:
+                            $changeset = $uow->getEntityChangeSet($entity);
+                            if ($this->requiresNewVersion($entity, $changeset)) {
+                                // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
+                                unset($meta['dateActiveFrom']);
 
-                            // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
-                            unset($meta['dateActiveFrom']);
+                                $version = $this->versioning->createEntityVersion($entity, $changeset, $baseVersion, $meta);
 
-                            $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
+                                $uow->scheduleForInsert($version);
 
-                            $uow->scheduleForInsert($version);
+                                $this->versionMap[spl_object_hash($entity)]= $version;
+
+                                // this makes sure that, if the 'NEW' operation was triggered by an explicit version
+                                // operation, we mark it as handled here, so any subsequent flush won't keep creating new
+                                // versions. Fixes RCO-882
+                                $this->versioning->markExplicitVersionOperationHandled($entity);
+                            }
+
+                            // Since we make a new version, we don't want the changes to be persisted to the actual entity table
                             $uow->clearEntityChangeSet(spl_object_hash($entity));
-
-                            $this->versionMap[spl_object_hash($entity)]= $version;
-
-                            // this makes sure that, if the 'NEW' operation was triggered by an explicit version
-                            // operation, we mark it as handled here, so any subsequent flush won't keep creating new
-                            // versions. Fixes RCO-882
-                            $this->versioning->markExplicitVersionOperationHandled($entity);
-
                             break;
 
                         case VersioningManager::VERSION_OPERATION_UPDATE:
@@ -321,5 +326,25 @@ class EventSubscriber implements DoctrineEventSubscriber
         if (null === $this->versioning) {
             $this->versioning = $this->container->get('zicht_versioning.manager');
         }
+    }
+
+    /**
+     * Check if a new version needs to be created for the provided entity. Meaning: check if the changeset given differs from the previous versions changeset
+     * This is needed since we (Doctrine) compare the changes with the active version (in the entity table) instead of the latest version
+     *
+     * @param VersionableInterface $entity
+     * @param array $changeset
+     *
+     * @return bool
+     */
+    protected function requiresNewVersion(VersionableInterface $entity, $changeset)
+    {
+        $latestVersion = iter\filter($this->versioning->findVersions($entity, 1))->first();
+
+        if (!$latestVersion) {
+            return true;
+        }
+
+        return $latestVersion->getChangeset() != $changeset;
     }
 }

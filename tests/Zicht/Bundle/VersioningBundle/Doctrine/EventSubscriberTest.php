@@ -27,7 +27,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $container = new Container();
         $this->manager = $this->getMockBuilder(VersioningManager::class)->disableOriginalConstructor()->setMethods([
             'loadVersion', 'getAffectedVersions', 'findActiveVersion', 'getVersionOperation', 'createEntityVersion', 'updateEntityVersion',
-            'clear'
+            'clear', 'findVersions'
         ])->getMock();
 
         $container->set('zicht_versioning.manager', $this->manager);
@@ -105,6 +105,63 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, null, []]));
         $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $changeset)->will($this->returnValue($version));
+        $this->subscriber->preFlush($event);
+    }
+
+    /**
+     * This will test the case when an user persists an entity with changes (Doctrine changeset) that are not in the latest version and wants to store it as a new version (VERSION_OPERATION_NEW).
+     * Expected outcome: a new version with the persisted changeset (and the version shouldn't be set to active)
+     */
+    public function testPreFlushWillCheckChangesetForDuplicates__new__differentChangeset()
+    {
+        $entity = new Entity();
+        $version = new EntityVersion();
+
+        $latestVersion = new EntityVersion();
+        $latestVersion->setChangeset(['different' => 'changeset']);
+
+        $newChangeset = ['some'=>'changeset'];
+
+        $event = $this->createPreFlushEventArgs();
+
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($newChangeset));
+        $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, []]));
+
+        $this->manager->expects($this->once())->method('findVersions')->with($entity, 1)->will($this->returnValue([$latestVersion]));
+        $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $newChangeset, 1234)->will($this->returnValue($version));
+        $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
+        $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
+
+        $this->subscriber->preFlush($event);
+    }
+
+    /**
+     * This will test the case when an user persists an entity with changes (Doctrine changeset) that are the same as the latest versions changeset and wants to store it as a new version (VERSION_OPERATION_NEW).
+     * Expected outcome: NO new version will be created
+     */
+    public function testPreFlushWillCheckChangesetForDuplicates__new__sameChangeset()
+    {
+        $entity = new Entity();
+        $version = new EntityVersion();
+        $latestVersion = new EntityVersion();
+
+        $changeset = ['some'=>'changeset'];
+        $latestVersion->setChangeset($changeset);
+
+        $event = $this->createPreFlushEventArgs();
+
+        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
+        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
+        $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
+        $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, []]));
+
+        $this->manager->expects($this->once())->method('findVersions')->with($entity, 1)->will($this->returnValue([$latestVersion]));
+        $this->manager->expects($this->never())->method('createEntityVersion');
+        $this->uow->expects($this->never())->method('scheduleForInsert')->with($version);
+        $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
+
         $this->subscriber->preFlush($event);
     }
 

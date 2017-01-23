@@ -21,16 +21,21 @@ class EntityVersionRepository extends EntityRepository implements Model\EntityVe
     /**
      * @{inheritDoc}
      */
-    public function findVersions(Model\VersionableInterface $entity)
+    public function findVersions(Model\VersionableInterface $entity, $limit = null)
     {
-        return $this->createQueryBuilder('ev')
+        $qb = $this->createQueryBuilder('ev')
             ->select('ev')
             ->where('ev.sourceClass = :sourceClass')
             ->andWhere('ev.originalId = :originalId')
             ->setParameters($this->queryParams($entity))
             ->orderBy('ev.id', 'DESC')
-            ->getQuery()
-            ->getResult();
+        ;
+
+        if ($limit) {
+            $qb->setMaxResults($limit);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     /**

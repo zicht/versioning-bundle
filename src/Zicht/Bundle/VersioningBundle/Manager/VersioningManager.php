@@ -160,9 +160,9 @@ class VersioningManager
      * @param VersionableInterface $object
      * @return EntityVersionInterface[]
      */
-    public function findVersions(VersionableInterface $object)
+    public function findVersions(VersionableInterface $object, $limit = null)
     {
-        return $this->storage->findVersions($object);
+        return $this->storage->findVersions($object, $limit);
     }
 
 
@@ -542,12 +542,13 @@ class VersioningManager
      * objects mapped by class name and object id.
      *
      * @param bool $active
-     * @return mixed[]
+     * @param int $limit
+     * @return \mixed[]
      */
-    public function getLatestChanges($active)
+    public function getLatestChanges($active, $limit = 10)
     {
         /** @var EntityVersionInterface[] $versions */
-        $versions = $this->storage->findLatestVersionChanges($active);
+        $versions = $this->storage->findLatestVersionChanges($active, $limit);
         $objects = $this->storage->getObjects($versions);
         return ['versions' => $versions, 'objects' => $objects];
     }
