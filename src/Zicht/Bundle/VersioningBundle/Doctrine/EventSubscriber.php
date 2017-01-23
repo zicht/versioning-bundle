@@ -156,7 +156,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                     switch ($versionOperation) {
                         case VersioningManager::VERSION_OPERATION_NEW:
                             $changeset = $uow->getEntityChangeSet($entity);
-                            if ($this->isChangesetValid($changeset, $entity)) {
+                            if ($this->requiresNewVersion($entity, $changeset)) {
                                 // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
                                 unset($meta['dateActiveFrom']);
 
@@ -329,15 +329,15 @@ class EventSubscriber implements DoctrineEventSubscriber
     }
 
     /**
-     * Check if the changeset provided is valid. Meaning: check if changes given differs from the previous versions changeset
+     * Check if a new version needs to be created for the provided entity. Meaning: check if the changeset given differs from the previous versions changeset
      * This is needed since we (Doctrine) compare the changes with the active version (in the entity table) instead of the latest version
      *
-     * @param array $changeset
      * @param VersionableInterface $entity
+     * @param array $changeset
      *
      * @return bool
      */
-    protected function isChangesetValid($changeset, VersionableInterface $entity)
+    protected function requiresNewVersion(VersionableInterface $entity, $changeset)
     {
         $latestVersion = iter\filter($this->versioning->findVersions($entity, 1))->first();
 
