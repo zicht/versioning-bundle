@@ -155,11 +155,12 @@ class EventSubscriber implements DoctrineEventSubscriber
 
                     switch ($versionOperation) {
                         case VersioningManager::VERSION_OPERATION_NEW:
-                            if ($this->isChangesetValid($uow->getEntityChangeSet($entity), $entity)) {
+                            $changeset = $uow->getEntityChangeSet($entity);
+                            if ($this->isChangesetValid($changeset, $entity)) {
                                 // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
                                 unset($meta['dateActiveFrom']);
 
-                                $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity), $baseVersion, $meta);
+                                $version = $this->versioning->createEntityVersion($entity, $changeset, $baseVersion, $meta);
 
                                 $uow->scheduleForInsert($version);
 
