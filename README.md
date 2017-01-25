@@ -53,4 +53,4 @@ class ContentItemDetailAdmin extends Admin
 ```
 
 # Maintainer(s)
-* Gerard van Helden <gerard@zicht.nl>
+* Oskar van Velden <oskar@zicht.nl>
