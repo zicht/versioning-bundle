@@ -13,10 +13,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\InvalidStateException;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
+use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
-
 use Zicht\Itertools as iter;
 
 /**
@@ -156,15 +155,12 @@ class EventSubscriber implements DoctrineEventSubscriber
                     switch ($versionOperation) {
                         case VersioningManager::VERSION_OPERATION_NEW:
                             $changeset = $uow->getEntityChangeSet($entity);
+                            // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
+                            unset($meta['dateActiveFrom']);
+                            $version = $this->versioning->createEntityVersion($entity, $changeset, $baseVersion, $meta);
+                            $this->versionMap[spl_object_hash($entity)]= $version;
                             if ($this->requiresNewVersion($entity, $changeset)) {
-                                // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
-                                unset($meta['dateActiveFrom']);
-
-                                $version = $this->versioning->createEntityVersion($entity, $changeset, $baseVersion, $meta);
-
                                 $uow->scheduleForInsert($version);
-
-                                $this->versionMap[spl_object_hash($entity)]= $version;
 
                                 // this makes sure that, if the 'NEW' operation was triggered by an explicit version
                                 // operation, we mark it as handled here, so any subsequent flush won't keep creating new
@@ -240,7 +236,7 @@ class EventSubscriber implements DoctrineEventSubscriber
      * Handle version operations.
      *
      * @param Event\OnFlushEventArgs $e
-     * @return vod
+     * @return void
      */
     public function onFlush(Event\OnFlushEventArgs $e)
     {
@@ -329,8 +325,12 @@ class EventSubscriber implements DoctrineEventSubscriber
     }
 
     /**
-     * Check if a new version needs to be created for the provided entity. Meaning: check if the changeset given differs from the previous versions changeset
-     * This is needed since we (Doctrine) compare the changes with the active version (in the entity table) instead of the latest version
+     * Check if a new version needs to be created for the provided entity.
+     * Meaning: check if the change set given differs from the previous versions change set
+     * This is needed since we (Doctrine) compare the changes with the active version (in the entity table)
+     * instead of the latest version
+     * Also check whether embedded entities have changed!
+     *
      *
      * @param VersionableInterface $entity
      * @param array $changeset
@@ -345,6 +345,6 @@ class EventSubscriber implements DoctrineEventSubscriber
             return true;
         }
 
-        return $latestVersion->getChangeset() != $changeset;
+        return $latestVersion->getChangeset() !== $changeset;
     }
 }
