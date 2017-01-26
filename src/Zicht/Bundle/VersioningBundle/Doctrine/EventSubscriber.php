@@ -329,8 +329,7 @@ class EventSubscriber implements DoctrineEventSubscriber
      * Meaning: check if the change set given differs from the previous versions change set
      * This is needed since we (Doctrine) compare the changes with the active version (in the entity table)
      * instead of the latest version
-     * Also check whether embedded entities have changed!
-     *
+     * TODO: Also check whether embedded entities have changed!
      *
      * @param VersionableInterface $entity
      * @param array $changeset
