@@ -136,35 +136,6 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->subscriber->preFlush($event);
     }
 
-    /**
-     * This will test the case when an user persists an entity with changes (Doctrine changeset) that are the same as the latest versions changeset and wants to store it as a new version (VERSION_OPERATION_NEW).
-     * Expected outcome: A new version will be created
-     */
-    public function testPreFlushWillCheckChangesetForDuplicates__new__sameChangeset()
-    {
-        $entity = new Entity();
-        $version = new EntityVersion();
-        $latestVersion = new EntityVersion();
-
-        $changeset = ['some'=>'changeset'];
-        $latestVersion->setChangeset($changeset);
-
-        $event = $this->createPreFlushEventArgs();
-
-        $this->uow->expects($this->any())->method('getScheduledEntityUpdates')->will($this->returnValue([$entity]));
-        $this->uow->expects($this->any())->method('getScheduledEntityInsertions')->will($this->returnValue([]));
-        $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($changeset));
-        $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, []]));
-
-        $this->manager->expects($this->once())->method('findVersions')->with($entity, 1)->will($this->returnValue([$latestVersion]));
-        $this->manager->expects($this->once())->method('createEntityVersion');
-        $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
-        $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
-
-        $this->subscriber->preFlush($event);
-    }
-
-
     public function testPreFlushWillCreateVersionWithBasedOnVersion()
     {
         $entity = new Entity();
