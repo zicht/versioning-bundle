@@ -138,7 +138,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
 
     /**
      * This will test the case when an user persists an entity with changes (Doctrine changeset) that are the same as the latest versions changeset and wants to store it as a new version (VERSION_OPERATION_NEW).
-     * Expected outcome: NO new version will be created
+     * Expected outcome: A new version will be created
      */
     public function testPreFlushWillCheckChangesetForDuplicates__new__sameChangeset()
     {
@@ -157,8 +157,8 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, []]));
 
         $this->manager->expects($this->once())->method('findVersions')->with($entity, 1)->will($this->returnValue([$latestVersion]));
-        $this->manager->expects($this->never())->method('createEntityVersion');
-        $this->uow->expects($this->never())->method('scheduleForInsert')->with($version);
+        $this->manager->expects($this->once())->method('createEntityVersion');
+        $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
 
         $this->subscriber->preFlush($event);
