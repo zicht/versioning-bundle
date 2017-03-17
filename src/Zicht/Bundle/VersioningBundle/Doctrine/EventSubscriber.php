@@ -144,7 +144,7 @@ class EventSubscriber implements DoctrineEventSubscriber
             $entity = $em->find($className, $id);
 
             if (!in_array(spl_object_hash($entity), array_map('array_keys', $objectMap))) {
-                // minic a change for the versions that are not part of the unit of work, but do require an explicit change:
+                // mimic a change for the versions that are not part of the unit of work, but do require an explicit change:
                 $objectMap['update'][spl_object_hash($entity)] = $entity;
             }
         }
@@ -266,9 +266,9 @@ class EventSubscriber implements DoctrineEventSubscriber
                         throw new InvalidStateException(
                             "The versionable parent of this object was not persisted as a version, "
                             . "but this entity would be {$conjugated} by the unit of work."
+                        );
                         // and in case you didn't get any
                         // of that, that is bad. Because that breaks the entire concept.
-                        );
                     }
 
                     if (!$this->versionMap[spl_object_hash($parent)]->isActive()) {
