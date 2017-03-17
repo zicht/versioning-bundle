@@ -129,7 +129,6 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
         $this->uow->expects($this->once())->method('getEntityChangeSet')->with($entity)->will($this->returnValue($newChangeset));
         $this->manager->expects($this->once())->method('getVersionOperation')->will($this->returnValue([VersioningManager::VERSION_OPERATION_NEW, 1234, []]));
 
-        $this->manager->expects($this->once())->method('findVersions')->with($entity, 1)->will($this->returnValue([$latestVersion]));
         $this->manager->expects($this->once())->method('createEntityVersion')->with($entity, $newChangeset, 1234)->will($this->returnValue($version));
         $this->uow->expects($this->once())->method('scheduleForInsert')->with($version);
         $this->uow->expects($this->once())->method('clearEntityChangeSet')->with(spl_object_hash($entity));
@@ -294,7 +293,7 @@ class EventSubscriberTest extends \PHPUnit_Framework_TestCase
             $this->returnCallback(
                 function (VersionableInterface $entity, $changeset, $baseVersion = null, $metadata = null) {
                     $this->assertNotEmpty($metadata['other_data']);
-                    $this->assertEmpty($metadata['dateActiveFrom']);
+                    $this->assertArrayNotHasKey('dateActiveFrom', $metadata);
                 }));
 
         // act
