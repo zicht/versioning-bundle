@@ -13,11 +13,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\Exception\InvalidStateException;
 use Zicht\Bundle\VersioningBundle\Exception\UnsupportedVersionOperationException;
+use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
 use Zicht\Bundle\VersioningBundle\Model\EmbeddedVersionableInterface;
 use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
-use Zicht\Bundle\VersioningBundle\Manager\VersioningManager;
-
-use Zicht\Itertools as iter;
 
 /**
  * Class EventSubscriber
@@ -37,6 +35,11 @@ class EventSubscriber implements DoctrineEventSubscriber
      * @var array
      */
     private $versionMap = [];
+
+    /**
+     * @var ContainerInterface
+     */
+    private $container;
 
     /**
      * EventSubscriber constructor.
@@ -111,7 +114,7 @@ class EventSubscriber implements DoctrineEventSubscriber
     {
         $this->fetchVersioningService();
 
-        $em  = $args->getEntityManager();
+        $em = $args->getEntityManager();
 
         $uow = $em->getUnitOfWork();
 
@@ -131,7 +134,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                 }
 
                 if ($entity instanceof VersionableInterface) {
-                    $objectMap[$type][spl_object_hash($entity)]= $entity;
+                    $objectMap[$type][spl_object_hash($entity)] = $entity;
                 }
             }
         }
@@ -141,8 +144,8 @@ class EventSubscriber implements DoctrineEventSubscriber
             $entity = $em->find($className, $id);
 
             if (!in_array(spl_object_hash($entity), array_map('array_keys', $objectMap))) {
-                // minic a change for the versions that are not part of the unit of work, but do require an explicit change:
-                $objectMap['update'][spl_object_hash($entity)]= $entity;
+                // mimic a change for the versions that are not part of the unit of work, but do require an explicit change:
+                $objectMap['update'][spl_object_hash($entity)] = $entity;
             }
         }
 
@@ -156,21 +159,19 @@ class EventSubscriber implements DoctrineEventSubscriber
                     switch ($versionOperation) {
                         case VersioningManager::VERSION_OPERATION_NEW:
                             $changeset = $uow->getEntityChangeSet($entity);
-                            if ($this->requiresNewVersion($entity, $changeset)) {
-                                // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
+
+                            // Make sure the new version doesn't copy the 'dateActiveFrom' from the previous version
+                            if (array_key_exists('dateActiveFrom', $meta)) {
                                 unset($meta['dateActiveFrom']);
-
-                                $version = $this->versioning->createEntityVersion($entity, $changeset, $baseVersion, $meta);
-
-                                $uow->scheduleForInsert($version);
-
-                                $this->versionMap[spl_object_hash($entity)]= $version;
-
-                                // this makes sure that, if the 'NEW' operation was triggered by an explicit version
-                                // operation, we mark it as handled here, so any subsequent flush won't keep creating new
-                                // versions. Fixes RCO-882
-                                $this->versioning->markExplicitVersionOperationHandled($entity);
                             }
+                            $version = $this->versioning->createEntityVersion($entity, $changeset, $baseVersion, $meta);
+                            $this->versionMap[spl_object_hash($entity)] = $version;
+                            $uow->scheduleForInsert($version);
+
+                            // this makes sure that, if the 'NEW' operation was triggered by an explicit version
+                            // operation, we mark it as handled here, so any subsequent flush won't keep creating new
+                            // versions. Fixes RCO-882
+                            $this->versioning->markExplicitVersionOperationHandled($entity);
 
                             // Since we make a new version, we don't want the changes to be persisted to the actual entity table
                             $uow->clearEntityChangeSet(spl_object_hash($entity));
@@ -186,7 +187,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                                 $uow->clearEntityChangeSet(spl_object_hash($entity));
                             }
 
-                            $this->versionMap[spl_object_hash($entity)]= $version;
+                            $this->versionMap[spl_object_hash($entity)] = $version;
 
                             break;
 
@@ -218,7 +219,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                                 }
                             }
 
-                            $this->versionMap[spl_object_hash($entity)]= $version;
+                            $this->versionMap[spl_object_hash($entity)] = $version;
 
                             $this->versioning->markExplicitVersionOperationHandled($entity);
                             break;
@@ -230,7 +231,7 @@ class EventSubscriber implements DoctrineEventSubscriber
                     $version = $this->versioning->createEntityVersion($entity, $uow->getEntityChangeSet($entity));
                     $version->setIsActive(true);
                     $uow->scheduleForInsert($version);
-                    $this->versionMap[spl_object_hash($entity)]= $version;
+                    $this->versionMap[spl_object_hash($entity)] = $version;
                 }
             }
         }
@@ -265,9 +266,9 @@ class EventSubscriber implements DoctrineEventSubscriber
                         throw new InvalidStateException(
                             "The versionable parent of this object was not persisted as a version, "
                             . "but this entity would be {$conjugated} by the unit of work."
-                            // and in case you didn't get any
-                            // of that, that is bad. Because that breaks the entire concept.
                         );
+                        // and in case you didn't get any
+                        // of that, that is bad. Because that breaks the entire concept.
                     }
 
                     if (!$this->versionMap[spl_object_hash($parent)]->isActive()) {
@@ -304,7 +305,7 @@ class EventSubscriber implements DoctrineEventSubscriber
             if (!$version->getOriginalId()) {
                 $version->setOriginalId($entity->getId());
                 $em->persist($version);
-                $num ++;
+                $num++;
             }
         }
 
@@ -326,25 +327,5 @@ class EventSubscriber implements DoctrineEventSubscriber
         if (null === $this->versioning) {
             $this->versioning = $this->container->get('zicht_versioning.manager');
         }
-    }
-
-    /**
-     * Check if a new version needs to be created for the provided entity. Meaning: check if the changeset given differs from the previous versions changeset
-     * This is needed since we (Doctrine) compare the changes with the active version (in the entity table) instead of the latest version
-     *
-     * @param VersionableInterface $entity
-     * @param array $changeset
-     *
-     * @return bool
-     */
-    protected function requiresNewVersion(VersionableInterface $entity, $changeset)
-    {
-        $latestVersion = iter\filter($this->versioning->findVersions($entity, 1))->first();
-
-        if (!$latestVersion) {
-            return true;
-        }
-
-        return $latestVersion->getChangeset() != $changeset;
     }
 }
