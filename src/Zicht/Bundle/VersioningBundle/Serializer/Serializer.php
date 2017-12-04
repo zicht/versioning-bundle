@@ -14,6 +14,7 @@ use Zicht\Bundle\VersioningBundle\Model\VersionableInterface;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DateTimeNormalizer;
 use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\DoctrineEntityNormalizer;
 use Symfony\Component\Serializer\Serializer as BaseSerializer;
+use Zicht\Bundle\VersioningBundle\Serializer\Normalizer\FileNormalizer;
 
 /**
  * Class Serializer
@@ -35,7 +36,7 @@ class Serializer
     public function __construct(EntityManager $manager)
     {
         $this->serializer = new BaseSerializer(
-            [new DateTimeNormalizer(), new DoctrineEntityNormalizer($manager)],
+            [new DateTimeNormalizer(), new FileNormalizer(), new DoctrineEntityNormalizer($manager)],
             [new JsonEncoder()]
         );
     }
