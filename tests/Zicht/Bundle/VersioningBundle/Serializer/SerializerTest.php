@@ -6,7 +6,6 @@
 namespace Zicht\Bundle\VersioningBundle\Serializer;
 
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
-use Doctrine\ORM\Proxy\ProxyFactory;
 use Zicht\Bundle\VersioningBundle\Entity\EntityVersion;
 use Zicht\Bundle\VersioningBundle\TestAssets\Entity;
 use Zicht\Bundle\VersioningBundle\TestAssets\OtherEntity;
