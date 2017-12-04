@@ -52,5 +52,5 @@ class ContentItemDetailAdmin extends Admin
 }
 ```
 
-# Maintainer(s)
-* Oskar van Velden <oskar@zicht.nl>
+# Maintainer
+* Boudewijn Schoon <boudewijn@zicht.nl>
