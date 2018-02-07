@@ -8,9 +8,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added|Changed|Deprecated|Removed|Fixed|Security
 Nothing so far
 
+## 1.1.1 - 2018-02-07
+### Fixed
+- Check the validity of history items and do not allow invalid items to be used.
+
 ## 1.1.0 - 2017-12-04
 ### Added
-- `FileNormalizer` and test
+- `FileNormalizer` and test.
 
 ## 1.0.9
 ### Fixed
