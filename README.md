@@ -54,3 +54,5 @@ class ContentItemDetailAdmin extends Admin
 
 # Maintainer
 * Boudewijn Schoon <boudewijn@zicht.nl>
+* Philip Bergman <philip@zicht.nl>
+
