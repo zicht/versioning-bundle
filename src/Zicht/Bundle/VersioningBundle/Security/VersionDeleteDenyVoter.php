@@ -27,6 +27,10 @@ class VersionDeleteDenyVoter extends AbstractVersionVoter
      */
     public function vote(TokenInterface $token, $object, array $attributes)
     {
+        if (!is_object($object)) {
+            return self::ACCESS_ABSTAIN;
+        }
+
         if (!$this->supportsClass(get_class($object))) {
             return self::ACCESS_ABSTAIN;
         }
