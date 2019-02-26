@@ -110,6 +110,31 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
                 $this->versioning->setVersionToLoad($scheduledVersion['source_class'], $scheduledVersion['original_id'], $scheduledVersion['version_number']);
                 /** @var VersionableInterface $entity */
                 $entity = $this->doctrine->getManager()->find($scheduledVersion['source_class'], $scheduledVersion['original_id']);
+
+                if (!$entity) {
+                    $this->getContainer()->get('logger')->warning(
+                        sprintf(
+                            'Entity %s with id %d does not exist anymore, purging record %s.',
+                            $scheduledVersion['source_class'],
+                            $scheduledVersion['original_id'],
+                            $isDryRun ? ' [DRY RUN]' : ''
+                        )
+                    );
+
+                    if ($output->getVerbosity() >= OutputInterface::VERBOSITY_NORMAL) {
+                        $output->writeln(sprintf(
+                            '<comment>Entity %s with id %d does not exist anymore, purging record %s.</comment>',
+                            $scheduledVersion['source_class'],
+                            $scheduledVersion['original_id'],
+                            $isDryRun ? ' [DRY RUN]' : ''
+                        ));
+                    }
+
+                    $stmt = $connection->prepare('DELETE FROM _entity_version WHERE id = :id');
+                    $stmt->execute([':id' => $scheduledVersion['id']]);
+                    continue;
+                }
+
                 $this->versioning->setVersionOperation($entity, VersioningManager::VERSION_OPERATION_ACTIVATE, $scheduledVersion['version_number'], $scheduledVersion['based_on_version']);
                 $this->doctrine->getManager()->persist($entity);
 
