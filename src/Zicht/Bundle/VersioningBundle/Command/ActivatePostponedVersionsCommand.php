@@ -54,6 +54,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
         $this
             ->setName('zicht:versioning:schedule')
             ->addOption('dry-run', '', InputOption::VALUE_NONE, 'Do a dry run (don\'t commit changes)')
+            ->addOption('delete-ghost-entries', '', InputOption::VALUE_NONE, 'Removes ghost entries if found')
             ->setDescription('Search for versions that are supposed to be activated');
     }
 
@@ -64,6 +65,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
     {
         $this->versioning->setSystemToken();
         $isDryRun = $input->getOption('dry-run');
+        $isDeleteGhostEntries = $input->getOption('delete-ghost-entries');
 
         /** @var Connection $connection */
         $connection = $this->doctrine->getConnection();
@@ -111,7 +113,7 @@ class ActivatePostponedVersionsCommand extends ContainerAwareCommand
                 /** @var VersionableInterface $entity */
                 $entity = $this->doctrine->getManager()->find($scheduledVersion['source_class'], $scheduledVersion['original_id']);
 
-                if (!$entity) {
+                if (!$entity && $isDeleteGhostEntries) {
                     $this->getContainer()->get('logger')->warning(
                         sprintf(
                             'Entity %s with id %d does not exist anymore, purging record %s.',
