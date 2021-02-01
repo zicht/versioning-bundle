@@ -15,7 +15,8 @@ use Zicht\Bundle\VersioningBundle\Model\EntityVersionInterface;
  *
  * @ORM\Table(name="_entity_version", indexes= {
  *      @ORM\Index(name="version_index", columns={"source_class", "original_id", "version_number"}),
- *      @ORM\Index(name="active_version", columns={"source_class", "original_id", "is_active"})
+ *      @ORM\Index(name="active_version", columns={"source_class", "original_id", "is_active"}),
+ *      @ORM\Index(name="date_active_from_idx01", columns={"date_active_from"})
  * })
  * @ORM\Entity(repositoryClass="EntityVersionRepository")
  * @ORM\ChangeTrackingPolicy(value="DEFERRED_EXPLICIT")
