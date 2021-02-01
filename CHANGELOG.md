@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added|Changed|Deprecated|Removed|Fixed|Security
 Nothing so far
 
+## 1.1.2 - 2021-02-01
+### Added
+- Index for queries with `WHERE date_active_from` as used in `ActivatePostponedVersionsCommand`.
+
 ## 1.1.1 - 2018-02-07
 ### Fixed
 - Check the validity of history items and do not allow invalid items to be used.
