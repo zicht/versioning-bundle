@@ -8,9 +8,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added|Changed|Deprecated|Removed|Fixed|Security
 Nothing so far
 
-## 1.1.2 - 2021-02-01
+## 1.1.4 - 2021-02-01
 ### Added
 - Index for queries with `WHERE date_active_from` as used in `ActivatePostponedVersionsCommand`.
+
+## 1.1.3 - 2019-02-26
+### Added
+- Removing "ghost" entities.
+
+## 1.1.2 - 2019-01-24
+### Fixed
+- Bugs regarding PHP 7.2.
 
 ## 1.1.1 - 2018-02-07
 ### Fixed
